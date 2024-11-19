@@ -6,6 +6,26 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 
 --------
 
+### Start the Server
+
+Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `start-windows.bat`
+
+```
+./start-windows.bat
+```
+
+![](https://i.imgur.com/rXINeXI.png)
+
+The server will start on port `443` and you can view the website in your browser at `https://localhost`
+
+![](https://i.imgur.com/4AeJ9Rs.png)
+
+Your browser may warn you the certificate is self signed, this is normal.
+
+If you changed the port to something other than `443` or `80` then you have to use `https://localhost:PORT/`
+
+--------
+
 ### Arguments
 
 | Arguments       | Description                                      | Default Value         |
@@ -15,26 +35,6 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 | `--pk=`      | Specifies the path to the private key file associated with the SSL certificate. | `"private-key.pem"` |
 | `--site=`    | Specifies the directory for the website files | `"website"` |
 | `--error=`   | Specifies the directory for error messages (404,500) | `"error"` |
-
---------
-
-### Start the Server
-
-Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `start-windows.bat`
-
-```
-./start-windows.bat --port=443
-```
-
-![](https://i.imgur.com/rXINeXI.png)
-
-You can then view the website in your browser at `https://localhost`
-
-![](https://i.imgur.com/4AeJ9Rs.png)
-
-Your browser may warn you the certificate is self signed, this is normal.
-
-If you changed the port to something other than `443` or `80` then you have to use `https://localhost:PORT/`
 
 --------
 
@@ -107,3 +107,13 @@ You can also set the `PORT` env variable in `Node.js` or modify `server-ssl.js`
 When you run `start-windows.bat` the latest version of `node.exe` portable will be downloaded
 
 If you already have `Node.js` installed you can run `server-ssl.js` directly instead
+
+### Command Prompt
+
+If you run `start-windows.bat` with command prompt and keys need to be generated then `openssl` will be downloaded.
+
+![](https://i.imgur.com/COxLCaf.png)
+
+`openssl` is only `3mb` and will be downloaded from the release page
+
+Its recommended you use [`Git Bash`](https://git-scm.com/downloads/win) (its the same files)
