@@ -106,4 +106,4 @@ When you run `start-windows.bat` the first time the latest version of `node.exe`
 
 ### Use Directly
 
-You can use `server-ssl.js` directly if you have a valid `certificate` and `private key` and `Node.js` already installed
+You can use `server-ssl.js` directly if you have a valid `certificate`,`private key` and `Node.js` already installed
