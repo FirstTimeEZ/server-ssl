@@ -25,50 +25,33 @@ goto loop
 
 :endloop
 
-if NOT "%PORT%"=="" (
-    echo Port: %PORT% 
-)
+if NOT "%PORT%"=="" ( echo Port: %PORT% )
 
 if "%CERT%"=="" (
-    if NOT EXIST "certificate.pem" (
-        set "KEYS=1"
-    )
-) else (
-    echo Certificate: %CERT%
-)
+    if NOT EXIST "certificate.pem" ( set "KEYS=1" )
+) else ( echo Certificate: %CERT% )
 
-if "%PK%"=="" (
-    if NOT EXIST "private-key.pem" (
-        set "KEYS=1"
-    )
-) else (
-    echo Private Key: %PK%
-)
+if "%PK%"=="" ( 
+    if NOT EXIST "private-key.pem" ( set "KEYS=1" )
+) else ( echo Private Key: %PK% )
 
 if "%KEYS%"=="1" (
     echo Generating Keys for Local Development
-
     openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout private-key.pem -out certificate.pem -days 365 -subj "/CN=localhost"
-
-    if EXIST "certificate.pem" ( 
-        echo Generated Certificate
-    )
-
-    if EXIST "private-key.pem" (
-         echo Generated Private Key
-    )
+    if EXIST "certificate.pem" ( echo Successfully Generated Certificate ) else ( echo Certificate Needed, Install OpenSSL and run again. )
+    if EXIST "private-key.pem" ( echo Successfully Generated Private Key ) else ( echo Private Key Needed, Install OpenSSL and run again. )
 )
 
 endlocal
 
 setlocal
 
-IF EXIST "node.exe" (
-    echo Node.js already exists
-) ELSE (
+if EXIST "node.exe" ( echo Node.js already exists ) else (
     echo Downloading Node.js
     curl -o "node.exe" "https://nodejs.org/dist/latest/win-x64/node.exe" -L
 )
+
+echo Starting SSL Web Server
 
 node.exe server-ssl.js %*
 
