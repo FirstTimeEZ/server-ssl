@@ -23,7 +23,7 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `start-windows.bat`
 
 ```
- ./start-windows.bat --port=443
+./start-windows.bat --port=443
 ```
 
 ![](https://i.imgur.com/rXINeXI.png)

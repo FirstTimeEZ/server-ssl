@@ -46,7 +46,6 @@ if "%PK%"=="" (
 )
 
 if "%KEYS%"=="1" (
-    echo Need Keys
     echo Generating Keys for Local Development
 
     openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout private-key.pem -out certificate.pem -days 365 -subj "/CN=localhost"
