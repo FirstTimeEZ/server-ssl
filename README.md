@@ -80,12 +80,12 @@ If you want to add more specific custom error pages, place them in the `/error` 
 
 ### Port
 
-By default, the server runs on port `3000`
+By default, the server runs on port `443`
 
 You can provide a different port as an argument.
 
 ```
- ./start-windows.bat --port=443 --cert="certificate.pem" --pk="private-key.pem"
+./start-windows.bat --port=443 --cert="certificate.pem" --pk="private-key.pem"
 ```
 
 You can also set the `PORT` env variable in `Node.js` or modify `server-ssl.js`
@@ -94,7 +94,7 @@ You can also set the `PORT` env variable in `Node.js` or modify `server-ssl.js`
 
 ### Node.js
 
-When you run `start-windows.bat` the latest version of `node.exe` portable will be downloaded
+When you run `start-windows.bat` the first time the latest version of `node.exe` portable will be downloaded
 
 If you already have `Node.js` installed you can run `server-ssl.js` directly instead
 
@@ -108,4 +108,4 @@ If you run `start-windows.bat` with command prompt and keys need to be generated
 
 `openssl` is only `3mb` and will be downloaded from the release page
 
-Its recommended you use [`Git Bash`](https://git-scm.com/downloads/win) (its the same files)
+Its recommended you use [`Git Bash`](https://git-scm.com/downloads/win) if you want to avoid this (its the same files)
