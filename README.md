@@ -14,7 +14,7 @@ Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win)
 ./start-windows.bat
 ```
 
-![](https://i.imgur.com/rXINeXI.png)
+![](https://i.imgur.com/WkLlML1.png)
 
 The server will start on port `443` and you can view the website in your browser at `https://localhost`
 

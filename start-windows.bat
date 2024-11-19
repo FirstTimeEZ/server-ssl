@@ -47,9 +47,10 @@ if "%KEYS%"=="1" (
         cd ../..
         rmdir /S /Q openssl
         echo Cleaning up Open SSL
-        if EXIST "certificate.pem" ( echo Successfully Generated Certificate ) else ( echo Certificate Needed, Install OpenSSL and run again. )
         if EXIST "private-key.pem" ( echo Successfully Generated Private Key ) else ( echo Private Key Needed, Install OpenSSL and run again. )
     )
+
+    if EXIST "certificate.pem" ( echo Successfully Generated Certificate ) else ( echo Certificate Needed, Install OpenSSL and run again. )
 )
 
 endlocal
