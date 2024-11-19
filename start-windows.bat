@@ -67,4 +67,3 @@ echo Starting SSL Web Server
 node.exe server-ssl.js %*
 
 endlocal
-pause
