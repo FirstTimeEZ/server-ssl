@@ -12,7 +12,9 @@ Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win)
 
 ![](https://i.imgur.com/WkLlML1.png)
 
-You can use the `Command Prompt`, but if keys need to be generated then portable [`OpenSSL`](https://github.com/FirstTimeEZ/openssl) will be downloaded temporarily.
+You can also use the `Command Prompt`
+
+If keys need to be generated then portable [`OpenSSL`](https://github.com/FirstTimeEZ/openssl) will be downloaded temporarily.
 
 ![](https://i.imgur.com/COxLCaf.png)
 
