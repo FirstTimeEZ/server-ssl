@@ -6,7 +6,7 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 
 ### Node.js
 
-When you run `start-windows.bat` the latest version of `node.exe` portable will be downloaded if it doesn't exist already
+When you run `start-windows.bat` the latest version of `node.exe` portable will be downloaded
 
 --------
 
@@ -30,7 +30,7 @@ Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win)
  ./start-windows.bat --port=443 --cert="certificate.pem" --pk="private-key.pem"
 ```
 
-![](https://i.imgur.com/ULvqsvt.png)
+![](https://i.imgur.com/ozjmYOW.png)
 
 You can then view the website in your browser at `https://localhost`
 
