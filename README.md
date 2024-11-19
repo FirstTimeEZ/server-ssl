@@ -20,13 +20,13 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 
 ### Start the Server
 
-Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `server-ssl.js`
+Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `start-windows.bat`
 
 ```
- ./start-windows.bat --port=443 --cert="certificate.pem" --pk="private-key.pem"
+ ./start-windows.bat --port=443
 ```
 
-![](https://i.imgur.com/ozjmYOW.png)
+![](https://i.imgur.com/rXINeXI.png)
 
 You can then view the website in your browser at `https://localhost`
 
@@ -40,7 +40,11 @@ If you changed the port you have to use `https://localhost:PORT/`
 
 ### Create SSL Certificate
 
-If you don't have a `certificate` and `private key` in `pem format` and are developing locally you can create one
+`start-windows.bat` will automatically create keys when you run it if you don't provide any and none exist
+
+![](https://i.imgur.com/rXINeXI.png)
+
+If you don't have a `certificate` and `private key` in `pem format` and are developing locally you can also create them manually.
 
 Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `server-ssl.js` and run this command.
 
