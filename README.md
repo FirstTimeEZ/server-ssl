@@ -6,9 +6,7 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 
 ### Node.js
 
-The server is [`Node.js`](https://nodejs.org/en), so you should install the most recent version.
-
-You can run the included scripts to install [`Node.js`](https://nodejs.org/en) or download it from their website.
+When you run `start-windows.bat` the latest version of `node.exe` portable will be downloaded if it doesn't exist already
 
 --------
 
@@ -28,10 +26,8 @@ You can run the included scripts to install [`Node.js`](https://nodejs.org/en) o
 
 Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `server-ssl.js`
 
-start `server-ssl.js` with `node.js` using whatever arguments you need, eg.
-
 ```
-node server-ssl.js --port=443 --cert="certificate.pem" --pk="private-key.pem"
+ ./start-windows.bat --port=443 --cert="certificate.pem" --pk="private-key.pem"
 ```
 
 ![](https://i.imgur.com/ULvqsvt.png)
@@ -72,7 +68,8 @@ This structure is designed to keep the project organized and maintainable, separ
 ├── /website
 │   └── index.html
 │
-└── server-ssl.js
+├── server-ssl.js
+└── start-windows.bat
 ```
 
 --------
@@ -98,7 +95,7 @@ By default, the server runs on port `3000`
 You can provide a different port as an argument.
 
 ```
-node server-ssl.js --port=443 --cert="certificate.pem" --pk="private-key.pem"
+ ./start-windows.bat --port=443 --cert="certificate.pem" --pk="private-key.pem"
 ```
 
 You can also set the `PORT` env variable in `Node.js` or modify `server-ssl.js`
