@@ -1,6 +1,6 @@
+import { fileURLToPath } from 'url';
 import { createServer } from 'https';
 import { readFile, readFileSync, existsSync } from 'fs';
-import { fileURLToPath } from 'url';
 import { join, extname as _extname, dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -10,9 +10,51 @@ const options = {};
 
 let optPk = null;
 let optCert = null;
-let optWebsite = null;
 let optError = null;
+let optWebsite = null;
 let optPort = process.env.PORT || 443;
+
+function certificateNotExist() {
+    console.log("You need to generate or provide an SSL Certificate and Private Key in PEM format");
+    console.log("You can use the following command from git bash");
+    console.log(" ");
+    console.log('openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout private-key.pem -out certificate.pem -days 365 -subj "//CN=localhost"');
+    process.exit(1);
+}
+
+function loadArguments() {
+    __args.forEach((e) => {
+        let portArg = e.toLowerCase().includes("--port=") ? e.split("=")[1] : null
+        if (portArg !== null) {
+            optPort = portArg;
+        }
+
+        let certPath = e.toLowerCase().includes("--cert=") ? e.split("=")[1] : null
+        if (certPath !== null) {
+            optCert = certPath;
+        }
+
+        let privateKeyPath = e.toLowerCase().includes("--pk=") ? e.split("=")[1] : null
+        if (privateKeyPath !== null) {
+            optPk = privateKeyPath;
+        }
+
+        let websiteFolder = e.toLowerCase().includes("--site=") ? e.split("=")[1] : null
+        if (websiteFolder !== null) {
+            optWebsite = websiteFolder;
+        }
+
+        let errorFolder = e.toLowerCase().includes("--error=") ? e.split("=")[1] : null
+        if (errorFolder !== null) {
+            optError = errorFolder;
+        }
+    });
+
+    !optPk && (optPk = 'private-key.pem');
+    !optCert && (optCert = 'certificate.pem');
+    !optWebsite && (optWebsite = 'website');
+    !optError && (optError = 'error');
+}
 
 loadArguments();
 
@@ -102,45 +144,3 @@ createServer(options, (req, res) => {
     }
     console.log(`Server is running on https://localhost:${optPort}`);
 });
-
-function certificateNotExist() {
-    console.log("You need to generate or provide an SSL Certificate and Private Key in PEM format");
-    console.log("You can use the following command from git bash");
-    console.log(" ");
-    console.log('openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout private-key.pem -out certificate.pem -days 365 -subj "//CN=localhost"');
-    process.exit(1);
-}
-
-function loadArguments() {
-    __args.forEach((e) => {
-        let portArg = e.toLowerCase().includes("--port=") ? e.split("=")[1] : null
-        if (portArg !== null) {
-            optPort = portArg;
-        }
-
-        let certPath = e.toLowerCase().includes("--cert=") ? e.split("=")[1] : null
-        if (certPath !== null) {
-            optCert = certPath;
-        }
-
-        let privateKeyPath = e.toLowerCase().includes("--pk=") ? e.split("=")[1] : null
-        if (privateKeyPath !== null) {
-            optPk = privateKeyPath;
-        }
-
-        let websiteFolder = e.toLowerCase().includes("--site=") ? e.split("=")[1] : null
-        if (websiteFolder !== null) {
-            optWebsite = websiteFolder;
-        }
-
-        let errorFolder = e.toLowerCase().includes("--error=") ? e.split("=")[1] : null
-        if (errorFolder !== null) {
-            optError = errorFolder;
-        }
-    });
-
-    !optPk && (optPk = 'private-key.pem');
-    !optCert && (optCert = 'certificate.pem');
-    !optWebsite && (optWebsite = 'website');
-    !optError && (optError = 'error');
-}
