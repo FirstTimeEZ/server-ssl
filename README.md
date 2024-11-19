@@ -34,7 +34,7 @@ You can then view the website in your browser at `https://localhost`
 
 Your browser may warn you the certificate is self signed, this is normal.
 
-If you changed the port you have to use `https://localhost:PORT/`
+If you changed the port to something other than `443` or `80` then you have to use `https://localhost:PORT/`
 
 --------
 
