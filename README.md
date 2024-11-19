@@ -2,9 +2,9 @@
 
 The server itself is included with [`Node.js`](https://nodejs.org/en), so you should install the most recent version.
 
-### Options
+### Arguments
 
-| Option       | Description                                      | Default Value         |
+| Arguments       | Description                                      | Default Value         |
 |--------------|--------------------------------------------------|-----------------------|
 | `--port=`    | Specifies the port number (443 for HTTPS, 80 for HTTP) | `3000` |
 | `--cert=`    | Specifies the path to the SSL certificate file. | `"certificate.pem"` |
@@ -15,7 +15,7 @@ The server itself is included with [`Node.js`](https://nodejs.org/en), so you sh
 
 Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `server-ssl.js`
 
-Run this command with whatever options you need
+Run this command with whatever arguments you need
 
 ```
 node server-ssl.js --port=443 --cert="certificate.pem" --pk="private-key.pem"
