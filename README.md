@@ -6,7 +6,7 @@ The server itself is included with [`Node.js`](https://nodejs.org/en), so you sh
 
 | Option       | Description                                      | Default Value         |
 |--------------|--------------------------------------------------|-----------------------|
-| `--port=`    | Specifies the port number | `3000` |
+| `--port=`    | Specifies the port number (443 for HTTPS, 80 for HTTP) | `3000` |
 | `--cert=`    | Specifies the path to the SSL certificate file. | `"certificate.pem"` |
 | `--pk=`      | Specifies the path to the private key file associated with the SSL certificate. | `"private-key.pem"` |
 | `--root=`    | Specifies the root directory for the website files. | `"website"` |
