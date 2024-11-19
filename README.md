@@ -40,19 +40,7 @@ If you changed the port to something other than `443` or `80` then you have to u
 
 ### Create SSL Certificate
 
-`start-windows.bat` will automatically create keys when you run it if you don't provide any and none exist
-
-You must be using [`Git Bash`](https://git-scm.com/downloads/win) for keys to get created automatically
-
-![](https://i.imgur.com/rXINeXI.png)
-
-If you don't have a `certificate` and `private key` in `pem format` and are developing locally you can also create them manually.
-
-Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `server-ssl.js` and run this command.
-
-```
-openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout private-key.pem -out certificate.pem -days 365 -subj "//CN=localhost"
-```
+`start-windows.bat` will automatically create a `certificate` and `private key` when you run it if you don't provide any and none exist
 
 --------
 
