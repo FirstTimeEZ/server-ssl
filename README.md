@@ -10,7 +10,7 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 
 | Arguments       | Description                                      | Default Value         |
 |--------------|--------------------------------------------------|-----------------------|
-| `--port=`    | Specifies the port number (443 for HTTPS, 80 for HTTP) | `3000` |
+| `--port=`    | Specifies the port number (443 for HTTPS, 80 for HTTP) | `443` |
 | `--cert=`    | Specifies the path to the SSL certificate file. | `"certificate.pem"` |
 | `--pk=`      | Specifies the path to the private key file associated with the SSL certificate. | `"private-key.pem"` |
 | `--site=`    | Specifies the directory for the website files | `"website"` |

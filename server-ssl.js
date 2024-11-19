@@ -15,7 +15,7 @@ let optPk = null;
 let optCert = null;
 let optWebsite = null;
 let optError = null;
-let optPort = process.env.PORT || 3000;
+let optPort = process.env.PORT || 443;
 
 loadArguments();
 
