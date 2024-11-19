@@ -8,15 +8,21 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 
 ### Start the Server
 
-Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `start-windows.bat`
+Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `start-windows.bat` (recommended)
+
+![](https://i.imgur.com/WkLlML1.png)
+
+You can use the `Command Prompt`, but if keys need to be generated then portable [`OpenSSL`](https://github.com/FirstTimeEZ/openssl) will be downloaded temporarily.
+
+![](https://i.imgur.com/COxLCaf.png)
 
 ```
 ./start-windows.bat
 ```
 
-![](https://i.imgur.com/WkLlML1.png)
+With no arguments the server will start on port `443` with a `self signed certificate`
 
-The server will start on port `443` and you can view the website in your browser at `https://localhost`
+You can view the website in your browser at `https://localhost`
 
 ![](https://i.imgur.com/4AeJ9Rs.png)
 
@@ -96,16 +102,6 @@ You can also set the `PORT` env variable in `Node.js` or modify `server-ssl.js`
 
 When you run `start-windows.bat` the first time the latest version of `node.exe` portable will be downloaded
 
-If you already have `Node.js` installed you can run `server-ssl.js` directly instead
+### Use Directly
 
---------
-
-### Command Prompt
-
-If you run `start-windows.bat` with command prompt and keys need to be generated then `openssl` will be downloaded.
-
-![](https://i.imgur.com/COxLCaf.png)
-
-`openssl` is only `3mb` and will be downloaded from the release page
-
-Its recommended you use [`Git Bash`](https://git-scm.com/downloads/win) if you want to avoid this (its the same files)
+You can use `server-ssl.js` directly if you have a valid `certificate` and `private key` and `Node.js` already installed
