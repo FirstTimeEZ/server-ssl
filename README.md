@@ -40,7 +40,9 @@ If you changed the port to something other than `443` or `80` then you have to u
 
 ### Create SSL Certificate
 
-`start-windows.bat` will automatically create keys when you run it if you don't provide any and none exist and you are using [`Git Bash`](https://git-scm.com/downloads/win)
+`start-windows.bat` will automatically create keys when you run it if you don't provide any and none exist
+
+You must be using [`Git Bash`](https://git-scm.com/downloads/win) for keys to get created automatically
 
 ![](https://i.imgur.com/rXINeXI.png)
 
