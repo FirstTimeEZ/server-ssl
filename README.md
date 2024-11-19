@@ -15,7 +15,7 @@ The server itself is included with [`Node.js`](https://nodejs.org/en), so you sh
 
 Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `server-ssl.js`
 
-Run this command with whatever arguments you need
+start `server-ssl.js` with `node.js` using whatever arguments you need, eg.
 
 ```
 node server-ssl.js --port=443 --cert="certificate.pem" --pk="private-key.pem"
