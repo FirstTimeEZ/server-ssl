@@ -39,7 +39,7 @@ if "%KEYS%"=="1" (
     openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout private-key.pem -out certificate.pem -days 365 -subj "/CN=localhost"
     if EXIST "private-key.pem" ( echo Successfully Generated Private Key ) else (
         echo Download GitBash OpenSSL and Generate Keys
-        curl -o "openssl.zip" "https://github.com/FirstTimeEZ/server-ssl/releases/download/v1.6/openssl.zip" -L --ssl-no-revoke
+        curl -o "openssl.zip" "https://github.com/FirstTimeEZ/server-ssl/releases/download/v1.6/openssl.zip" -L --ssl-no-revoke --retry 5
         tar -xf openssl.zip
         del openssl.zip
         cd openssl/bin
@@ -59,7 +59,7 @@ setlocal
 
 if EXIST "node.exe" ( echo Node.js already exists ) else (
     echo Downloading Node.js
-    curl -o "node.exe" "https://nodejs.org/dist/latest/win-x64/node.exe" -L
+    curl -o "node.exe" "https://nodejs.org/dist/latest/win-x64/node.exe" -L --retry 5
 )
 
 echo Starting SSL Web Server
