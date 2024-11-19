@@ -3,9 +3,6 @@ import { readFile, readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { join, extname as _extname, dirname } from 'path';
 
-// openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout private-key.pem -out certificate.pem -days 365 -subj "//CN=localhost"
-// node server-ssl.js port=443
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const __args = process.argv.slice(2);
