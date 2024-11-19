@@ -29,7 +29,7 @@ options.cert = readFileSync(optCert);
  * @param {Request} req - The incoming request object.
  * @param {Response} res - The response object to send data back to the client.
  */
-const server = createServer(options, (req, res) => {
+createServer(options, (req, res) => {
     let filePath = join(__dirname, optWebsite, req.url === '/' ? 'index.html' : req.url);
 
     const extname = _extname(filePath);
@@ -95,9 +95,7 @@ const server = createServer(options, (req, res) => {
         res.writeHead(200, { 'Content-Type': contentType });
         res.end(content);
     });
-});
-
-server.listen(optPort, (err) => {
+}).listen(optPort, (err) => {
     if (err) {
         console.error('Error starting server:', err);
         return;
