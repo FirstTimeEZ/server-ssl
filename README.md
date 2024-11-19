@@ -1,8 +1,14 @@
 # server-ssl.js
 
-The server itself is included with [`Node.js`](https://nodejs.org/en), so you should install the most recent version.
+Easily configure a `Web Server` that uses `SSL`
 
 Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/responsive)
+
+### Node.js
+
+The server is [`Node.js`](https://nodejs.org/en), so you should install the most recent version.
+
+You can run the included scripts to install [`Node.js`](https://nodejs.org/en) or download it from their website.
 
 --------
 
