@@ -10,13 +10,13 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 
 Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `start-windows.bat` (recommended)
 
-![](https://i.imgur.com/WkLlML1.png)
+[![](https://i.imgur.com/WkLlML1.png)](https://git-scm.com/downloads/win)
 
 You can also use the `Command Prompt`
 
 Portable [`OpenSSL`](https://github.com/FirstTimeEZ/openssl) will be downloaded temporarily if you don't have it installed.
 
-![](https://i.imgur.com/COxLCaf.png)
+[![](https://i.imgur.com/COxLCaf.png)](https://github.com/FirstTimeEZ/responsive)
 
 ```
 ./start-windows.bat
@@ -26,7 +26,7 @@ With no arguments the server will start on port `443` with a `self signed certif
 
 You can view the website in your browser at `https://localhost`
 
-![](https://i.imgur.com/4AeJ9Rs.png)
+[![](https://i.imgur.com/4AeJ9Rs.png)](https://github.com/FirstTimeEZ/responsive)
 
 Your browser may warn you the certificate is self signed, this is normal.
 
@@ -76,11 +76,11 @@ This structure is designed to keep the project organized and maintainable, separ
 
 The server is configured to serve custom `404` and `500` error pages. 
 
-![](https://i.imgur.com/LvLnXMR.png)
+[![](https://i.imgur.com/LvLnXMR.png)](https://github.com/FirstTimeEZ/responsive)
 
 Currently everything is treated like a `Server Error` except for `Page Not Found`
 
-![](https://i.imgur.com/HJoNquS.png)
+[![](https://i.imgur.com/HJoNquS.png)](https://github.com/FirstTimeEZ/responsive)
 
 If you want to add more specific custom error pages, place them in the `/error` folder and update `server-ssl.js`
 
