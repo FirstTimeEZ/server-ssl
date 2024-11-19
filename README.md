@@ -6,9 +6,7 @@ The server itself is included with [`Node.js`](https://nodejs.org/en), so you sh
 
 If you don't have a `certificate` and `private key` in `pem format` and are developing locally you can create one
 
-Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `server-ssl.js`
-
-Run this command with whatever options you need
+Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `server-ssl.js` and run this command.
 
 ```
 openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout private-key.pem -out certificate.pem -days 365 -subj "//CN=localhost"
