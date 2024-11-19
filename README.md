@@ -4,6 +4,8 @@ The server itself is included with [`Node.js`](https://nodejs.org/en), so you sh
 
 Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/responsive)
 
+--------
+
 ### Arguments
 
 | Arguments       | Description                                      | Default Value         |
@@ -13,6 +15,8 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 | `--pk=`      | Specifies the path to the private key file associated with the SSL certificate. | `"private-key.pem"` |
 | `--site=`    | Specifies the directory for the website files | `"website"` |
 | `--error=`   | Specifies the directory for error messages (404,500) | `"error"` |
+
+--------
 
 ### Start the Server
 
@@ -34,6 +38,8 @@ Your browser may warn you the certificate is self signed, this is normal.
 
 If you changed the port you have to use `https://localhost:PORT/`
 
+--------
+
 ### Create SSL Certificate
 
 If you don't have a `certificate` and `private key` in `pem format` and are developing locally you can create one
@@ -43,6 +49,8 @@ Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win)
 ```
 openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout private-key.pem -out certificate.pem -days 365 -subj "//CN=localhost"
 ```
+
+--------
 
 ### Default Structure
 
@@ -61,6 +69,8 @@ This structure is designed to keep the project organized and maintainable, separ
 └── server-ssl.js
 ```
 
+--------
+
 ### 404/500 Pages
 
 The server is configured to serve custom `404` and `500` error pages. 
@@ -72,6 +82,8 @@ Currently everything is treated like a `Server Error` except for `Page Not Found
 ![](https://i.imgur.com/HJoNquS.png)
 
 If you want to add more specific custom error pages, place them in the `/error` folder and update `server-ssl.js`
+
+--------
 
 ### Port
 
