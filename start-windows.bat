@@ -1,13 +1,11 @@
 @echo off
 setlocal
 
-rem
 set "PORT="
 set "CERT="
 set "PK="
 set "KEYS=0"
 
-rem
 :loop
 if "%~1"=="" goto endloop
 if "%~1"=="--port" (
@@ -22,7 +20,6 @@ if "%~1"=="--port" (
 )
 shift
 goto loop
-
 :endloop
 
 if NOT "%PORT%"=="" ( echo Port: %PORT% )
@@ -56,4 +53,3 @@ echo Starting SSL Web Server
 node.exe server-ssl.js %*
 
 endlocal
-pause
