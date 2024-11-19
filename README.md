@@ -1,6 +1,6 @@
 # server-ssl.js
 
-Easily configure a `Web Server` that uses `SSL`
+Easy to configure `SSL Web Server` that can be used for development or production
 
 Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/responsive)
 
