@@ -133,7 +133,7 @@ function loadArguments() {
             optPk = privateKeyPath;
         }
 
-        let websiteFolder = e.toLowerCase().includes("--website=") ? e.split("=")[1] : null
+        let websiteFolder = e.toLowerCase().includes("--site=") ? e.split("=")[1] : null
         if (websiteFolder !== null) {
             optWebsite = websiteFolder;
         }
