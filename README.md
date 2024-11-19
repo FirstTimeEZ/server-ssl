@@ -102,11 +102,15 @@ You can provide a different port as an argument.
 
 You can also set the `PORT` env variable in `Node.js` or modify `server-ssl.js`
 
+--------
+
 ### Node.js
 
 When you run `start-windows.bat` the latest version of `node.exe` portable will be downloaded
 
 If you already have `Node.js` installed you can run `server-ssl.js` directly instead
+
+--------
 
 ### Command Prompt
 
