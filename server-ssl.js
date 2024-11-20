@@ -52,7 +52,7 @@ function loadArguments() {
             optPortHttp = portHttpArg;
         }
 
-        let redirectHttpArg = lowerCase.includes("--disableredirecthttp");
+        let redirectHttpArg = lowerCase.includes("--noredirect");
         if (redirectHttpArg !== null) {
             optDisableRedirectHttp = true;
         }
