@@ -10,7 +10,9 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 
 ### Start the Server
 
-`start-windows.bat` will start the server on port `443` with a `self signed certificate` if you provide no arguments.
+`start-windows.bat` will start the server for development if you provide no arguments.
+
+This will be on port `443` with a `self signed certificate`
 
 ```
 # Start for development
