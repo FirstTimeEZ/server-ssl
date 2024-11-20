@@ -40,46 +40,14 @@ function useSslFolder() {
 function loadArguments() {
     __args.forEach((arg) => {
         let rightSide = arg.split("=")[1];
-
-        let portArg = arg.includes("--port=") ? rightSide : null
-        if (portArg !== null) {
-            optPort = portArg;
-        }
-
-        let portHttpArg = arg.includes("--portHttp=") ? rightSide : null
-        if (portHttpArg !== null) {
-            optPortHttp = portHttpArg;
-        }
-
-        let redirectHttpArg = arg.includes("--noRedirect");
-        if (redirectHttpArg !== null) {
-            optDisableRedirectHttp = true;
-        }
-
-        let certPath = arg.includes("--cert=") ? rightSide : null
-        if (certPath !== null) {
-            optCert = certPath;
-        }
-
-        let privateKeyPath = arg.includes("--pk=") ? rightSide : null
-        if (privateKeyPath !== null) {
-            optPk = privateKeyPath;
-        }
-
-        let websiteFolder = arg.includes("--site=") ? rightSide : null
-        if (websiteFolder !== null) {
-            optWebsite = websiteFolder;
-        }
-
-        let errorFolder = arg.includes("--error=") ? rightSide : null
-        if (errorFolder !== null) {
-            optError = errorFolder;
-        }
-
-        let entryPoint = arg.includes("--entry=") ? rightSide : null
-        if (entryPoint !== null) {
-            optEntry = entryPoint;
-        }
+        arg.includes("--port=") && (optPort = rightSide);
+        arg.includes("--portHttp=") && (optPortHttp = rightSide);
+        arg.includes("--cert=") && (optCert = rightSide);
+        arg.includes("--pk=") && (optPk = rightSide);
+        arg.includes("--site=") && (optWebsite = rightSide);
+        arg.includes("--error=") && (optError = rightSide);
+        arg.includes("--entry=") && (optEntry = rightSide);
+        arg.includes("--noRedirect") && (optDisableRedirectHttp = true);
     });
 
     !optPk && (optPk = 'private-key.pem');
