@@ -2,6 +2,8 @@
 
 Easy to configure `SSL Web Server` that can be used for development or production
 
+`HTTP` requests are redirected to `HTTPS`
+
 Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/responsive)
 
 --------
@@ -38,12 +40,14 @@ If you changed the port to something other than `443` or `80` then you have to u
 
 | Arguments       | Description                                      | Default Value         |
 |--------------|--------------------------------------------------|-----------------------|
-| `--port=`    | Specifies the port number (443 for HTTPS, 80 for HTTP) | `443` |
+| `--port=`    | Specifies the port number for HTTPS | `443` |
+| `--portHttp=`| Specifies the port number for HTTP that will be redirected | `80` |
 | `--cert=`    | Specifies the path to the SSL certificate file. | `"certificate.pem"` |
 | `--pk=`      | Specifies the path to the private key file associated with the SSL certificate. | `"private-key.pem"` |
 | `--site=`    | Specifies the directory for the website files | `"website"` |
 | `--error=`   | Specifies the directory for error messages (404,500) | `"error"` |
 | `--entry=`   | Specifies the page to use for the entry point | `"index.html"` |
+| `--disableRedirectHttp` | Specifies that http requests should not be redirected | `not present` |
 
 > [!IMPORTANT]
 > Your `Cerfificate` and `Private Key` should be relative to the `SSL` folder if you bring your own

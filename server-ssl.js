@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'url';
-import { createServer } from 'https';
+import { createServer as createServerHTTPS } from 'https';
+import { createServer as createServerHTTP } from 'http';
 import { readFile, readFileSync, existsSync, mkdir } from 'fs';
 import { join, extname as _extname, dirname } from 'path';
 
@@ -13,7 +14,9 @@ let optCert = null;
 let optError = null;
 let optEntry = null;
 let optWebsite = null;
+let optDisableRedirectHttp = false;
 let optPort = process.env.PORT || 443;
+let optPortHttp = process.env.PORT_HTTP || 80;
 
 function certificateNotExist() {
     console.log(" ");
@@ -39,6 +42,16 @@ function loadArguments() {
         let portArg = e.toLowerCase().includes("--port=") ? e.split("=")[1] : null
         if (portArg !== null) {
             optPort = portArg;
+        }
+
+        let portHttpArg = e.toLowerCase().includes("--portHttp=") ? e.split("=")[1] : null
+        if (portHttpArg !== null) {
+            optPortHttp = portHttpArg;
+        }
+
+        let redirectHttpArg = e.toLowerCase().includes("--disableRedirectHttp");
+        if (redirectHttpArg !== null) {
+            optDisableRedirectHttp = true;
         }
 
         let certPath = e.toLowerCase().includes("--cert=") ? e.split("=")[1] : null
@@ -90,11 +103,8 @@ options.cert = readFileSync(certPath);
 /**
  * Creates an HTTPS server that handles incoming requests.
  * 
- * @function
- * @param {Request} req - The incoming request object.
- * @param {Response} res - The response object to send data back to the client.
  */
-createServer(options, (req, res) => {
+createServerHTTPS(options, (req, res) => {
     let filePath = join(__dirname, optWebsite, req.url === '/' ? optEntry : req.url);
 
     const extname = _extname(filePath);
@@ -165,5 +175,17 @@ createServer(options, (req, res) => {
         console.error('Error starting server:', err);
         return;
     }
-    console.log(`Server is running on https://localhost:${optPort}`);
+    console.log(`HTTPS Server is running on port ${optPort}`);
+})
+
+/**
+ * Creates an HTTP server that redirects incoming requests to HTTPS unless
+ * 
+ * using the --disableRedirectHttp flag is present will disable this
+ */
+!optDisableRedirectHttp && createServerHTTP((req, res) => {
+    res.writeHead(301, { "Location": `https://${req.headers.host}${req.url}` });
+    res.end();
+}).listen(optPortHttp, () => {
+    console.log(`HTTP Server is redirecting requests to ${optPort}`);
 });
