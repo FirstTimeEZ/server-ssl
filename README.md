@@ -10,9 +10,17 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 
 ### Start the Server
 
+`start-windows.bat` will start the server on port `443` with a `self signed certificate` if you provide no arguments.
+
 ```
+# Start for development
 ./start-windows.bat
+
+# Start for production
+./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
+
+<details> <summary>Show the differences between starting with <a href="https://git-scm.com/downloads/win">Git Bash</a> or Command Prompt</summary>
 
 Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `start-windows.bat` (recommended)
 
@@ -24,9 +32,9 @@ Portable [`OpenSSL`](https://github.com/FirstTimeEZ/openssl) will be downloaded 
 
 [![](https://i.imgur.com/2anEyXe.png)](https://github.com/FirstTimeEZ/responsive)[![](https://i.imgur.com/wzs3sXc.png)](https://github.com/FirstTimeEZ/responsive)
 
-You can view the website in your browser at `https://localhost`
+</details>
 
-With no arguments the server will start on port `443` with a `self signed certificate`
+You can view the website in your browser at `https://localhost`
 
 [![](https://i.imgur.com/4AeJ9Rs.png)](https://github.com/FirstTimeEZ/responsive)
 
