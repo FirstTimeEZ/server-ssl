@@ -43,6 +43,7 @@ If you changed the port to something other than `443` or `80` then you have to u
 | `--pk=`      | Specifies the path to the private key file associated with the SSL certificate. | `"private-key.pem"` |
 | `--site=`    | Specifies the directory for the website files | `"website"` |
 | `--error=`   | Specifies the directory for error messages (404,500) | `"error"` |
+| `--entry=`   | Specifies the page to use for the entry point | `"index.html"` |
 
 --------
 

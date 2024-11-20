@@ -11,6 +11,7 @@ const options = {};
 let optPk = null;
 let optCert = null;
 let optError = null;
+let optEntry = null;
 let optWebsite = null;
 let optPort = process.env.PORT || 443;
 
@@ -48,12 +49,18 @@ function loadArguments() {
         if (errorFolder !== null) {
             optError = errorFolder;
         }
+
+        let entryPoint = e.toLowerCase().includes("--entry=") ? e.split("=")[1] : null
+        if (entryPoint !== null) {
+            optEntry = entryPoint;
+        }
     });
 
     !optPk && (optPk = 'private-key.pem');
     !optCert && (optCert = 'certificate.pem');
     !optWebsite && (optWebsite = 'website');
     !optError && (optError = 'error');
+    !optEntry && (optEntry = 'index.html');
 }
 
 loadArguments();
