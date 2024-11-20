@@ -149,9 +149,9 @@ createServerHTTPS(options, (req, res) => {
 })
 
 /**
- * Creates an HTTP server that redirects incoming requests to HTTPS unless
- * 
- * using the --disableRedirectHttp flag is present will disable this
+ * Creates an HTTP server that redirects incoming requests to HTTPS
+ * using --noRedirect flag will disable this
+ *
  */
 !optDisableRedirectHttp && createServerHTTP((req, res) => {
     res.writeHead(301, { "Location": `https://${req.headers.host}${req.url}` });
