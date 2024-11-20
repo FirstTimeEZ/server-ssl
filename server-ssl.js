@@ -150,7 +150,7 @@ createServerHTTPS(options, (req, res) => {
 
 /**
  * Creates an HTTP server that redirects incoming requests to HTTPS
- * using --noRedirect flag will disable this
+ * using the --noRedirect flag will disable this
  *
  */
 !optDisableRedirectHttp && createServerHTTP((req, res) => {
