@@ -48,7 +48,7 @@ Your browser may warn you the certificate is self signed, this is normal.
 | `--entry=`   | Specifies the page to use for the entry point | `"index.html"` |
 
 > [!IMPORTANT]
-> Your `Cerfificate` and `Private Key` should be in the `SSL` folder
+> Your `Cerfificate` and `Private Key` should be relative to the `SSL` folder if your bring your own
 
 --------
 
@@ -65,7 +65,7 @@ node server-ssl.js --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
 > [!IMPORTANT]
-> Your `Cerfificate` and `Private Key` should be in the `SSL` folder
+> Your `Cerfificate` and `Private Key` should be relative to the `SSL` folder if your bring your own
 
 ### Create SSL Certificate
 

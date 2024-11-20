@@ -1,4 +1,5 @@
-Your `Certificate` and `Private Key` should be stored in this folder or a folder relative to this folder
+> [!IMPORTANT]
+> Your `Cerfificate` and `Private Key` should be relative to the `SSL` folder if your bring your own
 
 ```
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
