@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'url';
 import { createServer } from 'https';
-import { readFile, readFileSync, existsSync } from 'fs';
+import { readFile, readFileSync, existsSync, mkdir } from 'fs';
 import { join, extname as _extname, dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,10 +16,21 @@ let optWebsite = null;
 let optPort = process.env.PORT || 443;
 
 function certificateNotExist() {
+    console.log(" ");
+    console.log("Certificate and Private Key not found or don't exist, they should be in the ssl folder");
+    console.log(" ");
     console.log("You need to generate or provide an SSL Certificate and Private Key in PEM format");
     console.log("You can use the following command from git bash");
     console.log(" ");
     console.log('openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout private-key.pem -out certificate.pem -days 365 -subj "//CN=localhost"');
+    process.exit(1);
+}
+
+function useSslFolder() {
+    mkdir(sslFolder, { recursive: true }, () => { });
+    console.log(" ");
+    console.log("Put your Certificate and Private Key in the SSL folder that was just created");
+    console.log(" ");
     process.exit(1);
 }
 
@@ -65,11 +76,16 @@ function loadArguments() {
 
 loadArguments();
 
-!existsSync(optPk) && certificateNotExist();
-!existsSync(optCert) && certificateNotExist();
+const sslFolder = join(__dirname, "ssl");
+const pkPath = join(sslFolder, optPk);
+const certPath = join(sslFolder, optCert);
 
-options.key = readFileSync(optPk);
-options.cert = readFileSync(optCert);
+!existsSync(sslFolder) && useSslFolder();
+!existsSync(pkPath) && certificateNotExist();
+!existsSync(certPath) && certificateNotExist();
+
+options.key = readFileSync(pkPath);
+options.cert = readFileSync(certPath);
 
 /**
  * Creates an HTTPS server that handles incoming requests.

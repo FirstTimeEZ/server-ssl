@@ -66,9 +66,14 @@ This structure is designed to keep the project organized and maintainable, separ
 │   ├── 404.html
 │   └── 500.html
 │
+├── /ssl
+│   ├── your-private-key.pem
+│   └── your-certificate.pem
+│
 ├── /website
 │   └── index.html
 │
+├── node.exe
 ├── server-ssl.js
 └── start-windows.bat
 ```
