@@ -12,7 +12,7 @@ Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/resp
 
 `start-windows.bat` will start the server for development if you provide no arguments.
 
-This will be on port `443` with a `self signed certificate`
+This will be on port `443` with a `self signed certificate` at `https://localhost`
 
 ```
 # Start for development
@@ -35,8 +35,6 @@ Portable [`OpenSSL`](https://github.com/FirstTimeEZ/openssl) will be downloaded 
 [![](https://i.imgur.com/2anEyXe.png)](https://github.com/FirstTimeEZ/responsive)[![](https://i.imgur.com/wzs3sXc.png)](https://github.com/FirstTimeEZ/responsive)
 
 </details>
-
-You can view the website in your browser at `https://localhost`
 
 [![](https://i.imgur.com/4AeJ9Rs.png)](https://github.com/FirstTimeEZ/responsive)
 
