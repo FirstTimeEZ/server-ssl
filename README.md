@@ -51,6 +51,8 @@ If you changed the port to something other than `443` or `80` then you have to u
 
 `start-windows.bat` will automatically create a `certificate` and `private key` when you run it if you don't provide any and none exist
 
+![](https://i.imgur.com/vAMuDOG.png)
+
 --------
 
 ### Default Structure
