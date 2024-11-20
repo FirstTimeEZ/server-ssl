@@ -38,43 +38,46 @@ function useSslFolder() {
 }
 
 function loadArguments() {
-    __args.forEach((e) => {
-        let portArg = e.toLowerCase().includes("--port=") ? e.split("=")[1] : null
+    __args.forEach((arg) => {
+        let lowerCase = arg.toLowerCase();
+        let rightSide = arg.split("=")[1];
+
+        let portArg = lowerCase.includes("--port=") ? rightSide : null
         if (portArg !== null) {
             optPort = portArg;
         }
 
-        let portHttpArg = e.toLowerCase().includes("--portHttp=") ? e.split("=")[1] : null
+        let portHttpArg = lowerCase.includes("--porthttp=") ? rightSide : null
         if (portHttpArg !== null) {
             optPortHttp = portHttpArg;
         }
 
-        let redirectHttpArg = e.toLowerCase().includes("--disableRedirectHttp");
+        let redirectHttpArg = lowerCase.includes("--disableredirecthttp");
         if (redirectHttpArg !== null) {
             optDisableRedirectHttp = true;
         }
 
-        let certPath = e.toLowerCase().includes("--cert=") ? e.split("=")[1] : null
+        let certPath = lowerCase.includes("--cert=") ? rightSide : null
         if (certPath !== null) {
             optCert = certPath;
         }
 
-        let privateKeyPath = e.toLowerCase().includes("--pk=") ? e.split("=")[1] : null
+        let privateKeyPath = lowerCase.includes("--pk=") ? rightSide : null
         if (privateKeyPath !== null) {
             optPk = privateKeyPath;
         }
 
-        let websiteFolder = e.toLowerCase().includes("--site=") ? e.split("=")[1] : null
+        let websiteFolder = lowerCase.includes("--site=") ? rightSide : null
         if (websiteFolder !== null) {
             optWebsite = websiteFolder;
         }
 
-        let errorFolder = e.toLowerCase().includes("--error=") ? e.split("=")[1] : null
+        let errorFolder = lowerCase.includes("--error=") ? rightSide : null
         if (errorFolder !== null) {
             optError = errorFolder;
         }
 
-        let entryPoint = e.toLowerCase().includes("--entry=") ? e.split("=")[1] : null
+        let entryPoint = lowerCase.includes("--entry=") ? rightSide : null
         if (entryPoint !== null) {
             optEntry = entryPoint;
         }
