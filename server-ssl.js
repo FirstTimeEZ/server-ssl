@@ -79,7 +79,7 @@ options.cert = readFileSync(optCert);
  * @param {Response} res - The response object to send data back to the client.
  */
 createServer(options, (req, res) => {
-    let filePath = join(__dirname, optWebsite, req.url === '/' ? 'index.html' : req.url);
+    let filePath = join(__dirname, optWebsite, req.url === '/' ? optEntry : req.url);
 
     const extname = _extname(filePath);
 
