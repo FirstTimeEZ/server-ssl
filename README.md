@@ -40,7 +40,7 @@ If you changed the port to something other than `443` or `80` then you have to u
 
 To use `server-ssl.js` in production you will need to provide arguments, they are case sensitive.
 
-| Arguments       | Description                                      | Default Value         |
+| Arguments/Flags       | Description                                      | Default Value         |
 |-------------------------|----------------------------------|-----------------------|
 | `--port=`      | Specifies the port number for HTTPS | `443` |
 | `--portHttp=`  | Specifies the port number for HTTP that will be redirected | `80` |
