@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> Your `Cerfificate` and `Private Key` should be relative to the `SSL` folder if your bring your own
+> Your `Cerfificate` and `Private Key` should be relative to the `SSL` folder if you bring your own
 
 ```
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"

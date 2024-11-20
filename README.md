@@ -18,21 +18,19 @@ Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win)
 
 You can also use the `Command Prompt`
 
-Portable [`OpenSSL`](https://github.com/FirstTimeEZ/openssl) will be downloaded temporarily if you don't have it installed.
+Portable [`OpenSSL`](https://github.com/FirstTimeEZ/openssl) will be downloaded temporarily if required to generate keys if you use `Command Prompt`
 
 [![](https://i.imgur.com/2anEyXe.png)](https://github.com/FirstTimeEZ/responsive)[![](https://i.imgur.com/wzs3sXc.png)](https://github.com/FirstTimeEZ/responsive)
 
 You can view the website in your browser at `https://localhost`
 
-> [!NOTE]
-> With no arguments the server will start on port `443` with a `self signed certificate`
+With no arguments the server will start on port `443` with a `self signed certificate`
 
 [![](https://i.imgur.com/4AeJ9Rs.png)](https://github.com/FirstTimeEZ/responsive)
 
 Your browser may warn you the certificate is self signed, this is normal.
 
-> [!NOTE]
-> If you changed the port to something other than `443` or `80` then you have to use `https://localhost:PORT/`
+If you changed the port to something other than `443` or `80` then you have to use `https://localhost:PORT/`
 
 --------
 
@@ -48,7 +46,7 @@ Your browser may warn you the certificate is self signed, this is normal.
 | `--entry=`   | Specifies the page to use for the entry point | `"index.html"` |
 
 > [!IMPORTANT]
-> Your `Cerfificate` and `Private Key` should be relative to the `SSL` folder if your bring your own
+> Your `Cerfificate` and `Private Key` should be relative to the `SSL` folder if you bring your own
 
 --------
 
@@ -65,7 +63,7 @@ node server-ssl.js --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
 > [!IMPORTANT]
-> Your `Cerfificate` and `Private Key` should be relative to the `SSL` folder if your bring your own
+> Your `Cerfificate` and `Private Key` should be relative to the `SSL` folder if you bring your own
 
 ### Create SSL Certificate
 
