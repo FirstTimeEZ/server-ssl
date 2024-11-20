@@ -41,14 +41,14 @@ If you changed the port to something other than `443` or `80` then you have to u
 To use `server-ssl.js` in production you will need to provide arguments, they are case sensitive.
 
 | Arguments       | Description                                      | Default Value         |
-|--------------|--------------------------------------------------|-----------------------|
-| `--port=`    | Specifies the port number for HTTPS | `443` |
-| `--portHttp=`| Specifies the port number for HTTP that will be redirected | `80` |
-| `--cert=`    | Specifies the path to the SSL certificate file. | `"certificate.pem"` |
-| `--pk=`      | Specifies the path to the private key file associated with the SSL certificate. | `"private-key.pem"` |
-| `--site=`    | Specifies the directory for the website files | `"website"` |
-| `--error=`   | Specifies the directory for error messages (404,500) | `"error"` |
-| `--entry=`   | Specifies the page to use for the entry point | `"index.html"` |
+|-------------------------|----------------------------------|-----------------------|
+| `--port=`      | Specifies the port number for HTTPS | `443` |
+| `--portHttp=`  | Specifies the port number for HTTP that will be redirected | `80` |
+| `--cert=`      | Specifies the path to the SSL certificate file. | `"certificate.pem"` |
+| `--pk=`        | Specifies the path to the private key file associated with the SSL certificate. | `"private-key.pem"` |
+| `--site=`      | Specifies the directory for the website files | `"website"` |
+| `--error=`     | Specifies the directory for error messages (404,500) | `"error"` |
+| `--entry=`     | Specifies the page to use for the entry point | `"index.html"` |
 | `--noRedirect` | Specifies that http requests should not be redirected | `not present` |
 
 > [!IMPORTANT]
