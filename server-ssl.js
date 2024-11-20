@@ -25,7 +25,7 @@ function certificateNotExist() {
     console.log("You need to generate or provide an SSL Certificate and Private Key in PEM format");
     console.log("You can use the following command from git bash");
     console.log(" ");
-    console.log('openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout private-key.pem -out certificate.pem -days 365 -subj "//CN=localhost"');
+    console.log('openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ssl/private-key.pem -out ssl/certificate.pem -days 365 -subj "//CN=localhost"');
     process.exit(1);
 }
 
