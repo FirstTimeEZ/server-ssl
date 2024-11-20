@@ -50,17 +50,17 @@ To use `server-ssl.js` in production you will need to provide arguments, they ar
 
 | Arguments/Flags       | Description                                      | Default Value         |
 |-------------------------|----------------------------------|-----------------------|
-| `--port=`      | Specifies the port number for HTTPS | `443` |
+| `--port=`      | Specifies the port number for `HTTPS` | `443` |
 | `--portHttp=`  | Specifies the port number for HTTP that will be redirected | `80` |
-| `--cert=`      | Specifies the path to the SSL certificate file. | `"certificate.pem"` |
-| `--pk=`        | Specifies the path to the private key file associated with the SSL certificate. | `"private-key.pem"` |
+| `--cert=`      | Specifies the path to the `SSL` certificate file. | `"certificate.pem"` |
+| `--pk=`        | Specifies the path to the private key file associated with the `SSL` certificate. | `"private-key.pem"` |
 | `--site=`      | Specifies the directory for the website files | `"website"` |
 | `--error=`     | Specifies the directory for error messages (404,500) | `"error"` |
 | `--entry=`     | Specifies the page to use for the entry point | `"index.html"` |
-| `--noRedirect` | Specifies that http requests should not be redirected | `not present` |
+| `--noRedirect` | Specifies that `HTTP` requests should not be redirected | `not present` |
 
 > [!IMPORTANT]
-> Your `Cerfificate` and `Private Key` should be relative to the `SSL` folder if you bring your own
+> Your `Certificate` and `Private Key` should be relative to the `SSL` folder if you bring your own
 
 --------
 
@@ -77,7 +77,7 @@ node server-ssl.js --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
 > [!IMPORTANT]
-> Your `Cerfificate` and `Private Key` should be relative to the `SSL` folder if you bring your own
+> Your `Certificate` and `Private Key` should be relative to the `SSL` folder if you bring your own
 
 ### Create SSL Certificate
 
