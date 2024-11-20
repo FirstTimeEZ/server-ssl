@@ -39,45 +39,44 @@ function useSslFolder() {
 
 function loadArguments() {
     __args.forEach((arg) => {
-        let lowerCase = arg.toLowerCase();
         let rightSide = arg.split("=")[1];
 
-        let portArg = lowerCase.includes("--port=") ? rightSide : null
+        let portArg = arg.includes("--port=") ? rightSide : null
         if (portArg !== null) {
             optPort = portArg;
         }
 
-        let portHttpArg = lowerCase.includes("--porthttp=") ? rightSide : null
+        let portHttpArg = arg.includes("--portHttp=") ? rightSide : null
         if (portHttpArg !== null) {
             optPortHttp = portHttpArg;
         }
 
-        let redirectHttpArg = lowerCase.includes("--noredirect");
+        let redirectHttpArg = arg.includes("--noRedirect");
         if (redirectHttpArg !== null) {
             optDisableRedirectHttp = true;
         }
 
-        let certPath = lowerCase.includes("--cert=") ? rightSide : null
+        let certPath = arg.includes("--cert=") ? rightSide : null
         if (certPath !== null) {
             optCert = certPath;
         }
 
-        let privateKeyPath = lowerCase.includes("--pk=") ? rightSide : null
+        let privateKeyPath = arg.includes("--pk=") ? rightSide : null
         if (privateKeyPath !== null) {
             optPk = privateKeyPath;
         }
 
-        let websiteFolder = lowerCase.includes("--site=") ? rightSide : null
+        let websiteFolder = arg.includes("--site=") ? rightSide : null
         if (websiteFolder !== null) {
             optWebsite = websiteFolder;
         }
 
-        let errorFolder = lowerCase.includes("--error=") ? rightSide : null
+        let errorFolder = arg.includes("--error=") ? rightSide : null
         if (errorFolder !== null) {
             optError = errorFolder;
         }
 
-        let entryPoint = lowerCase.includes("--entry=") ? rightSide : null
+        let entryPoint = arg.includes("--entry=") ? rightSide : null
         if (entryPoint !== null) {
             optEntry = entryPoint;
         }
