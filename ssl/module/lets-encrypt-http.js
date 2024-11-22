@@ -27,6 +27,96 @@ const pendingChallenges = [];
 
 let LOCALHOST = false;
 
+/**
+ * Starts the Let's Encrypt daemon to manage SSL certificates.
+ * 
+ * If an optional keyPair is provided, it will be used for authentication; the keyPair is basically your user account.
+ * 
+ * If no keyPair is provided, a random one will be generated and used instead.
+ *
+ * @param {string} fqdn - The fully qualified domain name (FQDN) for which to manage SSL certificates.
+ * @param {string} sslPath - The file path where the public and private keys are stored.
+ *                            The keys will be saved as 'publicKey.raw' and 'privateKey.raw'
+ *                            if they do not already exist.
+ *
+ * @see {generateKeyPair}
+ */
+export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
+    const keyPair = await generateKeyPair(optionalSslPath);
+    let account = undefined;
+    let directory = undefined;
+    let authorizations = undefined;
+
+    if (keyPair.publicKey == undefined) {
+        throw new Error("optionalKeyPair.publicKey must be defined");
+    }
+
+    if (keyPair.privateKey == undefined) {
+        throw new Error("optionalKeyPair.publicKey must be defined");
+    }
+
+    console.log("------");
+    console.log("Starting Lets Encrypt Daemon!");
+    console.log("This does not currently generate certificates.");
+
+    directory = (await newDirectoryAsync()).answer.directory;
+
+    if (directory !== null) {
+        console.log(directory);
+        console.log("------");
+
+        const nonce = await newNonceAsync(directory.newNonce);
+
+        if (nonce.nonce !== null) {
+            account = await createAccount(nonce.nonce, directory.newAccount, keyPair).catch(console.error);
+
+            if (account.answer.account && account.answer.account.status == "valid") {
+                console.log("Account Created and Valid", account.answer);
+                console.log("Next Nonce", account.nonce);
+
+                const order = await createOrder(account.answer.location, account.nonce, keyPair, directory.newOrder, [{ "type": "dns", "value": fqdn }]);
+                if (order.answer.order != undefined) {
+                    let n;
+                    console.log("------");
+                    console.log("Order", order);
+                    console.log("Identifiers", order.answer.order.identifiers);
+                    console.log("Authorizations", order.answer.order.authorizations);
+                    console.log("Next Nonce", (n = order.nonce));
+
+                    authorizations = order.answer.order.authorizations;
+                    authorizations.forEach(element => {
+                        console.log("authz", element);
+                        postAsGet(account.answer.location, n, keyPair, element).then((authorization) => {
+                            console.log("------");
+                            console.log("Authorization", authorization.answer);
+
+                            console.log("Order", account.answer.location);
+                            console.log("Status", authorization.answer.get.status);
+                            console.log("Identifier", authorization.answer.get.identifier);
+                            console.log("Challenges");
+                            pendingChallenges.push(...authorization.answer.get.challenges);
+                            console.log("Expires", new Date(authorization.answer.get.expires).toString());
+                            console.log("Next Nonce", (n = authorization.nonce));
+                        });
+                    });
+                }
+                else {
+                    console.error("Error getting order", order.answer.error, order.answer.exception);
+                }
+            }
+            else {
+                console.error("Error creating account", account.answer.error, account.answer.exception);
+            }
+        }
+        else {
+            console.error("Error getting nonce", nonce.answer.error, nonce.answer.exception);
+        }
+    }
+    else {
+        console.error("Error getting directory", directory.answer.error, directory.answer.exception);
+    }
+}
+
 export async function newDirectoryAsync() {
     return new Promise((resolve) => {
         fetch(DIRECTORY_URL, { method: "GET" }).then(response => {
@@ -279,96 +369,6 @@ export function checkChallengesMixin(req, res) {
     }
 
     return false;
-}
-
-/**
- * Starts the Let's Encrypt daemon to manage SSL certificates.
- * 
- * If an optional keyPair is provided, it will be used for authentication; the keyPair is basically your user account.
- * 
- * If no keyPair is provided, a random one will be generated and used instead.
- *
- * @param {string} fqdn - The fully qualified domain name (FQDN) for which to manage SSL certificates.
- * @param {string} sslPath - The file path where the public and private keys are stored.
- *                            The keys will be saved as 'publicKey.raw' and 'privateKey.raw'
- *                            if they do not already exist.
- *
- * @see {generateKeyPair}
- */
-export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
-    const keyPair = await generateKeyPair(optionalSslPath);
-    let account = undefined;
-    let directory = undefined;
-    let authorizations = undefined;
-
-    if (keyPair.publicKey == undefined) {
-        throw new Error("optionalKeyPair.publicKey must be defined");
-    }
-
-    if (keyPair.privateKey == undefined) {
-        throw new Error("optionalKeyPair.publicKey must be defined");
-    }
-
-    console.log("------");
-    console.log("Starting Lets Encrypt Daemon!");
-    console.log("This does not currently generate certificates.");
-
-    directory = (await newDirectoryAsync()).answer.directory;
-
-    if (directory !== null) {
-        console.log(directory);
-        console.log("------");
-
-        const nonce = await newNonceAsync(directory.newNonce);
-
-        if (nonce.nonce !== null) {
-            account = await createAccount(nonce.nonce, directory.newAccount, keyPair).catch(console.error);
-
-            if (account.answer.account && account.answer.account.status == "valid") {
-                console.log("Account Created and Valid", account.answer);
-                console.log("Next Nonce", account.nonce);
-
-                const order = await createOrder(account.answer.location, account.nonce, keyPair, directory.newOrder, [{ "type": "dns", "value": fqdn }]);
-                if (order.answer.order != undefined) {
-                    let n;
-                    console.log("------");
-                    console.log("Order", order);
-                    console.log("Identifiers", order.answer.order.identifiers);
-                    console.log("Authorizations", order.answer.order.authorizations);
-                    console.log("Next Nonce", (n = order.nonce));
-
-                    authorizations = order.answer.order.authorizations;
-                    authorizations.forEach(element => {
-                        console.log("authz", element);
-                        postAsGet(account.answer.location, n, keyPair, element).then((authorization) => {
-                            console.log("------");
-                            console.log("Authorization", authorization.answer);
-
-                            console.log("Order", account.answer.location);
-                            console.log("Status", authorization.answer.get.status);
-                            console.log("Identifier", authorization.answer.get.identifier);
-                            console.log("Challenges");
-                            pendingChallenges.push(...authorization.answer.get.challenges);
-                            console.log("Expires", new Date(authorization.answer.get.expires).toString());
-                            console.log("Next Nonce", (n = authorization.nonce));
-                        });
-                    });
-                }
-                else {
-                    console.error("Error getting order", order.answer.error, order.answer.exception);
-                }
-            }
-            else {
-                console.error("Error creating account", account.answer.error, account.answer.exception);
-            }
-        }
-        else {
-            console.error("Error getting nonce", nonce.answer.error, nonce.answer.exception);
-        }
-    }
-    else {
-        console.error("Error getting directory", directory.answer.error, directory.answer.exception);
-    }
 }
 
 function InternalCheckIsLocalHost(req) {
