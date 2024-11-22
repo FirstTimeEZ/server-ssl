@@ -97,6 +97,15 @@ export async function createAccount(nonce, newAccountUrl, keyPair) {
     }
 }
 
+/**
+ * Generates a key pair, The generated public key will be associated with a user account.
+ * The generated private key will be used to sign requests.
+ *
+ * @returns {Promise<{ publicKey: CryptoKey, privateKey: CryptoKey }>} 
+ *          An object containing the generated public and private keys.
+ *          The public key is linked to the user account.
+ *
+ */
 export async function generateKeyPair() {
     const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
     return { publicKey, privateKey };
@@ -105,14 +114,16 @@ export async function generateKeyPair() {
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
  *
- * This function initializes the Let's Encrypt daemon, which can automatically
- * obtain and renew SSL certificates for your application. If an optional keypair
- * is provided, it will be used for the SSL certificate generation.
+ * This function initializes the Let's Encrypt daemon.
+ * 
+ * If an optional keyPair is provided, it will be used for authentication, the keyPair is basically your user account.
+ * 
+ * If no keyPair is provided, a random one will be generated and used instead.
  *
- * @param {Object} [optionalKeyPair] - An optional keypair for SSL certificate generation.
+ * @param {Object} [optionalKeyPair] - An optional keypair for authentication/account
  * @param {string} optionalKeyPair.publicKey - The public key part of the keypair.
  * @param {string} optionalKeyPair.privateKey - The private key part of the keypair.
- *
+ * @see {generateKeyPair}
  */
 export async function startLetsEncryptDaemon(optionalKeyPair) {
     if (optionalKeyPair == undefined) {
