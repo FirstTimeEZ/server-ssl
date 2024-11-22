@@ -163,7 +163,7 @@ export async function postAsGet(kid, nonce, keyPair, url) {
 
         if (response.ok) {
             return {
-                answer: { order: await response.json(), location: response.headers.get('location') },
+                answer: { get: await response.json(), location: response.headers.get('location') },
                 nonce: response.headers.get(REPLAY_NONCE)
             };
         }
@@ -317,10 +317,10 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                             console.log("Authorization", authorization.answer);
 
                             console.log("Order", account.answer.location);
-                            console.log("Status", authorization.answer.order.status);
-                            console.log("Identifier", authorization.answer.order.identifier);
-                            console.log("Challenges", authorization.answer.order.challenges);
-                            console.log("Expires", new Date(authorization.answer.order.expires).toString());
+                            console.log("Status", authorization.answer.get.status);
+                            console.log("Identifier", authorization.answer.get.identifier);
+                            console.log("Challenges", authorization.answer.get.challenges);
+                            console.log("Expires", new Date(authorization.answer.get.expires).toString());
                             console.log("Next Nonce", (n = authorization.nonce));
                         });
                     });
