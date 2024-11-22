@@ -1,4 +1,5 @@
 import * as jose from './jose/index.js';
+
 // This isn't finished and does not generate certificates
 // Anything might change until its finished
 
@@ -11,9 +12,17 @@ import * as jose from './jose/index.js';
 // answer should include exceptions as exception
 // { answer: { exception: exception } }
 
+const DIRECTORY_URL = "https://acme-staging-v02.api.letsencrypt.org/directory";
+
+const ALG_ECDSA = 'ES256';
+
+const CONTENT_TYPE_JOSE = 'application/jose+json';
+
+const REPLAY_NONCE = 'replay-nonce';
+
 export async function newDirectoryAsync() {
     return new Promise((resolve) => {
-        fetch("https://acme-staging-v02.api.letsencrypt.org/directory", { method: "GET" }).then(response => {
+        fetch(DIRECTORY_URL, { method: "GET" }).then(response => {
             response.ok
                 ? response.json().then((result) => { resolve({ answer: { directory: result } }); }).catch((exception) => resolve({ answer: { exception: exception } }))
                 : resolve({ answer: { error: response } });
@@ -36,7 +45,7 @@ export async function newNonceAsync(newNonceUrl) {
             fetch(nonceUrl, {
                 method: "HEAD"
             }).then((response) => response.ok
-                ? resolve({ answer: { response: response }, nonce: response.headers.get('replay-nonce') })
+                ? resolve({ answer: { response: response }, nonce: response.headers.get(REPLAY_NONCE) })
                 : resolve({ answer: { error: response } }))
                 .catch((exception) => resolve({ answer: { exception: exception } }));;
         });
@@ -47,13 +56,13 @@ export async function newNonceAsync(newNonceUrl) {
 
 export async function createAccount(nonce, newAccountUrl) {
     try {
-        const { publicKey, privateKey } = await jose.generateKeyPair('ES256', { extractable: true });
+        const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
 
         const jwk = await jose.exportJWK(publicKey);
 
         const payload = { termsOfServiceAgreed: true };
         const protectedHeader = {
-            alg: "ES256",
+            alg: ALG_ECDSA,
             jwk,
             nonce: nonce,
             url: newAccountUrl,
@@ -66,7 +75,7 @@ export async function createAccount(nonce, newAccountUrl) {
         const request = {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/jose+json'
+                'Content-Type': CONTENT_TYPE_JOSE
             },
             body: JSON.stringify(signed)
         };
@@ -76,7 +85,7 @@ export async function createAccount(nonce, newAccountUrl) {
         if (response.ok) {
             return {
                 answer: { account: await response.json(), location: response.headers.get('location') },
-                nonce: response.headers.get('replay-nonce')
+                nonce: response.headers.get(REPLAY_NONCE)
             };
         }
         else {
