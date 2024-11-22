@@ -86,7 +86,7 @@ export async function createAccount(nonce, newAccountUrl, keyPair) {
         }
         else {
             return {
-                answer: { error: response },
+                answer: { error: await response.json() },
                 nonce: null
             };
         }
@@ -126,7 +126,7 @@ export async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers)
         }
         else {
             return {
-                answer: { error: response },
+                answer: { error: await response.json() },
                 nonce: null
             };
         }
@@ -181,7 +181,7 @@ export async function signPayloadJson(payload, protectedHeader, keyPair) {
  * @param {string} optionalKeyPair.privateKey - The private key part of the keypair.
  * @see {generateKeyPair}
  */
-export async function startLetsEncryptDaemon(optionalKeyPair) {
+export async function startLetsEncryptDaemon(fqdm, optionalKeyPair) {
     if (optionalKeyPair == undefined) {
         optionalKeyPair = await generateKeyPair();
     }
@@ -200,6 +200,8 @@ export async function startLetsEncryptDaemon(optionalKeyPair) {
     const directory = (await newDirectoryAsync()).answer.directory;
 
     if (directory !== null) {
+        console.log(directory);
+
         const nonce = await newNonceAsync(directory.newNonce);
 
         if (nonce.nonce !== null) {
@@ -208,6 +210,15 @@ export async function startLetsEncryptDaemon(optionalKeyPair) {
             if (account.answer.account && account.answer.account.status == "valid") {
                 console.log("Account Created and Valid", account.answer);
                 console.log("Next Nonce", account.nonce);
+
+                const order = await createOrder(account.answer.location, account.nonce, optionalKeyPair, directory.newOrder, [{ "type": "dns", "value": fqdm }]);
+                if (order.answer.order != undefined) {
+                    console.log(order.answer.order);
+                    console.log("Next Nonce", order.nonce);
+                }
+                else {
+                    console.error("Error getting order", order.answer.error, order.answer.exception);
+                }
             }
             else {
                 console.error("Error creating account", account.answer.error, account.answer.exception);
@@ -221,3 +232,70 @@ export async function startLetsEncryptDaemon(optionalKeyPair) {
         console.error("Error getting directory", directory.answer.error, directory.answer.exception);
     }
 }
+
+// {
+//     '5JzAlUrt3Pk': 'https://community.letsencrypt.org/t/adding-random-entries-to-the-directory/33417',
+//     keyChange: 'https://acme-staging-v02.api.letsencrypt.org/acme/key-change',
+//     meta: {
+//       caaIdentities: [ 'letsencrypt.org' ],
+//       termsOfService: 'https://letsencrypt.org/documents/LE-SA-v1.4-April-3-2024.pdf',
+//       website: 'https://letsencrypt.org/docs/staging-environment/'
+//     },
+//     newAccount: 'https://acme-staging-v02.api.letsencrypt.org/acme/new-acct',
+//     newNonce: 'https://acme-staging-v02.api.letsencrypt.org/acme/new-nonce',
+//     newOrder: 'https://acme-staging-v02.api.letsencrypt.org/acme/new-order',
+//     renewalInfo: 'https://acme-staging-v02.api.letsencrypt.org/draft-ietf-acme-ari-03/renewalInfo',
+//     revokeCert: 'https://acme-staging-v02.api.letsencrypt.org/acme/revoke-cert'
+//   }
+//   Account Created and Valid {
+//     account: {
+//       key: {
+//         kty: 'EC',
+//         crv: 'P-256',
+//         x: '[removed personal info]',
+//         y: '[removed personal info]'
+//       },
+//       initialIp: '[removed personal info]',
+//       createdAt: '2024-11-22T08:15:06.116330285Z',
+//       status: 'valid'
+//     },
+//     location: 'https://acme-staging-v02.api.letsencrypt.org/acme/acct/172696254'
+//   }
+//   Next Nonce jDZhkUVkLGJl0GHzQYG_t6IMRqtfhawfJT3Nr8VeRXowCuBSxFU
+//   {
+//     status: 'pending',
+//     expires: '2024-11-29T08:15:06Z',
+//     identifiers: [ { type: 'dns', value: 'www.thisismydomainhowdoyouknow123.org' } ],
+//     authorizations: [
+//       'https://acme-staging-v02.api.letsencrypt.org/acme/authz/172696254/15031989944'
+//     ],
+//     finalize: 'https://acme-staging-v02.api.letsencrypt.org/acme/finalize/172696254/20696202154'
+//   }  
+// authorizations {
+//     "identifier": {
+//       "type": "dns",
+//       "value": "www.thisismydomainhowdoyouknow123.org"
+//     },
+//     "status": "pending",
+//     "expires": "2024-11-29T08:15:06Z",
+//     "challenges": [
+//       {
+//         "type": "http-01",
+//         "url": "https://acme-staging-v02.api.letsencrypt.org/acme/chall/172696254/15031989944/S__T2A",
+//         "status": "pending",
+//         "token": "nhUcxf4_n5JPnCD2KVVD7DzSHV37FmZxWnGBNap8XKQ"
+//       },
+//       {
+//         "type": "tls-alpn-01",
+//         "url": "https://acme-staging-v02.api.letsencrypt.org/acme/chall/172696254/15031989944/_TPVyA",
+//         "status": "pending",
+//         "token": "nhUcxf4_n5JPnCD2KVVD7DzSHV37FmZxWnGBNap8XKQ"
+//       },
+//       {
+//         "type": "dns-01",
+//         "url": "https://acme-staging-v02.api.letsencrypt.org/acme/chall/172696254/15031989944/Zk2vUg",
+//         "status": "pending",
+//         "token": "nhUcxf4_n5JPnCD2KVVD7DzSHV37FmZxWnGBNap8XKQ"
+//       }
+//     ]
+//   }
