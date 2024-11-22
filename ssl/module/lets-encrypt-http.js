@@ -3,7 +3,7 @@ import * as jose from './jose/index.js';
 // Anything might change until its finished
 
 // anything that replies with a usable reply nonce returns this structure
-// { answer: { any: any }, nonce: replay-nonce, error: whenApplicable }
+// { answer: { any: any, error: whenApplicable }, nonce: replay-nonce }
 
 export async function newDirectoryAsync() {
     return new Promise((resolve, reject) => {
@@ -66,15 +66,16 @@ export async function createAccount(nonce, newAccountUrl) {
         };
     }
     else {
-        const errorData = await response.text();
         return {
-            answer: { error: errorData },
+            answer: { error: await response.text() },
             nonce: null
         };
     }
 }
 
 export async function startLetsEncryptDaemon() {
+    console.log("Starting Lets Encrypt Daemon!");
+
     const directory = await newDirectoryAsync();
 
     if (directory !== null) {
@@ -83,11 +84,13 @@ export async function startLetsEncryptDaemon() {
         if (nonce.nonce !== null) {
             const account = await createAccount(nonce.nonce, directory.newAccount).catch(console.error);
 
-            if (account.answer.account.status == "valid") {
+            if (account.answer.account && account.answer.account.status == "valid") {
                 console.log("Account Created and Valid", account.answer);
+                console.log("Next Nonce", account.nonce);
             }
-
-            console.log("Next Nonce", account.nonce);
+            else {
+                console.error("Error creating account", account.answer.error);
+            }
         }
         else {
             console.log("Error getting nonce", nonce.answer.error)
