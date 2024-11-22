@@ -281,6 +281,7 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
         throw new Error("optionalKeyPair.publicKey must be defined");
     }
 
+    console.log("------");
     console.log("Starting Lets Encrypt Daemon!");
     console.log("This does not currently generate certificates.");
 
@@ -288,6 +289,7 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
 
     if (directory !== null) {
         console.log(directory);
+        console.log("------");
 
         const nonce = await newNonceAsync(directory.newNonce);
 
@@ -301,12 +303,20 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                 const order = await createOrder(account.answer.location, account.nonce, keyPair, directory.newOrder, [{ "type": "dns", "value": fqdn }]);
                 if (order.answer.order != undefined) {
                     let n;
-                    console.log("Next Nonce", order);
+                    console.log("------");
+                    console.log("Order", order);
+                    console.log("Identifiers", order.answer.order.identifiers);
+                    console.log("Authorizations", order.answer.order.authorizations);
                     console.log("Next Nonce", (n = order.nonce));
 
                     authorizations = order.answer.order.authorizations;
                     authorizations.forEach(element => {
+                        console.log("authz", element);
                         postAsGet(account.answer.location, n, keyPair, element).then((authorization) => {
+                            console.log("------");
+                            console.log("Authorization", authorization.answer);
+
+                            console.log("Order", account.answer.location);
                             console.log("Status", authorization.answer.order.status);
                             console.log("Identifier", authorization.answer.order.identifier);
                             console.log("Challenges", authorization.answer.order.challenges);
