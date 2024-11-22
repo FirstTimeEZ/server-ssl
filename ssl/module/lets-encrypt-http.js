@@ -398,7 +398,7 @@ function InternalCheckIsLocalHost(req) {
 // | Submit order      | POST newOrder                  | 201 -> order | x
 // |                   |                                |              |
 // | Fetch challenges  | POST-as-GET order's            | 200          | x
-// |                   | authorization urls             |              |
+// |                   | authorization urls             |              | x
 // |                   |                                |              |
 // | Respond to        | POST authorization challenge   | 200          |
 // | challenges        | urls                           |              |
