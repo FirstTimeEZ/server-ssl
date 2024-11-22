@@ -248,7 +248,7 @@ export async function generateKeyPair(sslPath) {
  * @throws {Error} Throws an error if the signing process fails.
  */
 export async function signPayloadJson(payload, protectedHeader, keyPair) {
-    const jws = new jose.FlattenedSign(payload !== undefined ? new TextEncoder().encode(JSON.stringify(payload)) : undefined);
+    const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify(payload)));
     jws.setProtectedHeader(protectedHeader);
     return JSON.stringify(await jws.sign(keyPair.privateKey));
 }
