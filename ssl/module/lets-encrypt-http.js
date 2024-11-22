@@ -113,8 +113,6 @@ export async function generateKeyPair() {
 
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
- *
- * This function initializes the Let's Encrypt daemon.
  * 
  * If an optional keyPair is provided, it will be used for authentication, the keyPair is basically your user account.
  * 
