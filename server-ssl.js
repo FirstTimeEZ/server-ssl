@@ -3,7 +3,7 @@ import { createServer as createServerHTTPS } from 'https';
 import { createServer as createServerHTTP } from 'http';
 import { readFile, readFileSync, existsSync, mkdir } from 'fs';
 import { join, extname as _extname, dirname } from 'path';
-import { startLetsEncryptDaemon } from './ssl/module/lets-encrypt-http.js'
+import { startLetsEncryptDaemon, checkChallengesMixin } from './ssl/module/lets-encrypt-http.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -149,6 +149,9 @@ createServerHTTPS(options, (req, res) => {
  *
  */
 !optDisableRedirectHttp && createServerHTTP((req, res) => {
+    // Lets Encrypt! HTTP-01 Challenge Mixin
+    if (checkChallengesMixin(req, res)) { return; }
+
     res.writeHead(301, { "Location": `https://${req.headers.host}${req.url}` });
     res.end();
 }).listen(optPortHttp, () => console.log(`HTTP Server is redirecting requests to ${optPort}`));
@@ -161,8 +164,18 @@ createServerHTTPS(options, (req, res) => {
 /////////////////////////////////////////////////////////////////
 
 // The api should be something like this when finished
-//optLetsEncrypt && startLetsEncryptDaemon(optionalKeyPair, certOutputDir);
+
+// HTTP Mixin inside your HTTP Server Listener
+// if (checkChallengesMixin(res)) { return; }
+//
+// or Dedicated HTTP Challenge Server at port 80 (todo)
+//
+// one or the other will be required to complete challenges
+
+// Daemon
+// startLetsEncryptDaemon(fqdn, sslFolder, certOutputDir);
 
 // WIP does not generate certificates
-// You are welcome to test this are report your results
+// Uncomment below this line to test current features.
+// if you find bugs please open an issue.
 //startLetsEncryptDaemon("www.thisismydomain123.org", sslFolder);

@@ -23,6 +23,8 @@ const CONTENT_TYPE_JOSE = 'application/jose+json';
 
 const REPLAY_NONCE = 'replay-nonce';
 
+const pendingChallenges = [];
+
 export async function newDirectoryAsync() {
     return new Promise((resolve) => {
         fetch(DIRECTORY_URL, { method: "GET" }).then(response => {
@@ -253,6 +255,28 @@ export async function signPayloadJson(payload, protectedHeader, keyPair) {
     return JSON.stringify(await jws.sign(keyPair.privateKey));
 }
 
+// Once I implement the key authorization construction correctly, this function will fully comply with the ACME HTTP-01 challenge specification. 
+export function checkChallengesMixin(req, res) {
+    if (req.url.includes(".well-known/acme-challenge/")) {
+        const split = req.url.split("/");
+        const token = split[split.length - 1];
+        let bufferModified = false;
+        pendingChallenges.forEach(challenge => {
+            if (challenge.type == "http-01" && challenge.status == "pending" && challenge.token == token) {
+                console.log("HTTP-01 ACME Challenge");
+                console.log("token", challenge.token);
+                res.writeHead(200, { 'Content-Type': 'application/octet-stream' });
+                res.end(Buffer.from(challenge.token));
+                bufferModified = true;
+            }
+        });
+
+        return bufferModified;
+    }
+
+    return false;
+}
+
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
  * 
@@ -319,7 +343,8 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                             console.log("Order", account.answer.location);
                             console.log("Status", authorization.answer.get.status);
                             console.log("Identifier", authorization.answer.get.identifier);
-                            console.log("Challenges", authorization.answer.get.challenges);
+                            console.log("Challenges");
+                            pendingChallenges.push(...authorization.answer.get.challenges);
                             console.log("Expires", new Date(authorization.answer.get.expires).toString());
                             console.log("Next Nonce", (n = authorization.nonce));
                         });
