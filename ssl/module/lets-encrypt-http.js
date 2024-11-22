@@ -66,14 +66,14 @@ export async function createAccount(nonce, newAccountUrl, keyPair) {
             url: newAccountUrl,
         };
 
-        const signed = await SignPayload(payload, protectedHeader, keyPair);
+        const signed = await signPayloadJson(payload, protectedHeader, keyPair);
 
         const request = {
             method: 'POST',
             headers: {
                 'Content-Type': CONTENT_TYPE_JOSE
             },
-            body: JSON.stringify(signed)
+            body: signed
         };
 
         const response = await fetch(newAccountUrl, request);
@@ -106,14 +106,14 @@ export async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers)
             url: newOrderUrl,
         };
 
-        const signed = await SignPayload(payload, protectedHeader, keyPair);
+        const signed = await signPayloadJson(payload, protectedHeader, keyPair);
 
         const request = {
             method: 'POST',
             headers: {
                 'Content-Type': CONTENT_TYPE_JOSE
             },
-            body: JSON.stringify(signed)
+            body: signed
         };
 
         const response = await fetch(newOrderUrl, request);
@@ -147,6 +147,26 @@ export async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers)
 export async function generateKeyPair() {
     const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
     return { publicKey, privateKey };
+}
+
+/**
+ * Signs a the payload and a protected header using a given key pair.
+ *
+ * This function creates a JWS (JSON Web Signature) by encoding the provided
+ * payload object and signing it with the private key from the provided key pair.
+ * The protected header is also set for the JWS.
+ *
+ * @param {Object} payload - The payload to be signed. This should be a valid object.
+ * @param {Object} protectedHeader - The protected header to be included in the JWS. This should be a valid object containing JWS header parameters.
+ * @param {Object} keyPair - An object containing the key pair used for signing. It should have a `privateKey` property that holds the private key.
+ * @returns {Promise<string>} A promise that resolves to a JSON string representing the signed JWS.
+ *
+ * @throws {Error} Throws an error if the signing process fails.
+ */
+export async function signPayloadJson(payload, protectedHeader, keyPair) {
+    const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify(payload)));
+    jws.setProtectedHeader(protectedHeader);
+    return JSON.stringify(await jws.sign(keyPair.privateKey));
 }
 
 /**
@@ -200,10 +220,4 @@ export async function startLetsEncryptDaemon(optionalKeyPair) {
     else {
         console.error("Error getting directory", directory.answer.error, directory.answer.exception);
     }
-}
-
-async function SignPayload(payload, protectedHeader, keyPair) {
-    const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify(payload)));
-    jws.setProtectedHeader(protectedHeader);
-    return await jws.sign(keyPair.privateKey);
 }
