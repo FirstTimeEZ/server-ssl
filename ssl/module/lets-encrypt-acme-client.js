@@ -66,8 +66,8 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
     directory = (await newDirectoryAsync()).answer.directory;
 
     if (directory !== null) {
-        console.log(directory);
-        console.log("------");
+        //console.log(directory);
+        //console.log("------");
 
         const nonce = await newNonceAsync(directory.newNonce);
 
@@ -75,8 +75,8 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
             account = await createAccount(nonce.nonce, directory.newAccount, keyPair).catch(console.error);
 
             if (account.answer.account && account.answer.account.status == "valid") {
-                console.log("Account Created and Valid", account.answer);
-                console.log("Next Nonce", account.nonce);
+                //  console.log("Account Created and Valid", account.answer);
+                //  console.log("Next Nonce", account.nonce);
 
                 let domains = [];
 
@@ -87,10 +87,10 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                 const order = await createOrder(account.answer.location, account.nonce, keyPair, directory.newOrder, domains);
                 if (order.answer.order != undefined) {
                     let n;
-                    console.log("------");
-                    console.log("Order", order);
-                    console.log("Identifiers", order.answer.order.identifiers);
-                    console.log("Authorizations", order.answer.order.authorizations);
+                    // console.log("------");
+                    // console.log("Order", order);
+                    // console.log("Identifiers", order.answer.order.identifiers);
+                    // console.log("Authorizations", order.answer.order.authorizations);
                     console.log("Next Nonce", (n = order.nonce));
 
                     authorizations = order.answer.order.authorizations;
@@ -99,18 +99,18 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                         const element = authorizations[index];
                         n = n;
 
-                        console.log("authz", element);
+                        // console.log("authz", element);
                         let auth = await postAsGet(account.answer.location, n, keyPair, element);
 
                         if (auth.answer.get.status) {
-                            console.log("------");
-                            console.log("Authorization", auth.answer);
-                            console.log("Order", account.answer.location);
-                            console.log("Status", auth.answer.get.status);
-                            console.log("Identifier", auth.answer.get.identifier);
-                            console.log("Challenges");
+                            //console.log("------");
+                            // console.log("Authorization", auth.answer);
+                            // console.log("Order", account.answer.location);
+                            // console.log("Status", auth.answer.get.status);
+                            // console.log("Identifier", auth.answer.get.identifier);
+                            // console.log("Challenges");
                             pendingChallenges.push(...auth.answer.get.challenges);
-                            console.log("Expires", new Date(auth.answer.get.expires).toString());
+                            // console.log("Expires", new Date(auth.answer.get.expires).toString());
                             console.log("Next Nonce", (n = auth.nonce));
                         } else {
                             console.error("Error getting auth", auth.answer.error, auth.answer.exception);
@@ -122,7 +122,7 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                         n = n;
 
                         if (element.type == "http-01" && element.status == "pending") {
-                            console.log("challenge", element);
+                            // console.log("challenge", element);
 
                             let auth = await postAsGetChal(account.answer.location, n, keyPair, element.url);
 
@@ -133,6 +133,18 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                             }
                         }
                     }
+
+                    const waitForReady = setInterval(() => {
+                        createOrder(account.answer.location, n, keyPair, directory.newOrder, domains).then((order) => {
+                            if (order.answer.order.status == "ready") {
+                                console.log(order);
+                                clearInterval(waitForReady);
+                                console.log("Ready to Finalize");
+                            }
+
+                            n = order.nonce;
+                        });
+                    }, 5000);
                 }
                 else {
                     console.error("Error getting order", order.answer.error, order.answer.exception);
@@ -486,7 +498,7 @@ function InternalCheckIsLocalHost(req) {
 // | Respond to        | POST authorization challenge   | 200          | x
 // | challenges        | urls                           |              | x
 // |                   |                                |              | x
-// | Poll for status   | POST-as-GET order              | 200          |
+// | Poll for status   | POST-as-GET order              | 200          | x
 // |                   |                                |              |
 // | Finalize order    | POST order's finalize url      | 200          |
 // |                   |                                |              |
