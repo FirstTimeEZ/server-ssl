@@ -3,6 +3,7 @@ import { createServer as createServerHTTPS } from 'https';
 import { createServer as createServerHTTP } from 'http';
 import { readFile, readFileSync, existsSync, mkdir } from 'fs';
 import { join, extname as _extname, dirname } from 'path';
+import { startLetsEncryptDaemon } from './ssl/module/lets-encrypt-http.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -140,13 +141,7 @@ createServerHTTPS(options, (req, res) => {
         res.writeHead(200, { 'Content-Type': contentType });
         res.end(content);
     });
-}).listen(optPort, (err) => {
-    if (err) {
-        console.error('Error starting server:', err);
-        return;
-    }
-    console.log(`HTTPS Server is running on port ${optPort}`);
-})
+}).listen(optPort, (err) => err ? console.error('Error starting server:', err) : console.log(`HTTPS Server is running on port ${optPort}`));
 
 /**
  * Creates an HTTP server that redirects incoming requests to HTTPS
@@ -156,6 +151,16 @@ createServerHTTPS(options, (req, res) => {
 !optDisableRedirectHttp && createServerHTTP((req, res) => {
     res.writeHead(301, { "Location": `https://${req.headers.host}${req.url}` });
     res.end();
-}).listen(optPortHttp, () => {
-    console.log(`HTTP Server is redirecting requests to ${optPort}`);
-});
+}).listen(optPortHttp, () => console.log(`HTTP Server is redirecting requests to ${optPort}`));
+
+/////////////////////////////////////////////////////////////////
+//                   Lets Encrypt! Daemon                      //
+/////////////////////////////////////////////////////////////////
+// Automatically generate a 90 certificate every 75 days or so //
+// Automates the HTTP-01 challenge                             //
+/////////////////////////////////////////////////////////////////
+
+// The api should be something like this when finished
+//optLetsEncrypt && startLetsEncryptDaemon(certOutputDir);
+
+//startLetsEncryptDaemon();
