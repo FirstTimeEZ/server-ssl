@@ -66,9 +66,7 @@ export async function createAccount(nonce, newAccountUrl, keyPair) {
             url: newAccountUrl,
         };
 
-        const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify(payload)));
-        jws.setProtectedHeader(protectedHeader);
-        const signed = await jws.sign(keyPair.privateKey);
+        const signed = await SignPayload(payload, protectedHeader, keyPair);
 
         const request = {
             method: 'POST',
@@ -83,6 +81,46 @@ export async function createAccount(nonce, newAccountUrl, keyPair) {
         if (response.ok) {
             return {
                 answer: { account: await response.json(), location: response.headers.get('location') },
+                nonce: response.headers.get(REPLAY_NONCE)
+            };
+        }
+        else {
+            return {
+                answer: { error: response },
+                nonce: null
+            };
+        }
+    } catch (exception) {
+        return { answer: { exception: exception } }
+    }
+}
+
+export async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers) {
+    try {
+        const payload = { "identifiers": identifiers };
+
+        const protectedHeader = {
+            alg: ALG_ECDSA,
+            kid: kid,
+            nonce: nonce,
+            url: newOrderUrl,
+        };
+
+        const signed = await SignPayload(payload, protectedHeader, keyPair);
+
+        const request = {
+            method: 'POST',
+            headers: {
+                'Content-Type': CONTENT_TYPE_JOSE
+            },
+            body: JSON.stringify(signed)
+        };
+
+        const response = await fetch(newOrderUrl, request);
+
+        if (response.ok) {
+            return {
+                answer: { order: await response.json(), location: response.headers.get('location') },
                 nonce: response.headers.get(REPLAY_NONCE)
             };
         }
@@ -162,4 +200,10 @@ export async function startLetsEncryptDaemon(optionalKeyPair) {
     else {
         console.error("Error getting directory", directory.answer.error, directory.answer.exception);
     }
+}
+
+async function SignPayload(payload, protectedHeader, keyPair) {
+    const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify(payload)));
+    jws.setProtectedHeader(protectedHeader);
+    return await jws.sign(keyPair.privateKey);
 }
