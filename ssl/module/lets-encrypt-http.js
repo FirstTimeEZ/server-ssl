@@ -54,11 +54,9 @@ export async function newNonceAsync(newNonceUrl) {
     }
 }
 
-export async function createAccount(nonce, newAccountUrl) {
+export async function createAccount(nonce, newAccountUrl, keyPair) {
     try {
-        const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
-
-        const jwk = await jose.exportJWK(publicKey);
+        const jwk = await jose.exportJWK(keyPair.publicKey);
 
         const payload = { termsOfServiceAgreed: true };
         const protectedHeader = {
@@ -70,7 +68,7 @@ export async function createAccount(nonce, newAccountUrl) {
 
         const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify(payload)));
         jws.setProtectedHeader(protectedHeader);
-        const signed = await jws.sign(privateKey);
+        const signed = await jws.sign(keyPair.privateKey);
 
         const request = {
             method: 'POST',
@@ -99,8 +97,38 @@ export async function createAccount(nonce, newAccountUrl) {
     }
 }
 
-export async function startLetsEncryptDaemon() {
+export async function generateKeyPair() {
+    const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
+    return { publicKey, privateKey };
+}
+
+/**
+ * Starts the Let's Encrypt daemon to manage SSL certificates.
+ *
+ * This function initializes the Let's Encrypt daemon, which can automatically
+ * obtain and renew SSL certificates for your application. If an optional keypair
+ * is provided, it will be used for the SSL certificate generation.
+ *
+ * @param {Object} [optionalKeyPair] - An optional keypair for SSL certificate generation.
+ * @param {string} optionalKeyPair.publicKey - The public key part of the keypair.
+ * @param {string} optionalKeyPair.privateKey - The private key part of the keypair.
+ *
+ */
+export async function startLetsEncryptDaemon(optionalKeyPair) {
+    if (optionalKeyPair == undefined) {
+        optionalKeyPair = await generateKeyPair();
+    }
+
+    if (optionalKeyPair.publicKey == undefined) {
+        throw new Error("optionalKeyPair.publicKey must be defined");
+    }
+
+    if (optionalKeyPair.privateKey == undefined) {
+        throw new Error("optionalKeyPair.publicKey must be defined");
+    }
+
     console.log("Starting Lets Encrypt Daemon!");
+    console.log("This does not currently generate certificates.");
 
     const directory = (await newDirectoryAsync()).answer.directory;
 
@@ -108,7 +136,7 @@ export async function startLetsEncryptDaemon() {
         const nonce = await newNonceAsync(directory.newNonce);
 
         if (nonce.nonce !== null) {
-            const account = await createAccount(nonce.nonce, directory.newAccount).catch(console.error);
+            const account = await createAccount(nonce.nonce, directory.newAccount, optionalKeyPair).catch(console.error);
 
             if (account.answer.account && account.answer.account.status == "valid") {
                 console.log("Account Created and Valid", account.answer);

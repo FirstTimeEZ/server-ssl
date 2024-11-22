@@ -161,7 +161,7 @@ createServerHTTPS(options, (req, res) => {
 /////////////////////////////////////////////////////////////////
 
 // The api should be something like this when finished
-//optLetsEncrypt && startLetsEncryptDaemon(certOutputDir);
+//optLetsEncrypt && startLetsEncryptDaemon(optionalKeyPair, certOutputDir);
 
 // WIP does not generate certificates
 // You are welcome to test this are report your results
