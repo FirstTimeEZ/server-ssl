@@ -151,8 +151,9 @@ createServerHTTPS(options, (req, res) => {
  *
  */
 !optDisableRedirectHttp && createServerHTTP((req, res) => {
-    // Lets Encrypt! HTTP-01 Challenge Mixin
-    if (checkChallengesMixin(req, res)) { return; }
+    if (optLetsEncrypt) { // Lets Encrypt! HTTP-01 Challenge Mixin
+        if (checkChallengesMixin(req, res)) { return; }
+    }
 
     res.writeHead(301, { "Location": `https://${req.headers.host}${req.url}` });
     res.end();
