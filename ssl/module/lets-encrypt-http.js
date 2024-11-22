@@ -269,6 +269,9 @@ export async function signPayloadJson(payload, protectedHeader, keyPair) {
  */
 export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
     const keyPair = await generateKeyPair(optionalSslPath);
+    let account = undefined;
+    let directory = undefined;
+    let authorizations = undefined;
 
     if (keyPair.publicKey == undefined) {
         throw new Error("optionalKeyPair.publicKey must be defined");
@@ -281,7 +284,7 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
     console.log("Starting Lets Encrypt Daemon!");
     console.log("This does not currently generate certificates.");
 
-    const directory = (await newDirectoryAsync()).answer.directory;
+    directory = (await newDirectoryAsync()).answer.directory;
 
     if (directory !== null) {
         console.log(directory);
@@ -289,7 +292,7 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
         const nonce = await newNonceAsync(directory.newNonce);
 
         if (nonce.nonce !== null) {
-            const account = await createAccount(nonce.nonce, directory.newAccount, keyPair).catch(console.error);
+            account = await createAccount(nonce.nonce, directory.newAccount, keyPair).catch(console.error);
 
             if (account.answer.account && account.answer.account.status == "valid") {
                 console.log("Account Created and Valid", account.answer);
@@ -297,18 +300,18 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
 
                 const order = await createOrder(account.answer.location, account.nonce, keyPair, directory.newOrder, [{ "type": "dns", "value": fqdn }]);
                 if (order.answer.order != undefined) {
-                    let n = order.nonce;
+                    let n;
                     console.log("Next Nonce", order);
-                    console.log("Next Nonce", n);
+                    console.log("Next Nonce", (n = order.nonce));
 
-                    order.answer.order.authorizations.forEach(element => {
+                    authorizations = order.answer.order.authorizations;
+                    authorizations.forEach(element => {
                         postAsGet(account.answer.location, n, keyPair, element).then((authorization) => {
                             console.log("Status", authorization.answer.order.status);
                             console.log("Identifier", authorization.answer.order.identifier);
                             console.log("Challenges", authorization.answer.order.challenges);
                             console.log("Expires", new Date(authorization.answer.order.expires).toString());
-                            n = authorization.nonce;
-                            console.log("Next Nonce", n);
+                            console.log("Next Nonce", (n = authorization.nonce));
                         });
                     });
                 }
