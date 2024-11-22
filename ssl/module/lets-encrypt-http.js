@@ -138,6 +138,46 @@ export async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers)
     }
 }
 
+export async function postAsGet(kid, nonce, keyPair, url) {
+    try {
+        const protectedHeader = {
+            alg: ALG_ECDSA,
+            kid: kid,
+            nonce: nonce,
+            url: url,
+        };
+
+        const jws = new jose.FlattenedSign(new TextEncoder().encode(""));
+        jws.setProtectedHeader(protectedHeader);
+        const signed = JSON.stringify(await jws.sign(keyPair.privateKey));
+
+        const request = {
+            method: 'POST',
+            headers: {
+                'Content-Type': CONTENT_TYPE_JOSE
+            },
+            body: signed
+        };
+
+        const response = await fetch(url, request);
+
+        if (response.ok) {
+            return {
+                answer: { order: await response.json(), location: response.headers.get('location') },
+                nonce: response.headers.get(REPLAY_NONCE)
+            };
+        }
+        else {
+            return {
+                answer: { error: await response.json() },
+                nonce: null
+            };
+        }
+    } catch (exception) {
+        return { answer: { exception: exception } }
+    }
+}
+
 /**
  * Generates a public-private key pair for cryptographic operations.
  * The generated public key will be associated with a user account,
@@ -208,7 +248,7 @@ export async function generateKeyPair(sslPath) {
  * @throws {Error} Throws an error if the signing process fails.
  */
 export async function signPayloadJson(payload, protectedHeader, keyPair) {
-    const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify(payload)));
+    const jws = new jose.FlattenedSign(payload !== undefined ? new TextEncoder().encode(JSON.stringify(payload)) : undefined);
     jws.setProtectedHeader(protectedHeader);
     return JSON.stringify(await jws.sign(keyPair.privateKey));
 }
@@ -257,8 +297,20 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
 
                 const order = await createOrder(account.answer.location, account.nonce, keyPair, directory.newOrder, [{ "type": "dns", "value": fqdn }]);
                 if (order.answer.order != undefined) {
-                    console.log(order.answer.order);
-                    console.log("Next Nonce", order.nonce);
+                    let n = order.nonce;
+                    console.log("Next Nonce", order);
+                    console.log("Next Nonce", n);
+
+                    order.answer.order.authorizations.forEach(element => {
+                        postAsGet(account.answer.location, n, keyPair, element).then((authorization) => {
+                            console.log("Status", authorization.answer.order.status);
+                            console.log("Identifier", authorization.answer.order.identifier);
+                            console.log("Challenges", authorization.answer.order.challenges);
+                            console.log("Expires", new Date(authorization.answer.order.expires).toString());
+                            n = authorization.nonce;
+                            console.log("Next Nonce", n);
+                        });
+                    });
                 }
                 else {
                     console.error("Error getting order", order.answer.error, order.answer.exception);
@@ -289,7 +341,7 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
 // |                   |                                |              |
 // | Submit order      | POST newOrder                  | 201 -> order | x
 // |                   |                                |              |
-// | Fetch challenges  | POST-as-GET order's            | 200          |
+// | Fetch challenges  | POST-as-GET order's            | 200          | x
 // |                   | authorization urls             |              |
 // |                   |                                |              |
 // | Respond to        | POST authorization challenge   | 200          |
