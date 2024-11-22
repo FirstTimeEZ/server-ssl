@@ -3,7 +3,7 @@ import { createServer as createServerHTTPS } from 'https';
 import { createServer as createServerHTTP } from 'http';
 import { readFile, readFileSync, existsSync, mkdir } from 'fs';
 import { join, extname as _extname, dirname } from 'path';
-import { startLetsEncryptDaemon, checkChallengesMixin } from './ssl/module/lets-encrypt-http.js'
+import { startLetsEncryptDaemon, checkChallengesMixin } from './ssl/module/lets-encrypt-acme-client.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -60,121 +60,116 @@ function loadArguments() {
     !optEntry && (optEntry = 'index.html');
 }
 
-loadArguments();
+try {
+    loadArguments();
 
-const sslFolder = join(__dirname, "ssl");
-const pkPath = join(sslFolder, optPk);
-const certPath = join(sslFolder, optCert);
+    const sslFolder = join(__dirname, "ssl");
+    const pkPath = join(sslFolder, optPk);
+    const certPath = join(sslFolder, optCert);
 
-!existsSync(sslFolder) && useSslFolder();
-!existsSync(pkPath) && certificateNotExist();
-!existsSync(certPath) && certificateNotExist();
+    !existsSync(sslFolder) && useSslFolder();
+    !existsSync(pkPath) && certificateNotExist();
+    !existsSync(certPath) && certificateNotExist();
 
-options.key = readFileSync(pkPath);
-options.cert = readFileSync(certPath);
+    options.key = readFileSync(pkPath);
+    options.cert = readFileSync(certPath);
 
-/**
- * Creates an HTTPS server that handles incoming requests.
- * 
- */
-createServerHTTPS(options, (req, res) => {
-    let filePath = join(__dirname, optWebsite, req.url === '/' ? optEntry : req.url);
+    createServerHTTPS(options, (req, res) => {
+        let filePath = join(__dirname, optWebsite, req.url === '/' ? optEntry : req.url);
 
-    const extname = _extname(filePath);
+        const extname = _extname(filePath);
 
-    let contentType = 'text/html';
+        let contentType = 'text/html';
 
-    switch (extname) {
-        case '.css':
-            contentType = 'text/css';
-            break;
-        case '.js':
-            contentType = 'text/javascript';
-            break;
-        case '.json':
-            contentType = 'application/json';
-            break;
-        case '.png':
-            contentType = 'image/png';
-            break;
-        case '.jpg':
-            contentType = 'image/jpg';
-            break;
-        case '.gif':
-            contentType = 'image/gif';
-            break;
-        case '.svg':
-            contentType = 'image/svg+xml';
-            break;
-        case '.ico':
-            contentType = 'image/x-icon';
-            break;
-    }
-
-    readFile(filePath, (err, content) => {
-        if (err) {
-            if (err.code === 'ENOENT') {
-                readFile(join(__dirname, optError, '/404.html'), (err404, content404) => {
-                    if (err404) {
-                        res.writeHead(500);
-                        res.end('Server Error');
-                    } else {
-                        res.writeHead(404, { 'Content-Type': 'text/html' });
-                        res.end(content404);
-                    }
-                });
-            } else {
-                readFile(join(__dirname, optError, '/500.html'), (error500, content500) => {
-                    if (error500) {
-                        res.writeHead(500);
-                        res.end('Server Error');
-                    } else {
-                        res.writeHead(500, { 'Content-Type': 'text/html' });
-                        res.end(content500);
-                    }
-                });
-            }
-            return;
+        switch (extname) {
+            case '.css':
+                contentType = 'text/css';
+                break;
+            case '.js':
+                contentType = 'text/javascript';
+                break;
+            case '.json':
+                contentType = 'application/json';
+                break;
+            case '.png':
+                contentType = 'image/png';
+                break;
+            case '.jpg':
+                contentType = 'image/jpg';
+                break;
+            case '.gif':
+                contentType = 'image/gif';
+                break;
+            case '.svg':
+                contentType = 'image/svg+xml';
+                break;
+            case '.ico':
+                contentType = 'image/x-icon';
+                break;
         }
 
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(content);
-    });
-}).listen(optPort, (err) => err ? console.error('Error starting server:', err) : console.log(`HTTPS Server is running on port ${optPort}`));
+        readFile(filePath, (err, content) => {
+            if (err) {
+                if (err.code === 'ENOENT') {
+                    readFile(join(__dirname, optError, '/404.html'), (err404, content404) => {
+                        if (err404) {
+                            res.writeHead(500);
+                            res.end('Server Error');
+                        } else {
+                            res.writeHead(404, { 'Content-Type': 'text/html' });
+                            res.end(content404);
+                        }
+                    });
+                } else {
+                    readFile(join(__dirname, optError, '/500.html'), (error500, content500) => {
+                        if (error500) {
+                            res.writeHead(500);
+                            res.end('Server Error');
+                        } else {
+                            res.writeHead(500, { 'Content-Type': 'text/html' });
+                            res.end(content500);
+                        }
+                    });
+                }
+                return;
+            }
 
-/**
- * Creates an HTTP server that redirects incoming requests to HTTPS
- * using the --noRedirect flag will disable this
- *
- */
-!optDisableRedirectHttp && createServerHTTP((req, res) => {
-    if (optLetsEncrypt) { // Lets Encrypt! HTTP-01 Challenge Mixin
-        if (checkChallengesMixin(req, res)) { return; }
+            res.writeHead(200, { 'Content-Type': contentType });
+            res.end(content);
+        });
+    }).listen(optPort, (err) => err ? console.error('Error starting server:', err) : console.log(`HTTPS Server is running on port ${optPort}`));
+
+    createServerHTTP((req, res) => {
+        if (optLetsEncrypt) { if (checkChallengesMixin(req, res)) { return; } } // Lets Encrypt! HTTP-01 Challenge Mixin
+
+        if (!optDisableRedirectHttp) {
+            res.writeHead(301, { "Location": `https://${req.headers.host}${req.url}` });
+            res.end();
+        }
+    }).listen(optPortHttp, () => console.log(`HTTP Server is redirecting requests to ${optPort}`));
+
+    /////////////////////////////////////////////////////////////////
+    //                   Lets Encrypt! Daemon                      //
+    /////////////////////////////////////////////////////////////////
+    // Automatically generate a 90 certificate every 75 days or so //
+    // Automates the HTTP-01 challenge                             //
+    /////////////////////////////////////////////////////////////////
+
+    // The api should be something like this when finished
+
+    // HTTP Mixin inside your HTTP Server Listener
+    // if (checkChallengesMixin(res)) { return; }
+    //
+    // or Dedicated HTTP Challenge Server at port 80 (todo)
+    //
+    // one or the other will be required to complete challenges
+
+    // Daemon
+    // startLetsEncryptDaemon(fqdn, sslFolder, certOutputDir);
+
+    if (optLetsEncrypt) {
+        startLetsEncryptDaemon(["www.ssl.boats", "ssl.boats"], sslFolder);
     }
-
-    res.writeHead(301, { "Location": `https://${req.headers.host}${req.url}` });
-    res.end();
-}).listen(optPortHttp, () => console.log(`HTTP Server is redirecting requests to ${optPort}`));
-
-/////////////////////////////////////////////////////////////////
-//                   Lets Encrypt! Daemon                      //
-/////////////////////////////////////////////////////////////////
-// Automatically generate a 90 certificate every 75 days or so //
-// Automates the HTTP-01 challenge                             //
-/////////////////////////////////////////////////////////////////
-
-// The api should be something like this when finished
-
-// HTTP Mixin inside your HTTP Server Listener
-// if (checkChallengesMixin(res)) { return; }
-//
-// or Dedicated HTTP Challenge Server at port 80 (todo)
-//
-// one or the other will be required to complete challenges
-
-// Daemon
-// startLetsEncryptDaemon(fqdn, sslFolder, certOutputDir);
-
-if (optLetsEncrypt) {
-    startLetsEncryptDaemon(["www.ssl.boats", "ssl.boats"], sslFolder);
+} catch (exception) {
+    console.error(exception);
 }

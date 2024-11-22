@@ -16,16 +16,20 @@ import { writeFile, readFileSync, existsSync, mkdirSync } from 'fs';
 const DIRECTORY_URL = "https://acme-staging-v02.api.letsencrypt.org/directory";
 
 const ALG_ECDSA = 'ES256';
+const DIGEST = "sha256";
 const PUBLIC_KEY = '/acmePublicKey.raw';
 const PRIVATE_KEY = '/acmePrivateKey.raw';
 
 const CONTENT_TYPE_JOSE = 'application/jose+json';
+const CONTENT_TYPE_OCTET = 'application/octet-stream';
 
 const REPLAY_NONCE = 'replay-nonce';
 
 const pendingChallenges = [];
 
 let LOCALHOST = false;
+
+let jwk = undefined;
 
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
@@ -112,6 +116,23 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                             console.error("Error getting auth", auth.answer.error, auth.answer.exception);
                         }
                     }
+
+                    for (let index = 0; index < pendingChallenges.length; index++) {
+                        const element = pendingChallenges[index];
+                        n = n;
+
+                        if (element.type == "http-01" && element.status == "pending") {
+                            console.log("challenge", element);
+
+                            let auth = await postAsGetChal(account.answer.location, n, keyPair, element.url);
+
+                            if (auth.answer.get.status) {
+                                console.log("Next Nonce", (n = auth.nonce), auth);
+                            } else {
+                                console.error("Error getting auth", auth.answer.error, auth.answer.exception);
+                            }
+                        }
+                    }
                 }
                 else {
                     console.error("Error getting order", order.answer.error, order.answer.exception);
@@ -166,7 +187,7 @@ export async function newNonceAsync(newNonceUrl) {
 
 export async function createAccount(nonce, newAccountUrl, keyPair) {
     try {
-        const jwk = await jose.exportJWK(keyPair.publicKey);
+        jwk = await jose.exportJWK(keyPair.publicKey);
 
         const payload = { termsOfServiceAgreed: true };
         const protectedHeader = {
@@ -285,6 +306,46 @@ export async function postAsGet(kid, nonce, keyPair, url) {
     }
 }
 
+export async function postAsGetChal(kid, nonce, keyPair, url) {
+    try {
+        const protectedHeader = {
+            alg: ALG_ECDSA,
+            kid: kid,
+            nonce: nonce,
+            url: url,
+        };
+
+        const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify({})));
+        jws.setProtectedHeader(protectedHeader);
+        const signed = JSON.stringify(await jws.sign(keyPair.privateKey));
+
+        const request = {
+            method: 'POST',
+            headers: {
+                'Content-Type': CONTENT_TYPE_JOSE
+            },
+            body: signed
+        };
+
+        const response = await fetch(url, request);
+
+        if (response.ok) {
+            return {
+                answer: { get: await response.json(), location: response.headers.get('location') },
+                nonce: response.headers.get(REPLAY_NONCE)
+            };
+        }
+        else {
+            return {
+                answer: { error: await response.json() },
+                nonce: null
+            };
+        }
+    } catch (exception) {
+        return { answer: { exception: exception } }
+    }
+}
+
 /**
  * Generates a public-private key pair for cryptographic operations.
  * The generated public key will be associated with a user account,
@@ -360,25 +421,34 @@ export async function signPayloadJson(payload, protectedHeader, keyPair) {
     return JSON.stringify(await jws.sign(keyPair.privateKey));
 }
 
-// Once I implement the key authorization construction correctly, this function will fully comply with the ACME HTTP-01 challenge specification. 
 export function checkChallengesMixin(req, res) {
-    if (req.url.includes(".well-known/acme-challenge/")) {
-        InternalCheckIsLocalHost(req);
+    try {
+        if (jwk !== undefined && req.url.startsWith("/.well-known/acme-challenge/")) {
+            InternalCheckIsLocalHost(req);
 
-        const split = req.url.split("/");
-        const token = split[split.length - 1];
-        let bufferModified = false;
-        pendingChallenges.forEach(challenge => {
-            if (challenge.type == "http-01" && challenge.status == "pending" && challenge.token == token) {
-                console.log("HTTP-01 ACME Challenge");
-                console.log("token", challenge.token);
-                res.writeHead(200, { 'Content-Type': 'application/octet-stream' });
-                res.end(Buffer.from(challenge.token));
-                bufferModified = true;
+            const split = req.url.split("/");
+            if (split.length === 4) {
+                const token = split[split.length - 1];
+                let bufferModified = false;
+                pendingChallenges.forEach(challenge => {
+                    if (challenge.type == "http-01" && challenge.status == "pending" && challenge.token == token) {
+                        console.log("HTTP-01 ACME Challenge");
+                        console.log("token", challenge.token);
+                        jose.calculateJwkThumbprint(jwk, DIGEST).then((thumbPrint) => {
+                            res.writeHead(200, { 'Content-Type': CONTENT_TYPE_OCTET });
+                            const answer = `${challenge.token}.${thumbPrint}`;
+                            res.end(Buffer.from(answer));
+                            console.log("HTTP-01 ACME Challenge Answered", answer);
+                        });
+                        bufferModified = true;
+                    }
+                });
+
+                return bufferModified;
             }
-        });
-
-        return bufferModified;
+        }
+    } catch (exception) {
+        console.log("checkChallengesMixin exception", exception);
     }
 
     return false;
@@ -412,10 +482,10 @@ function InternalCheckIsLocalHost(req) {
 // |                   |                                |              |
 // | Fetch challenges  | POST-as-GET order's            | 200          | x
 // |                   | authorization urls             |              | x
-// |                   |                                |              |
-// | Respond to        | POST authorization challenge   | 200          |
-// | challenges        | urls                           |              |
-// |                   |                                |              |
+// |                   |                                |              | x
+// | Respond to        | POST authorization challenge   | 200          | x
+// | challenges        | urls                           |              | x
+// |                   |                                |              | x
 // | Poll for status   | POST-as-GET order              | 200          |
 // |                   |                                |              |
 // | Finalize order    | POST order's finalize url      | 200          |
