@@ -25,6 +25,8 @@ const REPLAY_NONCE = 'replay-nonce';
 
 const pendingChallenges = [];
 
+let LOCALHOST = false;
+
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
  * 
@@ -72,7 +74,13 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                 console.log("Account Created and Valid", account.answer);
                 console.log("Next Nonce", account.nonce);
 
-                const order = await createOrder(account.answer.location, account.nonce, keyPair, directory.newOrder, [{ "type": "dns", "value": fqdn }]);
+                let domains = [];
+
+                fqdn.forEach((element) => {
+                    domains.push({ "type": "dns", "value": element });
+                });
+
+                const order = await createOrder(account.answer.location, account.nonce, keyPair, directory.newOrder, domains);
                 if (order.answer.order != undefined) {
                     let n;
                     console.log("------");
@@ -82,21 +90,28 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                     console.log("Next Nonce", (n = order.nonce));
 
                     authorizations = order.answer.order.authorizations;
-                    authorizations.forEach(element => {
-                        console.log("authz", element);
-                        postAsGet(account.answer.location, n, keyPair, element).then((authorization) => {
-                            console.log("------");
-                            console.log("Authorization", authorization.answer);
 
+                    for (let index = 0; index < authorizations.length; index++) {
+                        const element = authorizations[index];
+                        n = n;
+
+                        console.log("authz", element);
+                        let auth = await postAsGet(account.answer.location, n, keyPair, element);
+
+                        if (auth.answer.get.status) {
+                            console.log("------");
+                            console.log("Authorization", auth.answer);
                             console.log("Order", account.answer.location);
-                            console.log("Status", authorization.answer.get.status);
-                            console.log("Identifier", authorization.answer.get.identifier);
+                            console.log("Status", auth.answer.get.status);
+                            console.log("Identifier", auth.answer.get.identifier);
                             console.log("Challenges");
-                            pendingChallenges.push(...authorization.answer.get.challenges);
-                            console.log("Expires", new Date(authorization.answer.get.expires).toString());
-                            console.log("Next Nonce", (n = authorization.nonce));
-                        });
-                    });
+                            pendingChallenges.push(...auth.answer.get.challenges);
+                            console.log("Expires", new Date(auth.answer.get.expires).toString());
+                            console.log("Next Nonce", (n = auth.nonce));
+                        } else {
+                            console.error("Error getting auth", auth.answer.error, auth.answer.exception);
+                        }
+                    }
                 }
                 else {
                     console.error("Error getting order", order.answer.error, order.answer.exception);
@@ -348,6 +363,8 @@ export async function signPayloadJson(payload, protectedHeader, keyPair) {
 // Once I implement the key authorization construction correctly, this function will fully comply with the ACME HTTP-01 challenge specification. 
 export function checkChallengesMixin(req, res) {
     if (req.url.includes(".well-known/acme-challenge/")) {
+        InternalCheckIsLocalHost(req);
+
         const split = req.url.split("/");
         const token = split[split.length - 1];
         let bufferModified = false;
@@ -365,6 +382,20 @@ export function checkChallengesMixin(req, res) {
     }
 
     return false;
+}
+
+function InternalCheckIsLocalHost(req) {
+    if (LOCALHOST == false) {
+        let ip = req.socket.remoteAddress;
+        if (req.headers['x-forwarded-for']) {
+            ip = req.headers['x-forwarded-for'].split(',')[0];
+        }
+
+        if (ip === '127.0.0.1' || ip === '::1' || ip === 'localhost') {
+            LOCALHOST = true;
+            console.error(ip, req.headers.host, "You can not generate lets encrypt certificates for localhost");
+        }
+    }
 }
 
 // +-------------------+--------------------------------+--------------+

@@ -176,5 +176,5 @@ createServerHTTPS(options, (req, res) => {
 // startLetsEncryptDaemon(fqdn, sslFolder, certOutputDir);
 
 if (optLetsEncrypt) {
-    startLetsEncryptDaemon("www.thisismydomain123.org", sslFolder);
+    startLetsEncryptDaemon(["www.ssl.boats", "ssl.boats"], sslFolder);
 }
