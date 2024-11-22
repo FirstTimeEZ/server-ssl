@@ -82,12 +82,9 @@ createServerHTTPS(options, (req, res) => {
 
     const extname = _extname(filePath);
 
-    let contentType;
+    let contentType = 'text/html';
 
     switch (extname) {
-        case '.html':
-            contentType = 'text/html';
-            break;
         case '.css':
             contentType = 'text/css';
             break;
