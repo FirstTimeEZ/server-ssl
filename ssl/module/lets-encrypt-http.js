@@ -25,8 +25,6 @@ const REPLAY_NONCE = 'replay-nonce';
 
 const pendingChallenges = [];
 
-let LOCALHOST = false;
-
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
  * 
@@ -350,8 +348,6 @@ export async function signPayloadJson(payload, protectedHeader, keyPair) {
 // Once I implement the key authorization construction correctly, this function will fully comply with the ACME HTTP-01 challenge specification. 
 export function checkChallengesMixin(req, res) {
     if (req.url.includes(".well-known/acme-challenge/")) {
-        InternalCheckIsLocalHost(req);
-
         const split = req.url.split("/");
         const token = split[split.length - 1];
         let bufferModified = false;
@@ -369,20 +365,6 @@ export function checkChallengesMixin(req, res) {
     }
 
     return false;
-}
-
-function InternalCheckIsLocalHost(req) {
-    if (LOCALHOST == false) {
-        const ip = req.socket.remoteAddress;
-        if (req.headers['x-forwarded-for']) {
-            ip = req.headers['x-forwarded-for'].split(',')[0];
-        }
-
-        if (ip === '127.0.0.1' || ip === '::1' || ip === 'localhost') {
-            LOCALHOST = true;
-            console.error(ip, req.headers.host, "You can not generate lets encrypt certificates for localhost");
-        }
-    }
 }
 
 // +-------------------+--------------------------------+--------------+
