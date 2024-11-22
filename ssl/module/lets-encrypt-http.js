@@ -172,16 +172,17 @@ export async function signPayloadJson(payload, protectedHeader, keyPair) {
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
  * 
- * If an optional keyPair is provided, it will be used for authentication, the keyPair is basically your user account.
+ * If an optional keyPair is provided, it will be used for authentication; the keyPair is basically your user account.
  * 
  * If no keyPair is provided, a random one will be generated and used instead.
  *
- * @param {Object} [optionalKeyPair] - An optional keypair for authentication/account
+ * @param {string} fqdn - The fully qualified domain name (FQDN) for which to manage SSL certificates.
+ * @param {Object} [optionalKeyPair] - An optional keypair for authentication/account.
  * @param {string} optionalKeyPair.publicKey - The public key part of the keypair.
  * @param {string} optionalKeyPair.privateKey - The private key part of the keypair.
  * @see {generateKeyPair}
  */
-export async function startLetsEncryptDaemon(fqdm, optionalKeyPair) {
+export async function startLetsEncryptDaemon(fqdn, optionalKeyPair) {
     if (optionalKeyPair == undefined) {
         optionalKeyPair = await generateKeyPair();
     }
@@ -211,7 +212,7 @@ export async function startLetsEncryptDaemon(fqdm, optionalKeyPair) {
                 console.log("Account Created and Valid", account.answer);
                 console.log("Next Nonce", account.nonce);
 
-                const order = await createOrder(account.answer.location, account.nonce, optionalKeyPair, directory.newOrder, [{ "type": "dns", "value": fqdm }]);
+                const order = await createOrder(account.answer.location, account.nonce, optionalKeyPair, directory.newOrder, [{ "type": "dns", "value": fqdn }]);
                 if (order.answer.order != undefined) {
                     console.log(order.answer.order);
                     console.log("Next Nonce", order.nonce);
@@ -270,7 +271,7 @@ export async function startLetsEncryptDaemon(fqdm, optionalKeyPair) {
 //       'https://acme-staging-v02.api.letsencrypt.org/acme/authz/172696254/15031989944'
 //     ],
 //     finalize: 'https://acme-staging-v02.api.letsencrypt.org/acme/finalize/172696254/20696202154'
-//   }  
+//   }
 // authorizations {
 //     "identifier": {
 //       "type": "dns",
