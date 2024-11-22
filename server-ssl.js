@@ -15,6 +15,7 @@ let optCert = null;
 let optError = null;
 let optEntry = null;
 let optWebsite = null;
+let optLetsEncrypt = null;
 let optDisableRedirectHttp = false;
 let optPort = process.env.PORT || 443;
 let optPortHttp = process.env.PORT_HTTP || 80;
@@ -49,6 +50,7 @@ function loadArguments() {
         arg.includes("--error=") && (optError = rightSide);
         arg.includes("--entry=") && (optEntry = rightSide);
         arg.includes("--noRedirect") && (optDisableRedirectHttp = true);
+        arg.includes("--letsEncrypt") && (optLetsEncrypt = true); // WIP does not generate certificates, if you find bugs please open an issue.
     });
 
     !optPk && (optPk = 'private-key.pem');
@@ -175,7 +177,6 @@ createServerHTTPS(options, (req, res) => {
 // Daemon
 // startLetsEncryptDaemon(fqdn, sslFolder, certOutputDir);
 
-// WIP does not generate certificates
-// Uncomment below this line to test current features.
-// if you find bugs please open an issue.
-//startLetsEncryptDaemon("www.thisismydomain123.org", sslFolder);
+if (optLetsEncrypt) {
+    startLetsEncryptDaemon("www.thisismydomain123.org", sslFolder);
+}
