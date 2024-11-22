@@ -1,5 +1,5 @@
 ssl/private-key.pem
 ssl/certificate.pem
 node.exe
-ssl/publicKey.raw
-ssl/privateKey.raw
+ssl/acmePrivateKey.raw
+ssl/acmePublicKey.raw

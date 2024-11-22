@@ -16,8 +16,8 @@ import { writeFile, readFileSync, existsSync, mkdirSync } from 'fs';
 const DIRECTORY_URL = "https://acme-staging-v02.api.letsencrypt.org/directory";
 
 const ALG_ECDSA = 'ES256';
-const PUBLIC_KEY = '/publicKey.raw';
-const PRIVATE_KEY = '/privateKey.raw';
+const PUBLIC_KEY = '/acmePublicKey.raw';
+const PRIVATE_KEY = '/acmePrivateKey.raw';
 
 const CONTENT_TYPE_JOSE = 'application/jose+json';
 
