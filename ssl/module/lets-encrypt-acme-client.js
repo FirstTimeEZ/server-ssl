@@ -519,16 +519,12 @@ function InternalCheckIsLocalHost(req) {
 export async function finalizeOrder(domains, kid, nonce, keyPair, finalizeUrl) {
     try {
         const subject = {
-            commonName: 'ssl.boats',
-            organizationName: 'Example Corporation',
-            localityName: 'San Francisco',
-            stateOrProvinceName: 'California',
-            countryName: 'US',
+            commonName: 'ssl.boats'
         };
 
         //const altNames = ['www.ssl.boats', 'ssl.boats'];
 
-        const out = JSON.stringify({csr: await generateCSRWithExistingKeys(subject, keyPair.publicKey, keyPair.privateKey)});
+        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(subject, keyPair.publicKey, keyPair.privateKey) });
 
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -596,62 +592,37 @@ async function generateCSRWithExistingKeys(subject, publicKey, privateKey) {
     // Create the final CertificationRequest
     const csr = encodeDERSequence([
         certificationRequestInfo,
-        encodeAlgorithmIdentifier('1.2.840.10045.4.3.2'), // ecdsa-with-SHA256 OID
+        encodeAlgorithmIdentifier('1.2.840.10045.4.3.2'),
         Buffer.concat([
-            Buffer.from([0x03]), // BIT STRING
+            Buffer.from([0x03]),
             encodeDERLength(signature.length + 1),
-            Buffer.from([0x00]), // Unused bit
+            Buffer.from([0x00]),
             signature
         ])
     ]);
 
-    // Convert to PEM format
-    const csrPem = [
-        '-----BEGIN CERTIFICATE REQUEST-----',
-        csr.toString('base64').match(/.{1,64}/g).join('\n'),
-        '-----END CERTIFICATE REQUEST-----'
-    ].join('\n');
-
-    return csrPem;
+    return csr.toString('base64url');
 }
 
 function buildSubjectDER(subject) {
     const sequence = [];
-
-    if (subject.countryName)
-        sequence.push(encodeDERAttribute('2.5.4.6', subject.countryName));
-    if (subject.stateOrProvinceName)
-        sequence.push(encodeDERAttribute('2.5.4.8', subject.stateOrProvinceName));
-    if (subject.localityName)
-        sequence.push(encodeDERAttribute('2.5.4.7', subject.localityName));
-    if (subject.organizationName)
-        sequence.push(encodeDERAttribute('2.5.4.10', subject.organizationName));
-    if (subject.organizationalUnitName)
-        sequence.push(encodeDERAttribute('2.5.4.11', subject.organizationalUnitName));
-    if (subject.commonName)
+    if (subject.commonName) {
         sequence.push(encodeDERAttribute('2.5.4.3', subject.commonName));
-    if (subject.emailAddress)
-        sequence.push(encodeDERAttribute('1.2.840.113549.1.9.1', subject.emailAddress));
-
+    }
     return encodeDERSequence(sequence);
 }
 
 function encodeAlgorithmIdentifier(oid) {
-    return encodeDERSequence([
-        encodeDERObjectIdentifier(oid),
-        Buffer.from([]) // No parameters
-    ]);
+    return encodeDERSequence([encodeDERObjectIdentifier(oid), Buffer.from([])]);
 }
 
 function encodeSubjectPublicKeyInfo(publicKeyDER) {
-    const algorithmIdentifier = encodeAlgorithmIdentifier('1.2.840.10045.3.1.7'); // ecdsa-with-SHA256 OID
+    const algorithmIdentifier = encodeAlgorithmIdentifier('1.2.840.10045.3.1.7');
     return encodeDERSequence([
         algorithmIdentifier,
         Buffer.concat([
-            Buffer.from([0x03]), // BIT STRING
-            encodeDERLength(publicKeyDER.length + 1),
-            Buffer.from([0x00]), // Unused bit
-            publicKeyDER
+            Buffer.from([0x03]), encodeDERLength(publicKeyDER.length + 1),
+            Buffer.from([0x00]), publicKeyDER
         ])
     ]);
 }
@@ -661,22 +632,14 @@ function encodeDERAttribute(oid, value) {
     const valueBuffer = Buffer.from(value, 'utf8');
 
     return Buffer.concat([
-        Buffer.from([0x30]), // SEQUENCE
-        encodeDERLength(oidBuffer.length + valueBuffer.length + 2),
-        oidBuffer,
-        Buffer.from([0x13]), // PrintableString
-        Buffer.from([valueBuffer.length]),
-        valueBuffer
+        Buffer.from([0x30]), encodeDERLength(oidBuffer.length + valueBuffer.length + 2), oidBuffer,
+        Buffer.from([0x13]), Buffer.from([valueBuffer.length]), valueBuffer
     ]);
 }
 
 function encodeDERSequence(elements) {
     const totalLength = elements.reduce((sum, el) => sum + el.length, 0);
-    return Buffer.concat([
-        Buffer.from([0x30]), // SEQUENCE
-        encodeDERLength(totalLength),
-        ...elements
-    ]);
+    return Buffer.concat([Buffer.from([0x30]), encodeDERLength(totalLength), ...elements]);
 }
 
 function encodeDERLength(length) {
@@ -715,9 +678,5 @@ function encodeDERObjectIdentifier(oid) {
         }
     }
 
-    return Buffer.concat([
-        Buffer.from([0x06]), // OBJECT IDENTIFIER
-        Buffer.from([encoded.length]),
-        Buffer.from(encoded)
-    ]);
+    return Buffer.concat([Buffer.from([0x06]), Buffer.from([encoded.length]), Buffer.from(encoded)]);
 }
