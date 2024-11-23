@@ -519,7 +519,6 @@ function InternalCheckIsLocalHost(req) {
 export async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl) {
     try {
         //const altNames = ['www.ssl.boats', 'ssl.boats'];
-
         const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey) });
 
         const protectedHeader = {
@@ -563,55 +562,117 @@ export async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl
 }
 
 async function generateCSRWithExistingKeys(commonName, publicKey, privateKey) {
-    const pubKeyObj = createPublicKey(await jose.exportSPKI(publicKey));
-    const privKeyObj = createPrivateKey(await jose.exportPKCS8(privateKey));
+    try {
+        const publicKeySpki = await jose.exportSPKI(publicKey);
+        const privateKeyPkcs8 = await jose.exportPKCS8(privateKey);
 
-    const subject = [encodeDERAttribute('2.5.4.3', commonName)];
+        const privKeyObj = createPrivateKey(privateKeyPkcs8);
 
-    const publicKeyDER = pubKeyObj.export({ type: 'spki', format: 'der' });
+        const subject = [encodeDERAttribute('2.5.4.3', commonName)];
 
-    const certificationRequestInfo = encodeDERSequence([
-        Buffer.from([0x02, 0x01, 0x00]),
-        encodeDERSequence(subject),
-        encodeSubjectPublicKeyInfo(publicKeyDER),
-        encodeDERSequence([]) // attributes
-    ]);
+        const certificationRequestInfo = encodeDERSequence([
+            Buffer.from([0x02, 0x01, 0x00]),              // version
+            encodeDERSequence(subject),                    // subject
+            encodeSubjectPublicKeyInfo(publicKeySpki),    // subjectPKInfo
+            Buffer.from([0xa0, 0x00])                     // attributes
+        ]);
 
-    const signature = await new Promise((resolve, reject) => {
-        sign('sha256', certificationRequestInfo, privKeyObj, (err, sig) => { if (err) return reject(err); resolve(sig); });
-    });
+        const signature = await signData(certificationRequestInfo, privKeyObj);
 
-    const signatureDER = Buffer.concat([Buffer.from([0x00]), signature]);
+        const csrDER = encodeDERSequence([
+            certificationRequestInfo,
+            encodeDERSequence([
+                encodeDERObjectIdentifier('1.2.840.10045.4.3.2'),
+                Buffer.from([0x05, 0x00])
+            ]),
+            encodeDERBitString(signature)
+        ]);
 
-    return encodeDERSequence([
-        certificationRequestInfo,
-        encodeAlgorithmIdentifier('1.2.840.10045.4.3.2'),
-        Buffer.concat([Buffer.from([0x03]), encodeDERLength(signatureDER.length + 1), Buffer.from([0x00]), signatureDER])]).toString('base64url');
+        return csrDER.toString('base64url');
+    } catch (error) {
+        throw new Error(`Failed to generate CSR: ${error.message}`);
+    }
 }
 
-function encodeAlgorithmIdentifier(oid) {
-    return encodeDERSequence([encodeDERObjectIdentifier(oid), Buffer.from([])]);
+function signData(data, privateKey) {
+    return new Promise((resolve, reject) => {
+        sign('sha256', data, privateKey, (err, sig) => {
+            if (err) reject(new Error(`Signing failed: ${err.message}`));
+            resolve(sig);
+        });
+    });
+}
+
+function encodeDERBitString(data) {
+    const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
+    return Buffer.concat([
+        Buffer.from([0x03]),
+        encodeDERLength(buffer.length + 1),
+        Buffer.from([0x00]),
+        buffer
+    ]);
 }
 
 function encodeSubjectPublicKeyInfo(publicKeyDER) {
-    const algorithmIdentifier = encodeAlgorithmIdentifier('1.2.840.10045.3.1.7');
-    const publicKeyInfo = Buffer.concat([Buffer.from([0x04]), publicKeyDER]);
-    return encodeDERSequence([algorithmIdentifier, encodeDERLength(publicKeyInfo.length), publicKeyInfo]);
+    try {
+        let derKey = publicKeyDER;
+        if (typeof publicKeyDER === 'string' && publicKeyDER.includes('-----BEGIN PUBLIC KEY-----')) {
+            const pemContent = publicKeyDER
+                .replace('-----BEGIN PUBLIC KEY-----', '')
+                .replace('-----END PUBLIC KEY-----', '')
+                .replace(/\s+/g, '');
+            derKey = Buffer.from(pemContent, 'base64');
+        }
+
+        let offset = 0;
+
+        if (derKey[offset++] !== 0x30) throw new Error('Expected sequence');
+        offset += skipDERLength(derKey.slice(offset));
+
+        if (derKey[offset++] !== 0x30) throw new Error('Expected algorithm sequence');
+        const algLength = readDERLength(derKey.slice(offset));
+        offset += skipDERLength(derKey.slice(offset)) + algLength;
+
+        if (derKey[offset++] !== 0x03) throw new Error('Expected bit string');
+        const bitStringLength = readDERLength(derKey.slice(offset));
+        offset += skipDERLength(derKey.slice(offset)) + bitStringLength;
+
+        offset++;
+
+        const keyPoint = derKey.slice(offset);
+
+        return encodeDERSequence([
+            encodeDERSequence([
+                encodeDERObjectIdentifier('1.2.840.10045.2.1'),
+                encodeDERObjectIdentifier('1.2.840.10045.3.1.7')
+            ]),
+            encodeDERBitString(keyPoint)
+        ]);
+    } catch (error) {
+        throw new Error(`Failed to encode SubjectPublicKeyInfo: ${error.message}`);
+    }
 }
 
 function encodeDERAttribute(oid, value) {
     const oidBuffer = encodeDERObjectIdentifier(oid);
     const valueBuffer = Buffer.from(value, 'utf8');
-
     return Buffer.concat([
-        Buffer.from([0x30]), encodeDERLength(oidBuffer.length + valueBuffer.length + 2), oidBuffer,
-        Buffer.from([0x13]), Buffer.from([valueBuffer.length]), valueBuffer
+        Buffer.from([0x30]),
+        encodeDERLength(oidBuffer.length + valueBuffer.length + 2),
+        oidBuffer,
+        Buffer.from([0x13]),
+        Buffer.from([valueBuffer.length]),
+        valueBuffer
     ]);
 }
 
 function encodeDERSequence(elements) {
     const totalLength = elements.reduce((sum, el) => sum + el.length, 0);
-    return Buffer.concat([Buffer.from([0x30]), encodeDERLength(totalLength), ...elements]);
+    return Buffer.concat([
+        Buffer.from([0x30]),
+        encodeDERLength(totalLength),
+        ...elements
+    ]);
 }
 
 function encodeDERLength(length) {
@@ -621,23 +682,29 @@ function encodeDERLength(length) {
 
     const bytes = [];
     let temp = length;
-
     while (temp > 0) {
         bytes.unshift(temp & 0xFF);
         temp = temp >> 8;
     }
-
     bytes.unshift(bytes.length | 0x80);
-    return Buffer.concat([Buffer.from(bytes)]);
+    return Buffer.from(bytes);
 }
 
 function encodeDERObjectIdentifier(oid) {
     const numbers = oid.split('.').map(Number);
+    if (numbers.length < 2) {
+        throw new Error('Invalid OID: must have at least 2 components');
+    }
+
     const first = numbers[0] * 40 + numbers[1];
     const encoded = [first];
 
     for (let i = 2; i < numbers.length; i++) {
         let number = numbers[i];
+        if (number < 0) {
+            throw new Error('Invalid OID: negative numbers not allowed');
+        }
+
         if (number < 128) {
             encoded.push(number);
         } else {
@@ -650,5 +717,27 @@ function encodeDERObjectIdentifier(oid) {
         }
     }
 
-    return Buffer.concat([Buffer.from([0x06]), Buffer.from([encoded.length]), Buffer.from(encoded)]);
+    return Buffer.concat([
+        Buffer.from([0x06]),
+        Buffer.from([encoded.length]),
+        Buffer.from(encoded)
+    ]);
+}
+
+function readDERLength(buffer) {
+    if (buffer[0] < 128) return buffer[0];
+
+    const numBytes = buffer[0] & 0x7F;
+    let length = 0;
+
+    for (let i = 1; i <= numBytes; i++) {
+        length = (length << 8) | buffer[i];
+    }
+
+    return length;
+}
+
+function skipDERLength(buffer) {
+    if (buffer[0] < 128) return 1;
+    return (buffer[0] & 0x7F) + 1;
 }
