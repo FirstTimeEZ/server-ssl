@@ -573,33 +573,23 @@ async function generateCSRWithExistingKeys(subject, publicKey, privateKey) {
     const subjectDER = buildSubjectDER(subject);
     const publicKeyDER = pubKeyObj.export({ type: 'spki', format: 'der' });
 
-    // Create CertificationRequestInfo
     const certificationRequestInfo = encodeDERSequence([
-        Buffer.from([0x02, 0x01, 0x00]), // version (v1)
+        Buffer.from([0x02, 0x01, 0x00]),
         subjectDER,
         encodeSubjectPublicKeyInfo(publicKeyDER),
-        encodeDERSequence([]) // attributes (empty sequence)
+        encodeDERSequence([]) // attributes
     ]);
 
-    // Sign the CertificationRequestInfo
     const signature = await new Promise((resolve, reject) => {
-        sign('sha256', certificationRequestInfo, privKeyObj, (err, sig) => {
-            if (err) return reject(err);
-            resolve(sig);
-        });
+        sign('sha256', certificationRequestInfo, privKeyObj, (err, sig) => { if (err) return reject(err); resolve(sig); });
     });
 
-    // Create the final CertificationRequest
+    const signatureDER = Buffer.concat([Buffer.from([0x00]), signature]);
+
     const csr = encodeDERSequence([
         certificationRequestInfo,
         encodeAlgorithmIdentifier('1.2.840.10045.4.3.2'),
-        Buffer.concat([
-            Buffer.from([0x03]),
-            encodeDERLength(signature.length + 1),
-            Buffer.from([0x00]),
-            signature
-        ])
-    ]);
+        Buffer.concat([Buffer.from([0x03]), encodeDERLength(signatureDER.length + 1), Buffer.from([0x00]), signatureDER])]);
 
     return csr.toString('base64url');
 }
@@ -618,13 +608,8 @@ function encodeAlgorithmIdentifier(oid) {
 
 function encodeSubjectPublicKeyInfo(publicKeyDER) {
     const algorithmIdentifier = encodeAlgorithmIdentifier('1.2.840.10045.3.1.7');
-    return encodeDERSequence([
-        algorithmIdentifier,
-        Buffer.concat([
-            Buffer.from([0x03]), encodeDERLength(publicKeyDER.length + 1),
-            Buffer.from([0x00]), publicKeyDER
-        ])
-    ]);
+    const publicKeyInfo = Buffer.concat([Buffer.from([0x04]), publicKeyDER]);
+    return encodeDERSequence([algorithmIdentifier, encodeDERLength(publicKeyInfo.length), publicKeyInfo]);
 }
 
 function encodeDERAttribute(oid, value) {
@@ -656,7 +641,7 @@ function encodeDERLength(length) {
     }
 
     bytes.unshift(bytes.length | 0x80);
-    return Buffer.from(bytes);
+    return Buffer.concat([Buffer.from(bytes)]);
 }
 
 function encodeDERObjectIdentifier(oid) {
