@@ -142,7 +142,7 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                                 console.log(order);
                                 clearInterval(waitForReady);
                                 console.log("Ready to Finalize");
-                                finalizeOrder(domains, account.answer.location, n, keyPair, order.answer.order.finalize).then((finalized) => {
+                                finalizeOrder('ssl.boats', account.answer.location, n, keyPair, order.answer.order.finalize).then((finalized) => {
                                     if (finalized.answer.get) {
                                         console.log(finalized.answer);
                                         n = finalized.nonce;
@@ -516,15 +516,11 @@ function InternalCheckIsLocalHost(req) {
 // | certificate       | certificate url                |              |
 // +-------------------+--------------------------------+--------------+
 
-export async function finalizeOrder(domains, kid, nonce, keyPair, finalizeUrl) {
+export async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl) {
     try {
-        const subject = {
-            commonName: 'ssl.boats'
-        };
-
         //const altNames = ['www.ssl.boats', 'ssl.boats'];
 
-        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(subject, keyPair.publicKey, keyPair.privateKey) });
+        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey) });
 
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -566,16 +562,17 @@ export async function finalizeOrder(domains, kid, nonce, keyPair, finalizeUrl) {
     }
 }
 
-async function generateCSRWithExistingKeys(subject, publicKey, privateKey) {
+async function generateCSRWithExistingKeys(commonName, publicKey, privateKey) {
     const pubKeyObj = createPublicKey(await jose.exportSPKI(publicKey));
     const privKeyObj = createPrivateKey(await jose.exportPKCS8(privateKey));
 
-    const subjectDER = buildSubjectDER(subject);
+    const subject = [encodeDERAttribute('2.5.4.3', commonName)];
+
     const publicKeyDER = pubKeyObj.export({ type: 'spki', format: 'der' });
 
     const certificationRequestInfo = encodeDERSequence([
         Buffer.from([0x02, 0x01, 0x00]),
-        subjectDER,
+        encodeDERSequence(subject),
         encodeSubjectPublicKeyInfo(publicKeyDER),
         encodeDERSequence([]) // attributes
     ]);
@@ -586,20 +583,10 @@ async function generateCSRWithExistingKeys(subject, publicKey, privateKey) {
 
     const signatureDER = Buffer.concat([Buffer.from([0x00]), signature]);
 
-    const csr = encodeDERSequence([
+    return encodeDERSequence([
         certificationRequestInfo,
         encodeAlgorithmIdentifier('1.2.840.10045.4.3.2'),
-        Buffer.concat([Buffer.from([0x03]), encodeDERLength(signatureDER.length + 1), Buffer.from([0x00]), signatureDER])]);
-
-    return csr.toString('base64url');
-}
-
-function buildSubjectDER(subject) {
-    const sequence = [];
-    if (subject.commonName) {
-        sequence.push(encodeDERAttribute('2.5.4.3', subject.commonName));
-    }
-    return encodeDERSequence(sequence);
+        Buffer.concat([Buffer.from([0x03]), encodeDERLength(signatureDER.length + 1), Buffer.from([0x00]), signatureDER])]).toString('base64url');
 }
 
 function encodeAlgorithmIdentifier(oid) {
