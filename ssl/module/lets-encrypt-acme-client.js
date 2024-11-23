@@ -1,5 +1,6 @@
 import * as jose from './jose/index.js';
 import { writeFile, readFileSync, existsSync, mkdirSync } from 'fs';
+import { createSign, createPrivateKey, createPublicKey, sign } from 'crypto';
 
 // This isn't finished and does not generate certificates
 // Anything might change until its finished
@@ -136,15 +137,24 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
 
                     const waitForReady = setInterval(() => {
                         createOrder(account.answer.location, n, keyPair, directory.newOrder, domains).then((order) => {
+                            n = order.nonce;
                             if (order.answer.order.status == "ready") {
                                 console.log(order);
                                 clearInterval(waitForReady);
                                 console.log("Ready to Finalize");
+                                finalizeOrder(domains, account.answer.location, n, keyPair, order.answer.order.finalize).then((finalized) => {
+                                    if (finalized.answer.get) {
+                                        console.log(finalized.answer);
+                                        n = finalized.nonce;
+                                    }
+                                    else {
+                                        console.error("Error getting order", finalized.answer.error, finalized.answer.exception);
+                                    }
+                                });
                             }
-
-                            n = order.nonce;
                         });
-                    }, 5000);
+                    }, 1000);
+
                 }
                 else {
                     console.error("Error getting order", order.answer.error, order.answer.exception);
@@ -384,28 +394,26 @@ export async function generateKeyPair(sslPath) {
     let keys = {};
 
     if (existsSync(sslPath + PUBLIC_KEY) && existsSync(sslPath + PRIVATE_KEY)) {
-        const publicKeyRaw = readFileSync(sslPath + PUBLIC_KEY);
-        const privateKeyRaw = readFileSync(sslPath + PRIVATE_KEY);
+        keys.publicKeyRaw = readFileSync(sslPath + PUBLIC_KEY);
+        keys.privateKeyRaw = readFileSync(sslPath + PRIVATE_KEY);
+        keys.publicKey = await jose.importSPKI(keys.publicKeyRaw.toString(), ALG_ECDSA, { extractable: true });
+        keys.privateKey = await jose.importPKCS8(keys.privateKeyRaw.toString(), ALG_ECDSA, { extractable: true });
 
-        keys.publicKey = await jose.importSPKI(publicKeyRaw.toString(), ALG_ECDSA, { extractable: true });
-        keys.privateKey = await jose.importPKCS8(privateKeyRaw.toString(), ALG_ECDSA, { extractable: true });
-
-        console.log("Load Keys From File", keys);
+        console.log("Load Keys From File");
     }
     else {
         const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
         keys.publicKey = publicKey;
         keys.privateKey = privateKey;
+        keys.publicKeyRaw = await jose.exportSPKI(publicKey);
+        keys.privateKeyRaw = await jose.exportPKCS8(privateKey);
 
-        const publicKeyRaw = await jose.exportSPKI(publicKey);
-        const privateKeyRaw = await jose.exportPKCS8(privateKey);
-
-        console.log(publicKeyRaw, privateKeyRaw);
+        console.log(keys.publicKeyRaw, keys.privateKeyRaw);
 
         mkdirSync(sslPath, { recursive: true });
 
-        writeFile(sslPath + PUBLIC_KEY, publicKeyRaw, () => { });
-        writeFile(sslPath + PRIVATE_KEY, privateKeyRaw, () => { });
+        writeFile(sslPath + PUBLIC_KEY, keys.publicKeyRaw, () => { });
+        writeFile(sslPath + PRIVATE_KEY, keys.privateKeyRaw, () => { });
 
         console.log('Raw ES256 keys saved to publicKey.raw and privateKey.raw');
     }
@@ -507,3 +515,209 @@ function InternalCheckIsLocalHost(req) {
 // | Download          | POST-as-GET order's            | 200          |
 // | certificate       | certificate url                |              |
 // +-------------------+--------------------------------+--------------+
+
+export async function finalizeOrder(domains, kid, nonce, keyPair, finalizeUrl) {
+    try {
+        const subject = {
+            commonName: 'ssl.boats',
+            organizationName: 'Example Corporation',
+            localityName: 'San Francisco',
+            stateOrProvinceName: 'California',
+            countryName: 'US',
+        };
+
+        //const altNames = ['www.ssl.boats', 'ssl.boats'];
+
+        const out = JSON.stringify({csr: await generateCSRWithExistingKeys(subject, keyPair.publicKey, keyPair.privateKey)});
+
+        const protectedHeader = {
+            alg: ALG_ECDSA,
+            kid: kid,
+            nonce: nonce,
+            url: finalizeUrl,
+        };
+
+        const jws = new jose.FlattenedSign(new TextEncoder().encode(out));
+
+        jws.setProtectedHeader(protectedHeader);
+
+        const signed = JSON.stringify(await jws.sign(keyPair.privateKey));
+
+        const request = {
+            method: 'POST',
+            headers: {
+                'Content-Type': CONTENT_TYPE_JOSE
+            },
+            body: signed
+        };
+
+        const response = await fetch(finalizeUrl, request);
+
+        if (response.ok) {
+            return {
+                answer: { get: await response.json(), location: response.headers.get('location') },
+                nonce: response.headers.get(REPLAY_NONCE)
+            };
+        }
+        else {
+            return {
+                answer: { error: await response.json() },
+                nonce: null
+            };
+        }
+    } catch (exception) {
+        return { answer: { exception: exception } }
+    }
+}
+
+async function generateCSRWithExistingKeys(subject, publicKey, privateKey) {
+    const pubKeyObj = createPublicKey(await jose.exportSPKI(publicKey));
+    const privKeyObj = createPrivateKey(await jose.exportPKCS8(privateKey));
+
+    const subjectDER = buildSubjectDER(subject);
+    const publicKeyDER = pubKeyObj.export({ type: 'spki', format: 'der' });
+
+    // Create CertificationRequestInfo
+    const certificationRequestInfo = encodeDERSequence([
+        Buffer.from([0x02, 0x01, 0x00]), // version (v1)
+        subjectDER,
+        encodeSubjectPublicKeyInfo(publicKeyDER),
+        encodeDERSequence([]) // attributes (empty sequence)
+    ]);
+
+    // Sign the CertificationRequestInfo
+    const signature = await new Promise((resolve, reject) => {
+        sign('sha256', certificationRequestInfo, privKeyObj, (err, sig) => {
+            if (err) return reject(err);
+            resolve(sig);
+        });
+    });
+
+    // Create the final CertificationRequest
+    const csr = encodeDERSequence([
+        certificationRequestInfo,
+        encodeAlgorithmIdentifier('1.2.840.10045.4.3.2'), // ecdsa-with-SHA256 OID
+        Buffer.concat([
+            Buffer.from([0x03]), // BIT STRING
+            encodeDERLength(signature.length + 1),
+            Buffer.from([0x00]), // Unused bit
+            signature
+        ])
+    ]);
+
+    // Convert to PEM format
+    const csrPem = [
+        '-----BEGIN CERTIFICATE REQUEST-----',
+        csr.toString('base64').match(/.{1,64}/g).join('\n'),
+        '-----END CERTIFICATE REQUEST-----'
+    ].join('\n');
+
+    return csrPem;
+}
+
+function buildSubjectDER(subject) {
+    const sequence = [];
+
+    if (subject.countryName)
+        sequence.push(encodeDERAttribute('2.5.4.6', subject.countryName));
+    if (subject.stateOrProvinceName)
+        sequence.push(encodeDERAttribute('2.5.4.8', subject.stateOrProvinceName));
+    if (subject.localityName)
+        sequence.push(encodeDERAttribute('2.5.4.7', subject.localityName));
+    if (subject.organizationName)
+        sequence.push(encodeDERAttribute('2.5.4.10', subject.organizationName));
+    if (subject.organizationalUnitName)
+        sequence.push(encodeDERAttribute('2.5.4.11', subject.organizationalUnitName));
+    if (subject.commonName)
+        sequence.push(encodeDERAttribute('2.5.4.3', subject.commonName));
+    if (subject.emailAddress)
+        sequence.push(encodeDERAttribute('1.2.840.113549.1.9.1', subject.emailAddress));
+
+    return encodeDERSequence(sequence);
+}
+
+function encodeAlgorithmIdentifier(oid) {
+    return encodeDERSequence([
+        encodeDERObjectIdentifier(oid),
+        Buffer.from([]) // No parameters
+    ]);
+}
+
+function encodeSubjectPublicKeyInfo(publicKeyDER) {
+    const algorithmIdentifier = encodeAlgorithmIdentifier('1.2.840.10045.3.1.7'); // ecdsa-with-SHA256 OID
+    return encodeDERSequence([
+        algorithmIdentifier,
+        Buffer.concat([
+            Buffer.from([0x03]), // BIT STRING
+            encodeDERLength(publicKeyDER.length + 1),
+            Buffer.from([0x00]), // Unused bit
+            publicKeyDER
+        ])
+    ]);
+}
+
+function encodeDERAttribute(oid, value) {
+    const oidBuffer = encodeDERObjectIdentifier(oid);
+    const valueBuffer = Buffer.from(value, 'utf8');
+
+    return Buffer.concat([
+        Buffer.from([0x30]), // SEQUENCE
+        encodeDERLength(oidBuffer.length + valueBuffer.length + 2),
+        oidBuffer,
+        Buffer.from([0x13]), // PrintableString
+        Buffer.from([valueBuffer.length]),
+        valueBuffer
+    ]);
+}
+
+function encodeDERSequence(elements) {
+    const totalLength = elements.reduce((sum, el) => sum + el.length, 0);
+    return Buffer.concat([
+        Buffer.from([0x30]), // SEQUENCE
+        encodeDERLength(totalLength),
+        ...elements
+    ]);
+}
+
+function encodeDERLength(length) {
+    if (length < 128) {
+        return Buffer.from([length]);
+    }
+
+    const bytes = [];
+    let temp = length;
+
+    while (temp > 0) {
+        bytes.unshift(temp & 0xFF);
+        temp = temp >> 8;
+    }
+
+    bytes.unshift(bytes.length | 0x80);
+    return Buffer.from(bytes);
+}
+
+function encodeDERObjectIdentifier(oid) {
+    const numbers = oid.split('.').map(Number);
+    const first = numbers[0] * 40 + numbers[1];
+    const encoded = [first];
+
+    for (let i = 2; i < numbers.length; i++) {
+        let number = numbers[i];
+        if (number < 128) {
+            encoded.push(number);
+        } else {
+            const bytes = [];
+            while (number > 0) {
+                bytes.unshift((number & 0x7F) | (bytes.length ? 0x80 : 0));
+                number = number >> 7;
+            }
+            encoded.push(...bytes);
+        }
+    }
+
+    return Buffer.concat([
+        Buffer.from([0x06]), // OBJECT IDENTIFIER
+        Buffer.from([encoded.length]),
+        Buffer.from(encoded)
+    ]);
+}
