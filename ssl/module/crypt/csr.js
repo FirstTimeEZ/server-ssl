@@ -16,6 +16,7 @@
  */
 
 import { createPrivateKey, createPublicKey, sign } from 'crypto';
+import { extractECPoint } from './pki.js';
 import { TAGS } from './asn1.js';
 import * as asn from './asn1.js';
 
@@ -115,7 +116,7 @@ async function encodeSubjectPublicKeyInfo(publicKeyDER) {
             type: 'spki'
         });
 
-        const ecPoint = asn.extractECPoint(rawKey);
+        const ecPoint = extractECPoint(rawKey);
 
         return asn.encodeDERSequence([
             asn.encodeDERSequence([

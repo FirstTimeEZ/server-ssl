@@ -17,7 +17,7 @@
 
 import * as jose from './jose/index.js';
 import { writeFile, readFileSync, existsSync, mkdirSync } from 'fs';
-import { generateCSRWithExistingKeys } from './csr.js';
+import { generateCSRWithExistingKeys } from './crypt/csr.js';
 
 let DIRECTORY_URL = "https://acme-v02.api.letsencrypt.org/directory";
 
