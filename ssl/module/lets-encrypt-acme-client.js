@@ -518,7 +518,6 @@ function InternalCheckIsLocalHost(req) {
 
 export async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl) {
     try {
-        //const altNames = ['www.ssl.boats', 'ssl.boats'];
         const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey) });
 
         const protectedHeader = {
@@ -573,7 +572,7 @@ async function generateCSRWithExistingKeys(commonName, publicKey, privateKey) {
         const certificationRequestInfo = encodeDERSequence([
             Buffer.from([0x02, 0x01, 0x00]),              // version
             encodeDERSequence(subject),                    // subject
-            encodeSubjectPublicKeyInfo(publicKeySpki),    // subjectPKInfo
+            await encodeSubjectPublicKeyInfo(publicKeySpki), // pki
             Buffer.from([0xa0, 0x00])                     // attributes
         ]);
 
@@ -582,7 +581,7 @@ async function generateCSRWithExistingKeys(commonName, publicKey, privateKey) {
         const csrDER = encodeDERSequence([
             certificationRequestInfo,
             encodeDERSequence([
-                encodeDERObjectIdentifier('1.2.840.10045.4.3.2'),
+                encodeDERObjectIdentifier('1.2.840.10045.4.3.2'),  // ecdsa-with-SHA256
                 Buffer.from([0x05, 0x00])
             ]),
             encodeDERBitString(signature)
@@ -591,6 +590,48 @@ async function generateCSRWithExistingKeys(commonName, publicKey, privateKey) {
         return csrDER.toString('base64url');
     } catch (error) {
         throw new Error(`Failed to generate CSR: ${error.message}`);
+    }
+}
+
+async function encodeSubjectPublicKeyInfo(publicKeyDER) {
+    try {
+        let derKey = publicKeyDER;
+        if (typeof publicKeyDER === 'string' && publicKeyDER.includes('-----BEGIN PUBLIC KEY-----')) {
+            const pemContent = publicKeyDER
+                .replace('-----BEGIN PUBLIC KEY-----', '')
+                .replace('-----END PUBLIC KEY-----', '')
+                .replace(/\s+/g, '');
+            derKey = Buffer.from(pemContent, 'base64');
+        }
+
+        // Create a temporary key to extract the proper point encoding
+        const tempKey = createPublicKey({
+            key: Buffer.from(derKey),
+            format: 'der',
+            type: 'spki'
+        });
+
+        // Export the key in the correct format
+        const rawKey = tempKey.export({
+            format: 'der',
+            type: 'spki'
+        });
+
+        // Extract the EC point from the raw key
+        const ecPoint = extractECPoint(rawKey);
+
+        return encodeDERSequence([
+            encodeDERSequence([
+                encodeDERObjectIdentifier('1.2.840.10045.2.1'),    // id-ecPublicKey
+                encodeDERObjectIdentifier('1.2.840.10045.3.1.7')   // secp256r1
+            ]),
+            encodeDERBitString(Buffer.concat([
+                Buffer.from([0x04]),  // Uncompressed point indicator
+                ecPoint
+            ]))
+        ]);
+    } catch (error) {
+        throw new Error(`Failed to encode SubjectPublicKeyInfo: ${error.message}`);
     }
 }
 
@@ -611,46 +652,6 @@ function encodeDERBitString(data) {
         Buffer.from([0x00]),
         buffer
     ]);
-}
-
-function encodeSubjectPublicKeyInfo(publicKeyDER) {
-    try {
-        let derKey = publicKeyDER;
-        if (typeof publicKeyDER === 'string' && publicKeyDER.includes('-----BEGIN PUBLIC KEY-----')) {
-            const pemContent = publicKeyDER
-                .replace('-----BEGIN PUBLIC KEY-----', '')
-                .replace('-----END PUBLIC KEY-----', '')
-                .replace(/\s+/g, '');
-            derKey = Buffer.from(pemContent, 'base64');
-        }
-
-        let offset = 0;
-
-        if (derKey[offset++] !== 0x30) throw new Error('Expected sequence');
-        offset += skipDERLength(derKey.slice(offset));
-
-        if (derKey[offset++] !== 0x30) throw new Error('Expected algorithm sequence');
-        const algLength = readDERLength(derKey.slice(offset));
-        offset += skipDERLength(derKey.slice(offset)) + algLength;
-
-        if (derKey[offset++] !== 0x03) throw new Error('Expected bit string');
-        const bitStringLength = readDERLength(derKey.slice(offset));
-        offset += skipDERLength(derKey.slice(offset)) + bitStringLength;
-
-        offset++;
-
-        const keyPoint = derKey.slice(offset);
-
-        return encodeDERSequence([
-            encodeDERSequence([
-                encodeDERObjectIdentifier('1.2.840.10045.2.1'),
-                encodeDERObjectIdentifier('1.2.840.10045.3.1.7')
-            ]),
-            encodeDERBitString(keyPoint)
-        ]);
-    } catch (error) {
-        throw new Error(`Failed to encode SubjectPublicKeyInfo: ${error.message}`);
-    }
 }
 
 function encodeDERAttribute(oid, value) {
@@ -740,4 +741,47 @@ function readDERLength(buffer) {
 function skipDERLength(buffer) {
     if (buffer[0] < 128) return 1;
     return (buffer[0] & 0x7F) + 1;
+}
+
+function extractECPoint(derKey) {
+    let offset = 0;
+
+    // Skip initial SEQUENCE
+    if (derKey[offset++] !== 0x30) throw new Error('Expected sequence');
+    offset += skipDERLength(derKey.slice(offset));
+
+    // Skip AlgorithmIdentifier SEQUENCE
+    if (derKey[offset++] !== 0x30) throw new Error('Expected algorithm sequence');
+    const algLength = readDERLength(derKey.slice(offset));
+    offset += skipDERLength(derKey.slice(offset)) + algLength;
+
+    // Read BIT STRING
+    if (derKey[offset++] !== 0x03) throw new Error('Expected bit string');
+    const bitStringLength = readDERLength(derKey.slice(offset));
+    offset += skipDERLength(derKey.slice(offset));
+
+    // Skip unused bits byte
+    offset++;
+
+    // The remaining data should be the EC point (including 0x04 prefix)
+    // Validate that the remaining length matches what we expect
+    const remainingLength = bitStringLength - 1; // -1 for unused bits byte
+    if (remainingLength !== derKey.length - offset) {
+        throw new Error('Invalid bit string length for EC point');
+    }
+
+    // Verify that the point starts with 0x04 (uncompressed point format)
+    if (derKey[offset] !== 0x04) {
+        throw new Error('Expected uncompressed EC point (0x04)');
+    }
+
+    // Extract the actual point (skip the 0x04 prefix)
+    const point = derKey.slice(offset + 1, offset + remainingLength);
+
+    // For secp256r1, the point should be 64 bytes (32 bytes for x + 32 bytes for y)
+    if (point.length !== 64) {
+        throw new Error(`Invalid EC point length: ${point.length} (expected 64 bytes)`);
+    }
+
+    return point;
 }
