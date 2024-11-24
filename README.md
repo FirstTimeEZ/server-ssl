@@ -31,9 +31,9 @@ If you changed the port to something other than `443` or `80` then you have to u
 
 --------
 
-### Arguments
+### Optional Arguments
 
-To use `server-ssl.js` in production you will need to provide arguments, they are case sensitive.
+`server-ssl.js` has some optional arguments you can use production if the defaults aren't enough.
 
 | Arguments/Flags       | Description                                      | Default Value         |
 |-------------------------|----------------------------------|-----------------------|
@@ -46,6 +46,14 @@ To use `server-ssl.js` in production you will need to provide arguments, they ar
 | `--entry=`     | Specifies the page to use for the entry point | `"index.html"` |
 | `--noRedirect` | Specifies that `HTTP` requests should not be redirected | `not present` |
 
+All Arguments are case sensitive.
+
+### Use Lets Encrypt!
+
+You can use `Lets Encrypt` to generate certificates, 
+
+Certificates are valid for `90 days` but can be renewed automatically sooner.
+
 | Automated Lets Encrypt!       | Description                                      |
 |-------------------------|----------------------------------|
 | `--letsEncrypt` | Specifies that `Lets Encrypt!` should be used to generate 90 day certificates |
@@ -54,17 +62,13 @@ To use `server-ssl.js` in production you will need to provide arguments, they ar
 | `--staging` | Specifies that the `Lets Encrypt!` staging server should be used instead of production |
 | `--autoRestart` | Specifies that the server should restart after certificates are generated, must use with `start-windows.bat` |
 
---------
-
-### Use Lets Encrypt!
-
-You can use `Lets Encrypt` to generate certificates, these are valid for 90 days.
-
 These certificates will renew when you restart your server, so make sure you restart at least every 30 days.
 
 ```
 ./start-windows.bat --letsEncrypt --domains=["www.ssl.boats","ssl.boats"]
 ```
+
+--------
 
 ### Default Structure
 
