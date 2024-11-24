@@ -193,9 +193,7 @@ export function checkChallengesMixin(req, res) {
                 return bufferModified;
             }
         }
-    } catch (exception) {
-        console.log("checkChallengesMixin exception", exception);
-    }
+    } catch { } // Ignore
 
     return false;
 }
