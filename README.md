@@ -4,6 +4,8 @@ Easy to configure `SSL Web Server` that can be used for development or productio
 
 `HTTP` requests are redirected to `HTTPS`
 
+Can be configured to use `Lets Encrypt` 90 day certificates automatically.
+
 Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/responsive)
 
 --------
