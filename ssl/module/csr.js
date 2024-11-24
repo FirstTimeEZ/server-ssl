@@ -315,12 +315,6 @@ function signData(data, privateKey) {
     });
 }
 
-/**
- * Creates the extension request attribute containing the SAN extension
- * 
- * @param {Object} sans - Subject Alternative Names object
- * @returns {Buffer} DER encoded extension request
- */
 function createExtensionRequest(sans) {
     const extensions = [];
 
@@ -329,20 +323,11 @@ function createExtensionRequest(sans) {
     }
 
     return encodeDERSequence([
-        encodeDERObjectIdentifier("1.2.840.113549.1.9.14"), 
+        encodeDERObjectIdentifier("1.2.840.113549.1.9.14"),
         encodeDERSet([encodeDERSequence(extensions)])
     ]);
 }
 
-/**
- * Creates a Subject Alternative Name (SAN) extension.
- * 
- * @param {Object} sans - Subject Alternative Names object
- * @param {string[]} [sans.dnsNames=[]] - Array of DNS names
- * @param {string[]} [sans.ipAddresses=[]] - Array of IP addresses
- * @param {string[]} [sans.emailAddresses=[]] - Array of email addresses
- * @returns {Buffer} DER encoded SAN extension
- */
 function createSANExtension(sans) {
     const { dnsNames = [], ipAddresses = [], emailAddresses = [] } = sans;
 
@@ -370,12 +355,6 @@ function createSANExtension(sans) {
     ]);
 }
 
-/**
- * Converts an IP address string to a Buffer.
- * 
- * @param {string} ip - IP address in string format
- * @returns {Buffer|null} Buffer containing the IP address bytes or null if invalid
- */
 function ipToBuffer(ip) {
     const parts = ip.split('.');
     if (parts.length === 4) {  // IPv4
