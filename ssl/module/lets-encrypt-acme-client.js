@@ -19,7 +19,7 @@ import * as jose from './jose/index.js';
 import { writeFile, readFileSync, existsSync, mkdirSync } from 'fs';
 import { generateCSRWithExistingKeys } from './csr.js';
 
-const DIRECTORY_URL = "https://acme-v02.api.letsencrypt.org/directory";
+let DIRECTORY_URL = "https://acme-v02.api.letsencrypt.org/directory";
 
 const ALG_ECDSA = 'ES256';
 const DIGEST = "sha256";
@@ -48,13 +48,19 @@ let jwk = undefined;
  *
  * @param {array} fqdns - The fully qualified domain name as a SAN ["example.com","www.example.com"]
  * @param {string} optionalSslPath - The file path where the public and private keys will be stored/loaded from.
- * @param {boolean} generateAnyway - True to generate certificates before the 30 days has passed
+ * @param {boolean} generateAnyway - (optional) True to generate certificates before the 30 days has passed
+ * @param {boolean} staging - (optional) True to use staging mode instead of production
  */
-export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAnyway) {
+export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAnyway, optStaging) {
     if (internalDetermineRequirement(optionalSslPath)) {
         if (generateAnyway !== true) {
             return;
         }
+    }
+
+    if (optStaging === true) {
+        DIRECTORY_URL = "https://acme-staging-v02.api.letsencrypt.org/directory";
+        console.log("USING THE STAGING SERVER");
     }
 
     const keyChain = await generateKeyChain(optionalSslPath);

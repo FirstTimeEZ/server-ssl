@@ -32,6 +32,7 @@ let optPk = null;
 let optCert = null;
 let optError = null;
 let optEntry = null;
+let optStaging = null;
 let optWebsite = null;
 let optDomains = null;
 let optLetsEncrypt = null;
@@ -73,6 +74,7 @@ function loadArguments() {
         arg.includes("--letsEncrypt") && (optLetsEncrypt = true); // WIP does not generate certificates, if you find bugs please open an issue.
         arg.includes("--domains") && (optDomains = rightSide);
         arg.includes("--generateAnyway") && (optGenerateAnyway = true);
+        arg.includes("--staging") && (optStaging = true);
     });
 
     !optPk && (optPk = 'private-key.pem');
@@ -84,9 +86,6 @@ function loadArguments() {
     if (optLetsEncrypt && optDomains === null) {
         console.log("You must specify at least one domain to use --letsEncrypt");
         optLetsEncrypt = false;
-    }
-    else {
-        console.log(optDomains);
     }
 }
 
@@ -193,10 +192,10 @@ try {
     // if (checkChallengesMixin(res)) { return; }
 
     // Daemon
-    // startLetsEncryptDaemon(fqdn, sslFolder, generateAnyway);
+    // startLetsEncryptDaemon(fqdn, sslFolder, generateAnyway, staging);
 
     if (optLetsEncrypt) {
-        startLetsEncryptDaemon(urlsArray, sslFolder, optGenerateAnyway);
+        startLetsEncryptDaemon(urlsArray, sslFolder, optGenerateAnyway, optStaging);
     }
 } catch (exception) {
     console.error(exception);
