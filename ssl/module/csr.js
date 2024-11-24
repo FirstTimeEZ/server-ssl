@@ -24,6 +24,8 @@ import { createPrivateKey, createPublicKey, sign } from 'crypto';
  * The function creates a CSR in DER format, encoded as base64url string, following the PKCS#10 specification.
  * 
  * @async
+ * @requires jose - For key export operations
+ * 
  * @param {string} commonName - The common name (CN) to be included in the CSR subject field.
  *                             This typically represents the domain name or entity the certificate is for.
  * @param {CryptoKey} publicKey - The public key to be included in the CSR. Must be an ECDSA public key
@@ -32,7 +34,11 @@ import { createPrivateKey, createPublicKey, sign } from 'crypto';
  *                                 corresponding to the provided public key.
  * @param {CryptoKey} joseImport - Your Jose Import, which should be `import * as jose from "index.js"`
  * 
- * @requires jose - For key export operations
+ * @param {Object} sans - Subject Alternative Names object
+ * @param {string[]} [sans.dnsNames=[]] - Array of DNS names
+ * @param {string[]} [sans.ipAddresses=[]] - Array of IP addresses
+ * @param {string[]} [sans.emailAddresses=[]] - Array of email addresses
+ * 
  * @example 
  * import * as jose from './index.js';
  * generateCSRWithExistingKeys(commonName, publicKey, privateKey, jose)                               
@@ -49,7 +55,7 @@ import { createPrivateKey, createPublicKey, sign } from 'crypto';
  *       required helper functions (encodeDERSequence, encodeDERSet, etc.) are available
  *       in the scope.
  */
-export async function generateCSRWithExistingKeys(commonName, publicKey, privateKey, joseImport) {
+export async function generateCSRWithExistingKeys(commonName, publicKey, privateKey, joseImport, sans = {}) {
     try {
         const publicKeySpki = await joseImport.exportSPKI(publicKey);
         const privateKeyPkcs8 = await joseImport.exportPKCS8(privateKey);
@@ -62,12 +68,13 @@ export async function generateCSRWithExistingKeys(commonName, publicKey, private
             ])
         ]);
 
-        // Create the certification request info
+        const extensionRequest = createExtensionRequest(sans);
+
         const certificationRequestInfo = encodeDERSequence([
             Buffer.from([0x02, 0x01, 0x00]),              // version
-            subject,                                       // subject (now properly wrapped)
+            subject,                                       // subject
             await encodeSubjectPublicKeyInfo(publicKeySpki), // pki
-            encodeDERContextSpecific(0, Buffer.alloc(0))   // attributes (empty SET)
+            encodeDERContextSpecific(0, extensionRequest)    // attributes with extension request
         ]);
 
         const signature = await signData(certificationRequestInfo, privKeyObj);
@@ -240,6 +247,20 @@ function encodeDERObjectIdentifier(oid) {
     ]);
 }
 
+/**
+ * Encodes a DER OCTET STRING
+ * 
+ * @param {Buffer} data - Data to encode
+ * @returns {Buffer} DER encoded OCTET STRING
+ */
+function encodeDEROctetString(data) {
+    return Buffer.concat([
+        Buffer.from([0x04]),
+        encodeDERLength(data.length),
+        data
+    ]);
+}
+
 function readDERLength(buffer) {
     if (buffer[0] < 128) return buffer[0];
 
@@ -299,4 +320,84 @@ function extractECPoint(derKey) {
     }
 
     return point;
+}
+
+/**
+ * Creates the extension request attribute containing the SAN extension
+ * 
+ * @param {Object} sans - Subject Alternative Names object
+ * @returns {Buffer} DER encoded extension request
+ */
+function createExtensionRequest(sans) {
+    const extensions = [];
+
+    if (Object.keys(sans).length > 0) {
+        extensions.push(createSANExtension(sans));
+    }
+
+    return encodeDERSet([
+        encodeDERSequence([
+            encodeDERObjectIdentifier('1.2.840.113549.1.9.14'), // Extension Request OID
+            encodeDERSet([
+                encodeDERSequence(extensions)
+            ])
+        ])
+    ]);
+}
+
+/**
+ * Creates a Subject Alternative Name (SAN) extension.
+ * 
+ * @param {Object} sans - Subject Alternative Names object
+ * @param {string[]} [sans.dnsNames=[]] - Array of DNS names
+ * @param {string[]} [sans.ipAddresses=[]] - Array of IP addresses
+ * @param {string[]} [sans.emailAddresses=[]] - Array of email addresses
+ * @returns {Buffer} DER encoded SAN extension
+ */
+function createSANExtension(sans) {
+    const { dnsNames = [], ipAddresses = [], emailAddresses = [] } = sans;
+
+    const generalNames = [];
+
+    // Add DNS names (type 2)
+    dnsNames.forEach(dns => {
+        generalNames.push(encodeDERContextSpecific(2, Buffer.from(dns, 'utf8')));
+    });
+
+    // Add IP addresses (type 7)
+    ipAddresses.forEach(ip => {
+        const ipBuffer = ipToBuffer(ip);
+        if (ipBuffer) {
+            generalNames.push(encodeDERContextSpecific(7, ipBuffer));
+        }
+    });
+
+    // Add email addresses (type 1)
+    emailAddresses.forEach(email => {
+        generalNames.push(encodeDERContextSpecific(1, Buffer.from(email, 'utf8')));
+    });
+
+    return encodeDERSequence([
+        encodeDERObjectIdentifier('2.5.29.17'),
+        // Critical flag is optional for SAN, typically false
+        encodeDEROctetString(encodeDERSequence(generalNames))
+    ]);
+}
+
+/**
+ * Converts an IP address string to a Buffer.
+ * 
+ * @param {string} ip - IP address in string format
+ * @returns {Buffer|null} Buffer containing the IP address bytes or null if invalid
+ */
+function ipToBuffer(ip) {
+    const parts = ip.split('.');
+    if (parts.length === 4) {  // IPv4
+        const bytes = parts.map(part => parseInt(part, 10));
+        if (bytes.every(byte => byte >= 0 && byte <= 255)) {
+            return Buffer.from(bytes);
+        }
+    }
+    // TODO: Add IPv6 support
+    return null;
 }

@@ -123,8 +123,6 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                         n = n;
 
                         if (element.type == "http-01" && element.status == "pending") {
-                            // console.log("challenge", element);
-
                             let auth = await postAsGetChal(account.answer.location, n, keyPair, element.url);
 
                             if (auth.answer.get.status) {
@@ -142,7 +140,10 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                                 console.log(order);
                                 clearInterval(waitForReady);
                                 console.log("Ready to Finalize");
-                                finalizeOrder('ssl.boats', account.answer.location, n, keyPair, order.answer.order.finalize).then((finalized) => {
+
+                                const sans = { dnsNames: ['www.ssl.boats', 'ssl.boats'] };
+
+                                finalizeOrder(sans.dnsNames[0], account.answer.location, n, keyPair, order.answer.order.finalize, sans).then((finalized) => {
                                     if (finalized.answer.get) {
                                         console.log(finalized.answer);
                                         n = finalized.nonce;
@@ -288,9 +289,9 @@ export async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers)
     }
 }
 
-export async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl) {
+export async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl, sans) {
     try {
-        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey, jose) });
+        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey, jose, sans) });
 
         const protectedHeader = {
             alg: ALG_ECDSA,
