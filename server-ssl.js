@@ -155,14 +155,8 @@ try {
     // Automates the HTTP-01 challenge                             //
     /////////////////////////////////////////////////////////////////
 
-    // The api should be something like this when finished
-
-    // HTTP Mixin inside your HTTP Server Listener
+    // Mixin: Inside the HTTP Server Listener
     // if (checkChallengesMixin(res)) { return; }
-    //
-    // or Dedicated HTTP Challenge Server at port 80 (todo)
-    //
-    // one or the other will be required to complete challenges
 
     // Daemon
     // startLetsEncryptDaemon(fqdn, sslFolder, certOutputDir);
