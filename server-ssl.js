@@ -31,7 +31,7 @@ function certificateNotExist() {
     process.exit(1);
 }
 
-function useSslFolder() {
+function useSslFolder(sslFolder) {
     mkdir(sslFolder, { recursive: true }, () => { });
     console.log(" ");
     console.log("Put your Certificate and Private Key in the SSL folder that was just created");
@@ -67,7 +67,7 @@ try {
     const pkPath = join(sslFolder, optPk);
     const certPath = join(sslFolder, optCert);
 
-    !existsSync(sslFolder) && useSslFolder();
+    !existsSync(sslFolder) && useSslFolder(sslFolder);
     !existsSync(pkPath) && certificateNotExist();
     !existsSync(certPath) && certificateNotExist();
 
