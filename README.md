@@ -59,7 +59,7 @@ To use `server-ssl.js` in production you will need to provide arguments, they ar
 | `--entry=`     | Specifies the page to use for the entry point | `"index.html"` |
 | `--noRedirect` | Specifies that `HTTP` requests should not be redirected | `not present` |
 
-| Lets Encrypt!       | Description                                      | Default Value         |
+| Automated Lets Encrypt!       | Description                                      | Default Value         |
 |-------------------------|----------------------------------|-----------------------|
 | `--letsEncrypt` | Specifies that `Lets Encrypt` should be used to generate 90 day certificates |
 | `--domains=` | Specifies the domains to generate certificates for when using `--letsEncrypt` |
