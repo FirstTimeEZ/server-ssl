@@ -53,7 +53,7 @@ To use `server-ssl.js` in production you will need to provide arguments, they ar
 | `--port=`      | Specifies the port number for `HTTPS` | `443` |
 | `--portHttp=`  | Specifies the port number for HTTP that will be redirected | `80` |
 | `--cert=`      | Specifies the path to the `SSL` certificate file. | `"certificate.pem"` |
-| `--pk=`        | Specifies the path to the private key file associated with the `SSL` certificate. | `"private-key.pem"` |
+| `--pk=`        | Specifies the path to the private key file for the `SSL` certificate. | `"private-key.pem"` |
 | `--site=`      | Specifies the directory for the website files | `"website"` |
 | `--error=`     | Specifies the directory for error messages (404,500) | `"error"` |
 | `--entry=`     | Specifies the page to use for the entry point | `"index.html"` |
@@ -62,7 +62,7 @@ To use `server-ssl.js` in production you will need to provide arguments, they ar
 | Automated Lets Encrypt!       | Description                                      | Default Value         |
 |-------------------------|----------------------------------|-----------------------|
 | `--letsEncrypt` | Specifies that `Lets Encrypt` should be used to generate 90 day certificates |
-| `--domains=` | Specifies the domains to generate certificates for, eg. `--domains=["www.ssl.boats","ssl.boats"]` |
+| `--domains=` | Specifies the domains to generate certificates for, see below for example |
 | `--generateAnyway` | Specifies that certificates should always be generated when the server starts, this could get you rate limited |
 
 > [!IMPORTANT]
