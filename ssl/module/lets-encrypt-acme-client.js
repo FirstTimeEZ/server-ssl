@@ -139,9 +139,10 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                             if (order.answer.order.status == "ready") {
                                 console.log(order);
                                 clearInterval(waitForReady);
-                                console.log("Ready to Finalize");
 
-                                const sans = { dnsNames: ['www.ssl.boats', 'ssl.boats'] };
+                                const sans = { dnsNames: fqdn };
+
+                                console.log("Ready to Finalize", sans);
 
                                 finalizeOrder(sans.dnsNames[0], account.answer.location, n, keyPair, order.answer.order.finalize, sans).then((finalized) => {
                                     if (finalized.answer.get) {
