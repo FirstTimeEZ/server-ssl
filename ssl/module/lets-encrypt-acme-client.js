@@ -3,16 +3,9 @@ import { writeFile, readFileSync, existsSync, mkdirSync } from 'fs';
 import { generateCSRWithExistingKeys } from './csr.js';
 
 // This isn't finished and does not generate certificates
-// Anything might change until its finished
-
-// anything that replies with a usable reply nonce returns this structure on success
-// resolve { answer: { any: any }, nonce: replay-nonce }
-
-// answer should include any response that is not ok as error
-// { answer: { error: response } }
-
-// answer should include exceptions as exception
-// { answer: { exception: exception } }
+// success/resolve { answer: { any: any }, nonce: replay-nonce }
+// error/resolve { answer: { error: response } }
+// exception { answer: { exception: exception } }
 
 const DIRECTORY_URL = "https://acme-staging-v02.api.letsencrypt.org/directory";
 
