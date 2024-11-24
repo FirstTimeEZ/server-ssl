@@ -291,7 +291,7 @@ export async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers)
 
 export async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl, sans) {
     try {
-        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey, jose, sans) });
+        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey, sans, jose) });
 
         const protectedHeader = {
             alg: ALG_ECDSA,
