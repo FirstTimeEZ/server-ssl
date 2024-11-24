@@ -55,7 +55,7 @@ import { createPrivateKey, createPublicKey, sign } from 'crypto';
  *       required helper functions (encodeDERSequence, encodeDERSet, etc.) are available
  *       in the scope.
  */
-export async function generateCSRWithExistingKeys(commonName, publicKey, privateKey, joseImport, sans = {}) {
+export async function generateCSRWithExistingKeys(commonName, publicKey, privateKey, sans = {}, joseImport) {
     try {
         const publicKeySpki = await joseImport.exportSPKI(publicKey);
         const privateKeyPkcs8 = await joseImport.exportPKCS8(privateKey);
