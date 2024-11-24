@@ -17,8 +17,6 @@
 
 import { createPrivateKey, createPublicKey, sign } from 'crypto';
 
-// todo: SAN Extension
-
 /**
  * Generates a Certificate Signing Request (CSR) using existing public and private key pairs.
  * The function creates a CSR in DER format, encoded as base64url string, following the PKCS#10 specification.
