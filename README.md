@@ -18,7 +18,10 @@ This will be on port `443` with a `self signed certificate` at `https://localhos
 # Start for development
 ./start-windows.bat
 
-# Start for production
+# Start for production (Lets Encrypt!)
+./start-windows.bat --letsEncrypt --domains=["www.ssl.boats","ssl.boats"]
+
+# Start for production (BYO)
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
@@ -77,7 +80,7 @@ You can use `Lets Encrypt` to generate certificate, these are valid for 90 days 
 These certificates will renew automatically when you restart your server, so make sure you restart at least every 30 days.
 
 ```
-./start-windows.bat --letsEncrypt --domains=["www.example.com","example.com"]
+./start-windows.bat --letsEncrypt --domains=["www.ssl.boats","ssl.boats"]
 ```
 
 ### Bring Your Own SSL Certificate
