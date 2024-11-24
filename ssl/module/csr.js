@@ -32,12 +32,13 @@ import { createPrivateKey, createPublicKey, sign } from 'crypto';
  *                                in the form of a CryptoKey object.
  * @param {CryptoKey} privateKey - The private key used to sign the CSR. Must be an ECDSA private key
  *                                 corresponding to the provided public key.
- * @param {CryptoKey} joseImport - Your Jose Import, which should be `import * as jose from "index.js"`
  * 
  * @param {Object} sans - Subject Alternative Names object
  * @param {string[]} [sans.dnsNames=[]] - Array of DNS names
  * @param {string[]} [sans.ipAddresses=[]] - Array of IP addresses
  * @param {string[]} [sans.emailAddresses=[]] - Array of email addresses
+ * 
+ * @param {CryptoKey} joseImport - Your Jose Import, which should be `import * as jose from "index.js"`
  * 
  * @example 
  * import * as jose from './index.js';
