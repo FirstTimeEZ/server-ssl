@@ -36,8 +36,6 @@ let jwk = undefined;
  * @param {string} sslPath - The file path where the public and private keys are stored.
  *                            The keys will be saved as 'publicKey.raw' and 'privateKey.raw'
  *                            if they do not already exist.
- *
- * @see {generateKeyPair}
  */
 export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
     const keyPair = await generateKeyPair(optionalSslPath);
@@ -178,8 +176,6 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
  *
  * @example {Object} req - The HTTP request object.
  * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
- *
- * @throws {Error} - Throws an error if an exception occurs during processing.
  */
 export function checkChallengesMixin(req, res) {
     try {
