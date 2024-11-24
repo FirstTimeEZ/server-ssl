@@ -52,7 +52,7 @@ All Arguments are case sensitive.
 
 You can use `Lets Encrypt` to generate certificates, 
 
-Certificates are valid for `90 days` but can be renewed automatically sooner.
+Certificates are valid for `90 days` but are renewed automatically sooner.
 
 | Automated Lets Encrypt!       | Description                                      |
 |-------------------------|----------------------------------|
@@ -62,7 +62,7 @@ Certificates are valid for `90 days` but can be renewed automatically sooner.
 | `--staging` | Specifies that the `Lets Encrypt!` staging server should be used instead of production |
 | `--autoRestart` | Specifies that the server should restart after certificates are generated, must use with `start-windows.bat` |
 
-These certificates will renew when you restart your server, so make sure you restart at least every 30 days.
+Certificates renew when you restart your server unless you use `--autoRestart`, so restart at least once a month.
 
 ```
 ./start-windows.bat --letsEncrypt --domains=["www.ssl.boats","ssl.boats"]
