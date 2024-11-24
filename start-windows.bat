@@ -65,12 +65,14 @@ if EXIST "node.exe" ( echo Node.js already exists ) else (
     curl -o "node.exe" "https://nodejs.org/dist/latest/win-x64/node.exe" -L --retry 5
 )
 
+:restartLoop
+
 echo Starting SSL Web Server
 
-:restartLoop
 node.exe server-ssl.js %* --ar=%AR%
 
 set exitCode=%errorlevel%
+
 if %exitCode%==123 (
     echo Server exited because certificates were generated. 
     echo Restarting...

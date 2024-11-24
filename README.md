@@ -116,7 +116,7 @@ This structure is designed to keep the project organized and maintainable, separ
 ├── /ssl
 │   ├── /module
 │   │   ├── /crypt
-│   │   ├── /module
+│   │   ├── /jose
 │   │   └── lets-encrypt-acme-client.js
 │   │ 
 │   ├── acmeKeys
@@ -124,7 +124,7 @@ This structure is designed to keep the project organized and maintainable, separ
 │   └── certificate.pem
 │
 ├── /website
-│   └── index.html
+│   └── index.html <---- Your website goes here
 │
 ├── node.exe
 ├── server-ssl.js
