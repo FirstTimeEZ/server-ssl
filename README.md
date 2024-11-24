@@ -75,7 +75,7 @@ To use `server-ssl.js` in production you will need to provide arguments, they ar
 
 ### Use Lets Encrypt!
 
-You can use `Lets Encrypt` to generate certificate, these are valid for 90 days and the challenge is completed automatically.
+You can use `Lets Encrypt` to generate certificates, these are valid for 90 days.
 
 These certificates will renew automatically when you restart your server, so make sure you restart at least every 30 days.
 
