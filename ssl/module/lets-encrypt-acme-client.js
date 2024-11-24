@@ -2,7 +2,7 @@ import * as jose from './jose/index.js';
 import { writeFile, readFileSync, existsSync, mkdirSync } from 'fs';
 import { generateCSRWithExistingKeys } from './csr.js';
 
-// This isn't finished and does not generate certificates
+// This isn't finished and does not generate production certificates
 // success/resolve { answer: { any: any }, nonce: replay-nonce-if-exists }
 // error/resolve { answer: { error: response }, nonce: replay-nonce-if-exists }
 // exception { answer: { exception: exception } }
