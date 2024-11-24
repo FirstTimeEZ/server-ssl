@@ -248,12 +248,6 @@ function encodeDERObjectIdentifier(oid) {
     ]);
 }
 
-/**
- * Encodes a DER OCTET STRING
- * 
- * @param {Buffer} data - Data to encode
- * @returns {Buffer} DER encoded OCTET STRING
- */
 function encodeDEROctetString(data) {
     return Buffer.concat([
         Buffer.from([0x04]),
@@ -360,21 +354,18 @@ function createSANExtension(sans) {
 
     const generalNames = [];
 
-    // Add DNS names (type 2)
-    dnsNames.forEach(dns => {
+    dnsNames.forEach(dns => { // Add DNS names (type 2)
         generalNames.push(encodeDERContextSpecific(2, Buffer.from(dns, 'utf8')));
     });
 
-    // Add IP addresses (type 7)
-    ipAddresses.forEach(ip => {
+    ipAddresses.forEach(ip => { // Add IP addresses (type 7)
         const ipBuffer = ipToBuffer(ip);
         if (ipBuffer) {
             generalNames.push(encodeDERContextSpecific(7, ipBuffer));
         }
     });
 
-    // Add email addresses (type 1)
-    emailAddresses.forEach(email => {
+    emailAddresses.forEach(email => { // Add email addresses (type 1)
         generalNames.push(encodeDERContextSpecific(1, Buffer.from(email, 'utf8')));
     });
 
@@ -399,6 +390,5 @@ function ipToBuffer(ip) {
             return Buffer.from(bytes);
         }
     }
-    // TODO: Add IPv6 support
-    return null;
+    return null; // TODO: Add IPv6 support
 }
