@@ -173,9 +173,9 @@ export function checkChallengesMixin(req, res) {
         return false;
     }
 
-    internalCheckForLocalHostOnce(req);
-
     try {
+        internalCheckForLocalHostOnce(req);
+
         if (req.url.startsWith("/.well-known/acme-challenge/")) {
             const split = req.url.split("/");
             if (split.length === 4) {
