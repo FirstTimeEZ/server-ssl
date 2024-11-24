@@ -147,11 +147,12 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                                 finalizeOrder(sans.dnsNames[0], account.answer.location, n, keyPair, order.answer.order.finalize, sans).then((finalized) => {
                                     if (finalized.answer.get) {
                                         console.log(finalized.answer);
-                                        n = finalized.nonce;
                                     }
                                     else {
                                         console.error("Error getting order", finalized.answer.error, finalized.answer.exception);
                                     }
+
+                                    console.log("Next Nonce", (n = finalized.nonce));
                                 });
                             }
                         });
@@ -326,7 +327,7 @@ export async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl
         else {
             return {
                 answer: { error: await response.json() },
-                nonce: null
+                nonce: response.headers.get(REPLAY_NONCE)
             };
         }
     } catch (exception) {
