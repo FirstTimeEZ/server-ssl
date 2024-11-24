@@ -59,20 +59,31 @@ To use `server-ssl.js` in production you will need to provide arguments, they ar
 | `--entry=`     | Specifies the page to use for the entry point | `"index.html"` |
 | `--noRedirect` | Specifies that `HTTP` requests should not be redirected | `not present` |
 
+| Lets Encrypt!       | Description                                      | Default Value         |
+|-------------------------|----------------------------------|-----------------------|
+| `--letsEncrypt` | Specifies that `Lets Encrypt` should be used to generate 90 day certificates |
+| `--domains=` | Specifies the domains to generate certificates for when using `--letsEncrypt` |
+| `--generateAnyway` | Specifies that certificates should always be generated when the server starts |
+
 > [!IMPORTANT]
 > Your `Certificate` and `Private Key` should be relative to the `SSL` folder if you bring your own
 
 --------
 
+### Use Lets Encrypt!
+
+You can use `Lets Encrypt` to generate certificate, these are valid for 90 days and the challenge is completed automatically.
+
+These certificates will renew automatically when you restart your server, so make sure you restart at least every 30 days.
+
+```
+./start-windows.bat --letsEncrypt --domains=["www.example.com","example.com"]
+```
+
 ### Bring Your Own SSL Certificate
 
 ```
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
-```
-
-or
-
-```
 node server-ssl.js --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 

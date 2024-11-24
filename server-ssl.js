@@ -1,3 +1,20 @@
+/**
+ * Copyright © 2024 FirstTimeEZ
+ * https://github.com/FirstTimeEZ
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { fileURLToPath } from 'url';
 import { createServer as createServerHTTPS } from 'https';
 import { createServer as createServerHTTP } from 'http';
@@ -10,12 +27,15 @@ const __dirname = dirname(__filename);
 const __args = process.argv.slice(2);
 const options = {};
 
+let urlsArray = null;
 let optPk = null;
 let optCert = null;
 let optError = null;
 let optEntry = null;
 let optWebsite = null;
+let optDomains = null;
 let optLetsEncrypt = null;
+let optGenerateAnyway = null;
 let optDisableRedirectHttp = false;
 let optPort = process.env.PORT || 443;
 let optPortHttp = process.env.PORT_HTTP || 80;
@@ -51,6 +71,8 @@ function loadArguments() {
         arg.includes("--entry=") && (optEntry = rightSide);
         arg.includes("--noRedirect") && (optDisableRedirectHttp = true);
         arg.includes("--letsEncrypt") && (optLetsEncrypt = true); // WIP does not generate certificates, if you find bugs please open an issue.
+        arg.includes("--domains") && (optDomains = rightSide);
+        arg.includes("--generateAnyway") && (optGenerateAnyway = true);
     });
 
     !optPk && (optPk = 'private-key.pem');
@@ -58,6 +80,14 @@ function loadArguments() {
     !optWebsite && (optWebsite = 'website');
     !optError && (optError = 'error');
     !optEntry && (optEntry = 'index.html');
+
+    if (optLetsEncrypt && optDomains === null) {
+        console.log("You must specify at least one domain to use --letsEncrypt");
+        optLetsEncrypt = false;
+    }
+    else {
+        console.log(optDomains);
+    }
 }
 
 try {
@@ -73,6 +103,10 @@ try {
 
     options.key = readFileSync(pkPath);
     options.cert = readFileSync(certPath);
+
+    if (optDomains !== null) {
+        urlsArray = optDomains.slice(1, -1).split(',').map(url => url.trim());
+    }
 
     createServerHTTPS(options, (req, res) => {
         let filePath = join(__dirname, optWebsite, req.url === '/' ? optEntry : req.url);
@@ -151,7 +185,7 @@ try {
     /////////////////////////////////////////////////////////////////
     //                   Lets Encrypt! Daemon                      //
     /////////////////////////////////////////////////////////////////
-    // Automatically generate a 90 certificate every 75 days or so //
+    // Automatically generate a 90 certificate every 30 days       //
     // Automates the HTTP-01 challenge                             //
     /////////////////////////////////////////////////////////////////
 
@@ -159,10 +193,10 @@ try {
     // if (checkChallengesMixin(res)) { return; }
 
     // Daemon
-    // startLetsEncryptDaemon(fqdn, sslFolder, certOutputDir);
+    // startLetsEncryptDaemon(fqdn, sslFolder, generateAnyway);
 
     if (optLetsEncrypt) {
-        startLetsEncryptDaemon(["www.ssl.boats", "ssl.boats"], sslFolder);
+        startLetsEncryptDaemon(urlsArray, sslFolder, optGenerateAnyway);
     }
 } catch (exception) {
     console.error(exception);

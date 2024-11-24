@@ -1,13 +1,25 @@
+/**
+ * Copyright © 2024 FirstTimeEZ
+ * https://github.com/FirstTimeEZ
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as jose from './jose/index.js';
 import { writeFile, readFileSync, existsSync, mkdirSync } from 'fs';
 import { generateCSRWithExistingKeys } from './csr.js';
 
-// This isn't finished and does not generate production certificates
-// success/resolve { answer: { any: any }, nonce: replay-nonce-if-exists }
-// error/resolve { answer: { error: response }, nonce: replay-nonce-if-exists }
-// exception { answer: { exception: exception } }
-
-const DIRECTORY_URL = "https://acme-staging-v02.api.letsencrypt.org/directory";
+const DIRECTORY_URL = "https://acme-v02.api.letsencrypt.org/directory";
 
 const ALG_ECDSA = 'ES256';
 const DIGEST = "sha256";
@@ -23,6 +35,9 @@ const REPLAY_NONCE = 'replay-nonce';
 
 const pendingChallenges = [];
 
+const ONE_DAY_MILLISECONDS = 24 * 60 * 60 * 1000;
+const SEVENTY_DAYS_MILLISECONDS = 30 * ONE_DAY_MILLISECONDS;
+
 let LOCALHOST = false;
 let checkedForLocalHost = false;
 
@@ -33,8 +48,15 @@ let jwk = undefined;
  *
  * @param {array} fqdns - The fully qualified domain name as a SAN ["example.com","www.example.com"]
  * @param {string} optionalSslPath - The file path where the public and private keys will be stored/loaded from.
+ * @param {boolean} generateAnyway - True to generate certificates before the 30 days has passed
  */
-export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
+export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAnyway) {
+    if (internalDetermineRequirement(optionalSslPath)) {
+        if (generateAnyway !== true) {
+            return;
+        }
+    }
+
     const keyChain = await generateKeyChain(optionalSslPath);
     let account = undefined;
     let directory = undefined;
@@ -105,7 +127,36 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
 
                                 finalizeOrder(fqdns[0], account.answer.location, n, keyChain, order.answer.order.finalize, fqdns).then((finalized) => {
                                     if (finalized.answer.get) {
-                                        console.log(finalized.answer);
+                                        if (finalized.answer.get.status == "processing" || finalized.answer.get.status == "valid") {
+                                            console.log("Waiting for Certificate to be Ready for Download");
+                                            const waitForReady = setInterval(() => {
+                                                postAsGet(account.answer.location, n, keyChain, finalized.answer.location).then((checkFinalized) => {
+                                                    if (checkFinalized.answer.get.status == "valid") {
+                                                        console.log("Certificate Ready for Download");
+                                                        console.log("Certificate URL:", checkFinalized.answer.get.certificate);
+
+                                                        fetch(checkFinalized.answer.get.certificate).then((s) => {
+                                                            s.text().then((cert) => {
+                                                                // TODO: restart the server automatically
+                                                                writeFile(optionalSslPath + "/certificate.pem", cert, () => {
+                                                                    console.log("Saved Certificate to file (certificate.pem) - Restart the Server");
+                                                                });
+                                                                writeFile(optionalSslPath + "/private-key.pem", keyChain.privateKeySignRaw, () => {
+                                                                    console.log("Saved private key to file (private-key.pem) - Restart the Server");
+                                                                });
+                                                                writeFile(optionalSslPath + "/last.ez", JSON.stringify({ time: Date.now() }), () => { });
+                                                            });
+                                                        });
+                                                        clearInterval(waitForReady);
+                                                    }
+
+                                                    console.log("Next Nonce", (n = checkFinalized.nonce));
+                                                });
+                                            }, 1000);
+                                        }
+                                        else {
+                                            console.log("something went wrong", finalized.answer);
+                                        }
                                     }
                                     else {
                                         console.error("Error getting order", finalized.answer.error, finalized.answer.exception);
@@ -490,4 +541,21 @@ function internalCheckForLocalHostOnce(req) {
 
         checkedForLocalHost = true;
     }
+}
+
+function internalDetermineRequirement(optionalSslPath) {
+    if (existsSync(optionalSslPath + "/last.ez")) {
+        const time = readFileSync(optionalSslPath + "/last.ez");;
+        const last = JSON.parse(time);
+
+        console.log("Its been: " + ((Date.now() - last.time) / 1000) + " seconds since you last generated certificates");
+
+        if (Date.now() + SEVENTY_DAYS_MILLISECONDS < last.time) {
+            return false;
+        }
+
+        return true;
+    }
+
+    return false;
 }

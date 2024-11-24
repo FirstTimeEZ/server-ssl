@@ -5,3 +5,4 @@ ssl/acmePrivateKey.raw
 ssl/acmePublicKey.raw
 ssl/acmePrivateSignKey.raw
 ssl/acmePublicSignKey.raw
+ssl/last.ez
