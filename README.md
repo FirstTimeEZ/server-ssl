@@ -114,8 +114,14 @@ This structure is designed to keep the project organized and maintainable, separ
 │   └── 500.html
 │
 ├── /ssl
-│   ├── your-private-key.pem
-│   └── your-certificate.pem
+│   ├── /module
+│   │   ├── /crypt
+│   │   ├── /module
+│   │   └── lets-encrypt-acme-client.js
+│   │ 
+│   ├── acmeKeys
+│   ├── private-key.pem
+│   └── certificate.pem
 │
 ├── /website
 │   └── index.html
