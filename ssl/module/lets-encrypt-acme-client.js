@@ -13,6 +13,8 @@ const ALG_ECDSA = 'ES256';
 const DIGEST = "sha256";
 const PUBLIC_KEY = '/acmePublicKey.raw';
 const PRIVATE_KEY = '/acmePrivateKey.raw';
+const PUBLIC_KEY_SIGN = '/acmePublicSignKey.raw';
+const PRIVATE_KEY_SIGN = '/acmePrivateSignKey.raw';
 
 const CONTENT_TYPE_JOSE = 'application/jose+json';
 const CONTENT_TYPE_OCTET = 'application/octet-stream';
@@ -33,18 +35,10 @@ let jwk = undefined;
  * @param {string} optionalSslPath - The file path where the public and private keys will be stored/loaded from.
  */
 export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
-    const keyPair = await generateKeyPair(optionalSslPath);
+    const keyChain = await generateKeyChain(optionalSslPath);
     let account = undefined;
     let directory = undefined;
     let authorizations = undefined;
-
-    if (keyPair.publicKey == undefined) {
-        throw new Error("optionalKeyPair.publicKey must be defined");
-    }
-
-    if (keyPair.privateKey == undefined) {
-        throw new Error("optionalKeyPair.publicKey must be defined");
-    }
 
     console.log("------");
     console.log("Starting Lets Encrypt Daemon!");
@@ -59,7 +53,7 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
         const nonce = await newNonceAsync(directory.newNonce);
 
         if (nonce.nonce !== null) {
-            account = await createAccount(nonce.nonce, directory.newAccount, keyPair).catch(console.error);
+            account = await createAccount(nonce.nonce, directory.newAccount, keyChain).catch(console.error);
 
             if (account.answer.account && account.answer.account.status == "valid") {
                 //  console.log("Account Created and Valid", account.answer);
@@ -71,7 +65,7 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
                     domains.push({ "type": "dns", "value": element });
                 });
 
-                const order = await createOrder(account.answer.location, account.nonce, keyPair, directory.newOrder, domains);
+                const order = await createOrder(account.answer.location, account.nonce, keyChain, directory.newOrder, domains);
                 if (order.answer.order != undefined) {
                     let n;
                     // console.log("------");
@@ -87,7 +81,7 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
                         n = n;
 
                         // console.log("authz", element);
-                        let auth = await postAsGet(account.answer.location, n, keyPair, element);
+                        let auth = await postAsGet(account.answer.location, n, keyChain, element);
 
                         if (auth.answer.get.status) {
                             //console.log("------");
@@ -109,7 +103,7 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
                         n = n;
 
                         if (element.type == "http-01" && element.status == "pending") {
-                            let auth = await postAsGetChal(account.answer.location, n, keyPair, element.url);
+                            let auth = await postAsGetChal(account.answer.location, n, keyChain, element.url);
 
                             if (auth.answer.get.status) {
                                 console.log("Next Nonce", (n = auth.nonce), auth);
@@ -120,7 +114,7 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
                     }
 
                     const waitForReady = setInterval(() => {
-                        createOrder(account.answer.location, n, keyPair, directory.newOrder, domains).then((order) => {
+                        createOrder(account.answer.location, n, keyChain, directory.newOrder, domains).then((order) => {
                             n = order.nonce;
                             if (order.answer.order.status == "ready") {
                                 console.log(order);
@@ -128,7 +122,7 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
 
                                 console.log("Ready to Finalize", fqdns);
 
-                                finalizeOrder(fqdns[0], account.answer.location, n, keyPair, order.answer.order.finalize, fqdns).then((finalized) => {
+                                finalizeOrder(fqdns[0], account.answer.location, n, keyChain, order.answer.order.finalize, fqdns).then((finalized) => {
                                     if (finalized.answer.get) {
                                         console.log(finalized.answer);
                                     }
@@ -235,9 +229,9 @@ async function newNonceAsync(newNonceUrl) {
     }
 }
 
-async function createAccount(nonce, newAccountUrl, keyPair) {
+async function createAccount(nonce, newAccountUrl, keyChain) {
     try {
-        jwk = await jose.exportJWK(keyPair.publicKey);
+        jwk = await jose.exportJWK(keyChain.publicKey);
 
         const payload = { termsOfServiceAgreed: true };
         const protectedHeader = {
@@ -247,7 +241,7 @@ async function createAccount(nonce, newAccountUrl, keyPair) {
             url: newAccountUrl,
         };
 
-        const signed = await signPayloadJson(payload, protectedHeader, keyPair);
+        const signed = await signPayloadJson(payload, protectedHeader, keyChain);
 
         const request = {
             method: 'POST',
@@ -276,7 +270,7 @@ async function createAccount(nonce, newAccountUrl, keyPair) {
     }
 }
 
-async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers) {
+async function createOrder(kid, nonce, keyChain, newOrderUrl, identifiers) {
     try {
         const payload = { "identifiers": identifiers };
 
@@ -287,7 +281,7 @@ async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers) {
             url: newOrderUrl,
         };
 
-        const signed = await signPayloadJson(payload, protectedHeader, keyPair);
+        const signed = await signPayloadJson(payload, protectedHeader, keyChain);
 
         const request = {
             method: 'POST',
@@ -316,9 +310,9 @@ async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers) {
     }
 }
 
-async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl, dnsNames) {
+async function finalizeOrder(commonName, kid, nonce, keyChain, finalizeUrl, dnsNames) {
     try {
-        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey, dnsNames, jose) });
+        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyChain.publicKeySign, keyChain.privateKeySign, dnsNames, jose) });
 
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -331,7 +325,7 @@ async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl, dnsNa
 
         jws.setProtectedHeader(protectedHeader);
 
-        const signed = JSON.stringify(await jws.sign(keyPair.privateKey));
+        const signed = JSON.stringify(await jws.sign(keyChain.privateKey));
 
         const request = {
             method: 'POST',
@@ -360,7 +354,7 @@ async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl, dnsNa
     }
 }
 
-async function postAsGet(kid, nonce, keyPair, url) {
+async function postAsGet(kid, nonce, keyChain, url) {
     try {
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -371,7 +365,7 @@ async function postAsGet(kid, nonce, keyPair, url) {
 
         const jws = new jose.FlattenedSign(new TextEncoder().encode(""));
         jws.setProtectedHeader(protectedHeader);
-        const signed = JSON.stringify(await jws.sign(keyPair.privateKey));
+        const signed = JSON.stringify(await jws.sign(keyChain.privateKey));
 
         const request = {
             method: 'POST',
@@ -400,7 +394,7 @@ async function postAsGet(kid, nonce, keyPair, url) {
     }
 }
 
-async function postAsGetChal(kid, nonce, keyPair, url) {
+async function postAsGetChal(kid, nonce, keyChain, url) {
     try {
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -411,7 +405,7 @@ async function postAsGetChal(kid, nonce, keyPair, url) {
 
         const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify({})));
         jws.setProtectedHeader(protectedHeader);
-        const signed = JSON.stringify(await jws.sign(keyPair.privateKey));
+        const signed = JSON.stringify(await jws.sign(keyChain.privateKey));
 
         const request = {
             method: 'POST',
@@ -440,41 +434,64 @@ async function postAsGetChal(kid, nonce, keyPair, url) {
     }
 }
 
-async function signPayloadJson(payload, protectedHeader, keyPair) {
+async function signPayloadJson(payload, protectedHeader, keyChain) {
     const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify(payload)));
     jws.setProtectedHeader(protectedHeader);
-    return JSON.stringify(await jws.sign(keyPair.privateKey));
+    return JSON.stringify(await jws.sign(keyChain.privateKey));
 }
 
-async function generateKeyPair(sslPath) {
-    let keys = {};
+async function generateKeyChain(sslPath) {
+    let keyChain = {};
 
     if (existsSync(sslPath + PUBLIC_KEY) && existsSync(sslPath + PRIVATE_KEY)) {
-        keys.publicKeyRaw = readFileSync(sslPath + PUBLIC_KEY);
-        keys.privateKeyRaw = readFileSync(sslPath + PRIVATE_KEY);
-        keys.publicKey = await jose.importSPKI(keys.publicKeyRaw.toString(), ALG_ECDSA, { extractable: true });
-        keys.privateKey = await jose.importPKCS8(keys.privateKeyRaw.toString(), ALG_ECDSA, { extractable: true });
+        keyChain.publicKeyRaw = readFileSync(sslPath + PUBLIC_KEY);
+        keyChain.privateKeyRaw = readFileSync(sslPath + PRIVATE_KEY);
+        keyChain.publicKey = await jose.importSPKI(keyChain.publicKeyRaw.toString(), ALG_ECDSA, { extractable: true });
+        keyChain.privateKey = await jose.importPKCS8(keyChain.privateKeyRaw.toString(), ALG_ECDSA, { extractable: true });
 
-        console.log("Load Keys From File");
+        console.log("Load ACME Keys From File");
+
+        if (existsSync(sslPath + PUBLIC_KEY_SIGN) && existsSync(sslPath + PRIVATE_KEY_SIGN)) {
+            keyChain.publicKeySignRaw = readFileSync(sslPath + PUBLIC_KEY_SIGN);
+            keyChain.privateKeySignRaw = readFileSync(sslPath + PRIVATE_KEY_SIGN);
+            keyChain.publicKeySign = await jose.importSPKI(keyChain.publicKeySignRaw.toString(), ALG_ECDSA, { extractable: true });
+            keyChain.privateKeySign = await jose.importPKCS8(keyChain.privateKeySignRaw.toString(), ALG_ECDSA, { extractable: true });
+
+            console.log("Load Signing Keys From File");
+        }
     }
     else {
-        const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
-        keys.publicKey = publicKey;
-        keys.privateKey = privateKey;
-        keys.publicKeyRaw = await jose.exportSPKI(publicKey);
-        keys.privateKeyRaw = await jose.exportPKCS8(privateKey);
-
-        console.log(keys.publicKeyRaw, keys.privateKeyRaw);
-
         mkdirSync(sslPath, { recursive: true });
 
-        writeFile(sslPath + PUBLIC_KEY, keys.publicKeyRaw, () => { });
-        writeFile(sslPath + PRIVATE_KEY, keys.privateKeyRaw, () => { });
+        if (true) { // Acme Keys
+            const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
+            keyChain.publicKey = publicKey;
+            keyChain.privateKey = privateKey;
+            keyChain.publicKeyRaw = await jose.exportSPKI(publicKey);
+            keyChain.privateKeyRaw = await jose.exportPKCS8(privateKey);
 
-        console.log('Raw ES256 keys saved to publicKey.raw and privateKey.raw');
+            writeFile(sslPath + PUBLIC_KEY, keyChain.publicKeyRaw, () => { });
+            writeFile(sslPath + PRIVATE_KEY, keyChain.privateKeyRaw, () => { });
+
+            console.log('ACME Keys saved to File');
+        }
+
+        if (true) { // Signing Keys
+            const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
+
+            keyChain.publicKeySign = publicKey;
+            keyChain.privateKeySign = privateKey;
+            keyChain.publicKeySignRaw = await jose.exportSPKI(publicKey);
+            keyChain.privateKeySignRaw = await jose.exportPKCS8(privateKey);
+
+            writeFile(sslPath + PUBLIC_KEY_SIGN, keyChain.publicKeySignRaw, () => { });
+            writeFile(sslPath + PRIVATE_KEY_SIGN, keyChain.privateKeySignRaw, () => { });
+
+            console.log('Signing Keys saved to File');
+        }
     }
 
-    return keys;
+    return keyChain;
 }
 
 function internalCheckForLocalHostOnce(req) {

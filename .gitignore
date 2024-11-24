@@ -3,3 +3,5 @@ ssl/certificate.pem
 node.exe
 ssl/acmePrivateKey.raw
 ssl/acmePublicKey.raw
+ssl/acmePrivateSignKey.raw
+ssl/acmePublicSignKey.raw
