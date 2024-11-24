@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as jose from './jose/index.js';
 import { createPrivateKey, createPublicKey, sign } from 'crypto';
 
 // todo: SAN Extension
@@ -31,13 +30,16 @@ import { createPrivateKey, createPublicKey, sign } from 'crypto';
  *                                in the form of a CryptoKey object.
  * @param {CryptoKey} privateKey - The private key used to sign the CSR. Must be an ECDSA private key
  *                                 corresponding to the provided public key.
+ * @param {CryptoKey} joseImport - Your Jose Import, which should be 
+ * 
+ * @requires jose - For key export operations
+ * @example 
+ * import * as jose from './index.js';
+ * generateCSRWithExistingKeys(commonName, publicKey, privateKey, jose)                               
  * 
  * @returns {Promise<string>} A Promise that resolves to the base64url-encoded DER format CSR.
  * 
  * @throws {Error} If CSR generation fails, with the specific error message included.
- * 
- * @requires jose - For key export operations
- * @requires node:crypto - For createPrivateKey and signing operations
  * 
  * @description 
  * The CSR is generated using ECDSA with SHA-256 as the signature algorithm.
@@ -46,14 +48,11 @@ import { createPrivateKey, createPublicKey, sign } from 'crypto';
  * @note The function assumes the provided keys are valid ECDSA keys and the
  *       required helper functions (encodeDERSequence, encodeDERSet, etc.) are available
  *       in the scope.
- * 
- * @security This function handles sensitive cryptographic operations and private key material.
- *          Ensure proper key management and security practices are followed when using this function.
  */
-export async function generateCSRWithExistingKeys(commonName, publicKey, privateKey) {
+export async function generateCSRWithExistingKeys(commonName, publicKey, privateKey, joseImport) {
     try {
-        const publicKeySpki = await jose.exportSPKI(publicKey);
-        const privateKeyPkcs8 = await jose.exportPKCS8(privateKey);
+        const publicKeySpki = await joseImport.exportSPKI(publicKey);
+        const privateKeyPkcs8 = await joseImport.exportPKCS8(privateKey);
 
         const privKeyObj = createPrivateKey(privateKeyPkcs8);
 

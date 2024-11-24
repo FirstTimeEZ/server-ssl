@@ -290,7 +290,7 @@ export async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers)
 
 export async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl) {
     try {
-        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey) });
+        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey, jose) });
 
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -553,7 +553,7 @@ function InternalCheckIsLocalHost(req) {
 // | Poll for status   | POST-as-GET order              | 200          | x
 // |                   |                                |              | x
 // | ASN1 DER CSR      |                                |              | x
-// |                   |                                |              | 
+// |                   |                                |              |
 // | Finalize order    | POST order's finalize url      | 200          |
 // |                   |                                |              |
 // | Poll for status   | POST-as-GET order              | 200          |
