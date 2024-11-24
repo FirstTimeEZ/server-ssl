@@ -164,37 +164,3 @@ export function skipDERLength(buffer) {
     if (buffer[0] < 128) return 1;
     return (buffer[0] & 0x7F) + 1;
 }
-
-export function extractECPoint(derKey) {
-    let offset = 0;
-
-    if (derKey[offset++] !== TAGS.SEQUENCE) throw new Error('Expected sequence');
-    offset += skipDERLength(derKey.slice(offset));
-
-    if (derKey[offset++] !== TAGS.SEQUENCE) throw new Error('Expected algorithm sequence');
-    const algLength = readDERLength(derKey.slice(offset));
-    offset += skipDERLength(derKey.slice(offset)) + algLength;
-
-    if (derKey[offset++] !== 0x03) throw new Error('Expected bit string');
-    const bitStringLength = readDERLength(derKey.slice(offset));
-    offset += skipDERLength(derKey.slice(offset));
-
-    offset++;
-
-    const remainingLength = bitStringLength - 1;
-    if (remainingLength !== derKey.length - offset) {
-        throw new Error('Invalid bit string length for EC point');
-    }
-
-    if (derKey[offset] !== TAGS.OCTET_STRING) {
-        throw new Error('Expected uncompressed EC point (TAGS.OCTET_STRING)');
-    }
-
-    const point = derKey.slice(offset + 1, offset + remainingLength);
-
-    if (point.length !== 64) {
-        throw new Error(`Invalid EC point length: ${point.length} (expected 64 bytes)`);
-    }
-
-    return point;
-}
