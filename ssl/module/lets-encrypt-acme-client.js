@@ -507,7 +507,7 @@ function InternalCheckIsLocalHost(req) {
 // | challenges        | urls                           |              | x
 // |                   |                                |              | x
 // | Poll for status   | POST-as-GET order              | 200          | x
-// |                   |                                |              |
+// |                   |                                |              | x
 // | Finalize order    | POST order's finalize url      | 200          |
 // |                   |                                |              |
 // | Poll for status   | POST-as-GET order              | 200          |
