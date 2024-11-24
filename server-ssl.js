@@ -43,7 +43,6 @@ let optDomains = null;
 let optLetsEncrypt = null;
 let optAutoRestart = null;
 let optGenerateAnyway = null;
-let optDisableRedirectHttp = false;
 let optPort = process.env.PORT || 443;
 let optPortHttp = process.env.PORT_HTTP || 80;
 
@@ -76,7 +75,6 @@ function loadArguments() {
         arg.includes("--site=") && (optWebsite = rightSide);
         arg.includes("--error=") && (optError = rightSide);
         arg.includes("--entry=") && (optEntry = rightSide);
-        arg.includes("--noRedirect") && (optDisableRedirectHttp = true);
         arg.includes("--letsEncrypt") && (optLetsEncrypt = true);
         arg.includes("--domains") && (optDomains = rightSide);
         arg.includes("--generateAnyway") && (optGenerateAnyway = true);
@@ -187,11 +185,9 @@ try {
 
     createServerHTTP((req, res) => {
         if (optLetsEncrypt) { if (checkChallengesMixin(req, res)) { return; } } // Lets Encrypt! HTTP-01 Challenge Mixin
-
-        if (!optDisableRedirectHttp) {
-            res.writeHead(301, { "Location": `https://${req.headers.host}${req.url}` });
-            res.end();
-        }
+        
+        res.writeHead(301, { "Location": `https://${req.headers.host}${req.url}` });
+        res.end();
     }).listen(optPortHttp, () => console.log(`HTTP Server is redirecting requests to ${optPort}`));
 
     /////////////////////////////////////////////////////////////////
