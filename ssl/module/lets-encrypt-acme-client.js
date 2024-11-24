@@ -29,7 +29,7 @@ let jwk = undefined;
  * Starts the Let's Encrypt daemon to manage SSL certificates.
  *
  * @param {array} fqdns - The fully qualified domain name as a SAN ["example.com","www.example.com"]
- * @param {string} optionalSslPath - The file path where the public and private keys will be stored.
+ * @param {string} optionalSslPath - The file path where the public and private keys will be stored/loaded from.
  */
 export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
     const keyPair = await generateKeyPair(optionalSslPath);
