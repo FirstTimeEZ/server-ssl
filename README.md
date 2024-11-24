@@ -33,7 +33,7 @@ If you changed the port to something other than `443` or `80` then you have to u
 
 ### Optional Arguments
 
-`server-ssl.js` has some optional arguments you can use production if the defaults aren't enough.
+`server-ssl.js` has some optional arguments you can use in production if the defaults aren't enough.
 
 | Arguments/Flags       | Description                                      | Default Value         |
 |-------------------------|----------------------------------|-----------------------|
