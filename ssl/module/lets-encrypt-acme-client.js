@@ -174,7 +174,7 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
  *
  * Checks for ACME challenges responds with the appropriate answer
  *
- * @example {Object} req - The HTTP request object.
+ * @example
  * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
  */
 export function checkChallengesMixin(req, res) {
