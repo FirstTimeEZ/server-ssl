@@ -126,11 +126,9 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
                                 console.log(order);
                                 clearInterval(waitForReady);
 
-                                const sans = { dnsNames: fqdns };
+                                console.log("Ready to Finalize", fqdns);
 
-                                console.log("Ready to Finalize", sans);
-
-                                finalizeOrder(sans.dnsNames[0], account.answer.location, n, keyPair, order.answer.order.finalize, sans).then((finalized) => {
+                                finalizeOrder(fqdns[0], account.answer.location, n, keyPair, order.answer.order.finalize, fqdns).then((finalized) => {
                                     if (finalized.answer.get) {
                                         console.log(finalized.answer);
                                     }
@@ -318,9 +316,9 @@ async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers) {
     }
 }
 
-async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl, sans) {
+async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl, dnsNames) {
     try {
-        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey, sans, jose) });
+        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey, dnsNames, jose) });
 
         const protectedHeader = {
             alg: ALG_ECDSA,

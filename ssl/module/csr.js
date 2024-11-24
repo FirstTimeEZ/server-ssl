@@ -29,12 +29,8 @@ import { createPrivateKey, createPublicKey, sign } from 'crypto';
  * @param {CryptoKey} publicKey - The public key to be included in the CSR. Must be an ECDSA public key
  *                                in the form of a CryptoKey object.
  * @param {CryptoKey} privateKey - The private key used to sign the CSR. Must be an ECDSA private key
- *                                 corresponding to the provided public key.
- * 
- * @param {Object} sans - Subject Alternative Names object
- * @param {string[]} [sans.dnsNames=[]] - Array of DNS names
- * @param {string[]} [sans.ipAddresses=[]] - Array of IP addresses
- * @param {string[]} [sans.emailAddresses=[]] - Array of email addresses
+ *                                 corresponding to the provided public key. * 
+ * @param {string[]} dnsNames - Array of DNS names to use for Subject Alternative Names and Common Name
  * 
  * @param {CryptoKey} joseImport - Your Jose Import, which should be `import * as jose from "index.js"`
  * 
@@ -54,7 +50,7 @@ import { createPrivateKey, createPublicKey, sign } from 'crypto';
  *       required helper functions (encodeDERSequence, encodeDERSet, etc.) are available
  *       in the scope.
  */
-export async function generateCSRWithExistingKeys(commonName, publicKey, privateKey, sans = {}, joseImport) {
+export async function generateCSRWithExistingKeys(commonName, publicKey, privateKey, dnsNames, joseImport) {
     try {
         const publicKeySpki = await joseImport.exportSPKI(publicKey);
         const privateKeyPkcs8 = await joseImport.exportPKCS8(privateKey);
@@ -67,7 +63,7 @@ export async function generateCSRWithExistingKeys(commonName, publicKey, private
             ])
         ]);
 
-        const extensionRequest = createExtensionRequest(sans);
+        const extensionRequest = createExtensionRequest(dnsNames);
 
         const certificationRequestInfo = encodeDERSequence([
             Buffer.from([0x02, 0x01, 0x00]),                 // version
@@ -106,29 +102,26 @@ async function encodeSubjectPublicKeyInfo(publicKeyDER) {
             derKey = Buffer.from(pemContent, 'base64');
         }
 
-        // Create a temporary key to extract the proper point encoding
         const tempKey = createPublicKey({
             key: Buffer.from(derKey),
             format: 'der',
             type: 'spki'
         });
 
-        // Export the key in the correct format
         const rawKey = tempKey.export({
             format: 'der',
             type: 'spki'
         });
 
-        // Extract the EC point from the raw key
         const ecPoint = extractECPoint(rawKey);
 
         return encodeDERSequence([
             encodeDERSequence([
-                encodeDERObjectIdentifier('1.2.840.10045.2.1'),    // id-ecPublicKey
-                encodeDERObjectIdentifier('1.2.840.10045.3.1.7')   // secp256r1
+                encodeDERObjectIdentifier('1.2.840.10045.2.1'),
+                encodeDERObjectIdentifier('1.2.840.10045.3.1.7')
             ]),
             encodeDERBitString(Buffer.concat([
-                Buffer.from([0x04]),  // Uncompressed point indicator
+                Buffer.from([0x04]),
                 ecPoint
             ]))
         ]);
@@ -266,39 +259,30 @@ function skipDERLength(buffer) {
 function extractECPoint(derKey) {
     let offset = 0;
 
-    // Skip initial SEQUENCE
     if (derKey[offset++] !== 0x30) throw new Error('Expected sequence');
     offset += skipDERLength(derKey.slice(offset));
 
-    // Skip AlgorithmIdentifier SEQUENCE
     if (derKey[offset++] !== 0x30) throw new Error('Expected algorithm sequence');
     const algLength = readDERLength(derKey.slice(offset));
     offset += skipDERLength(derKey.slice(offset)) + algLength;
 
-    // Read BIT STRING
     if (derKey[offset++] !== 0x03) throw new Error('Expected bit string');
     const bitStringLength = readDERLength(derKey.slice(offset));
     offset += skipDERLength(derKey.slice(offset));
 
-    // Skip unused bits byte
     offset++;
 
-    // The remaining data should be the EC point (including 0x04 prefix)
-    // Validate that the remaining length matches what we expect
-    const remainingLength = bitStringLength - 1; // -1 for unused bits byte
+    const remainingLength = bitStringLength - 1;
     if (remainingLength !== derKey.length - offset) {
         throw new Error('Invalid bit string length for EC point');
     }
 
-    // Verify that the point starts with 0x04 (uncompressed point format)
     if (derKey[offset] !== 0x04) {
         throw new Error('Expected uncompressed EC point (0x04)');
     }
 
-    // Extract the actual point (skip the 0x04 prefix)
     const point = derKey.slice(offset + 1, offset + remainingLength);
 
-    // For secp256r1, the point should be 64 bytes (32 bytes for x + 32 bytes for y)
     if (point.length !== 64) {
         throw new Error(`Invalid EC point length: ${point.length} (expected 64 bytes)`);
     }
@@ -315,11 +299,11 @@ function signData(data, privateKey) {
     });
 }
 
-function createExtensionRequest(sans) {
+function createExtensionRequest(dnsNames) {
     const extensions = [];
 
-    if (Object.keys(sans).length > 0) {
-        extensions.push(createSANExtension(sans));
+    if (dnsNames.length > 0) {
+        extensions.push(createSANExtension(dnsNames));
     }
 
     return encodeDERSequence([
@@ -328,40 +312,26 @@ function createExtensionRequest(sans) {
     ]);
 }
 
-function createSANExtension(sans) {
-    const { dnsNames = [], ipAddresses = [], emailAddresses = [] } = sans;
-
+function createSANExtension(dnsNames) {
     const generalNames = [];
 
-    dnsNames.forEach(dns => { // Add DNS names (type 2)
-        generalNames.push(encodeDERContextSpecific(2, Buffer.from(dns, 'utf8')));
+    dnsNames.forEach(dns => {
+        const dnsBytes = Buffer.from(dns, 'utf8');
+        generalNames.push(Buffer.concat([
+            Buffer.from([0x82]),
+            encodeDERLength(dnsBytes.length),
+            dnsBytes
+        ]));
     });
 
-    ipAddresses.forEach(ip => { // Add IP addresses (type 7)
-        const ipBuffer = ipToBuffer(ip);
-        if (ipBuffer) {
-            generalNames.push(encodeDERContextSpecific(7, ipBuffer));
-        }
-    });
-
-    emailAddresses.forEach(email => { // Add email addresses (type 1)
-        generalNames.push(encodeDERContextSpecific(1, Buffer.from(email, 'utf8')));
-    });
+    const sanSequence = Buffer.concat([
+        Buffer.from([0x30]),
+        encodeDERLength(generalNames.reduce((sum, el) => sum + el.length, 0)),
+        ...generalNames
+    ]);
 
     return encodeDERSequence([
         encodeDERObjectIdentifier('2.5.29.17'),
-        // Critical flag is optional for SAN, typically false
-        encodeDEROctetString(encodeDERSequence(generalNames))
+        encodeDEROctetString(sanSequence)
     ]);
-}
-
-function ipToBuffer(ip) {
-    const parts = ip.split('.');
-    if (parts.length === 4) {  // IPv4
-        const bytes = parts.map(part => parseInt(part, 10));
-        if (bytes.every(byte => byte >= 0 && byte <= 255)) {
-            return Buffer.from(bytes);
-        }
-    }
-    return null; // TODO: Add IPv6 support
 }
