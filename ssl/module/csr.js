@@ -70,18 +70,14 @@ export async function generateCSRWithExistingKeys(commonName, publicKey, private
         const extensionRequest = createExtensionRequest(sans);
 
         const certificationRequestInfo = encodeDERSequence([
-            Buffer.from([0x02, 0x01, 0x00]),              // version
-            subject,                                       // subject
+            Buffer.from([0x02, 0x01, 0x00]),                 // version
+            subject,                                         // subject
             await encodeSubjectPublicKeyInfo(publicKeySpki), // pki
             encodeDERContextSpecific(0, extensionRequest)    // attributes with extension request
         ]);
 
         const signature = await signData(certificationRequestInfo, privKeyObj);
-
-        const signatureAlgorithm = encodeDERSequence([
-            encodeDERObjectIdentifier('1.2.840.10045.4.3.2'),  // ecdsa-with-SHA256
-            Buffer.from([0x05, 0x00])                          // NULL
-        ]);
+        const signatureAlgorithm = encodeDERSequence([encodeDERObjectIdentifier('1.2.840.10045.4.3.2')]);
 
         const csrDER = encodeDERSequence([
             certificationRequestInfo,
@@ -89,7 +85,11 @@ export async function generateCSRWithExistingKeys(commonName, publicKey, private
             encodeDERBitString(signature)
         ]);
 
-        return csrDER.toString('base64url');
+        const csrString = csrDER.toString('base64url');
+
+        console.log(csrString);
+
+        return csrString;
     } catch (error) {
         throw new Error(`Failed to generate CSR: ${error.message}`);
     }
@@ -328,13 +328,9 @@ function createExtensionRequest(sans) {
         extensions.push(createSANExtension(sans));
     }
 
-    return encodeDERSet([
-        encodeDERSequence([
-            encodeDERObjectIdentifier('1.2.840.113549.1.9.14'), // Extension Request OID
-            encodeDERSet([
-                encodeDERSequence(extensions)
-            ])
-        ])
+    return encodeDERSequence([
+        encodeDERObjectIdentifier("1.2.840.113549.1.9.14"), 
+        encodeDERSet([encodeDERSequence(extensions)])
     ]);
 }
 
