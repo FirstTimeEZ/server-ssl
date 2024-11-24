@@ -27,7 +27,12 @@ const __dirname = dirname(__filename);
 const __args = process.argv.slice(2);
 const options = {};
 
+const ONE_DAY_MILLISECONDS = 86400000;
+
+let checkStartWindows = null;
+let override = false;
 let urlsArray = null;
+
 let optPk = null;
 let optCert = null;
 let optError = null;
@@ -36,6 +41,7 @@ let optStaging = null;
 let optWebsite = null;
 let optDomains = null;
 let optLetsEncrypt = null;
+let optAutoRestart = null;
 let optGenerateAnyway = null;
 let optDisableRedirectHttp = false;
 let optPort = process.env.PORT || 443;
@@ -71,11 +77,22 @@ function loadArguments() {
         arg.includes("--error=") && (optError = rightSide);
         arg.includes("--entry=") && (optEntry = rightSide);
         arg.includes("--noRedirect") && (optDisableRedirectHttp = true);
-        arg.includes("--letsEncrypt") && (optLetsEncrypt = true); // WIP does not generate certificates, if you find bugs please open an issue.
+        arg.includes("--letsEncrypt") && (optLetsEncrypt = true);
         arg.includes("--domains") && (optDomains = rightSide);
         arg.includes("--generateAnyway") && (optGenerateAnyway = true);
         arg.includes("--staging") && (optStaging = true);
+        arg.includes("--autoRestart") && (optAutoRestart = true);
+        arg.includes("--ar") && (checkStartWindows = rightSide);
+        arg.includes("--ok") && (override = true);
     });
+
+    if (checkStartWindows != 1 && override === false) {
+        console.log("--------");
+        console.log("Server must be started with start-windows.bat to enable auto restart");
+        console.log("If you have a way to restart the server on error code 123, use override --ok");
+        console.log("--------");
+        optAutoRestart = false;
+    }
 
     !optPk && (optPk = 'private-key.pem');
     !optCert && (optCert = 'certificate.pem');
@@ -102,10 +119,6 @@ try {
 
     options.key = readFileSync(pkPath);
     options.cert = readFileSync(certPath);
-
-    if (optDomains !== null) {
-        urlsArray = optDomains.slice(1, -1).split(',').map(url => url.trim());
-    }
 
     createServerHTTPS(options, (req, res) => {
         let filePath = join(__dirname, optWebsite, req.url === '/' ? optEntry : req.url);
@@ -184,19 +197,27 @@ try {
     /////////////////////////////////////////////////////////////////
     //                   Lets Encrypt! Daemon                      //
     /////////////////////////////////////////////////////////////////
-    // Automatically generate a 90 certificate every 30 days       //
-    // Automates the HTTP-01 challenge                             //
-    /////////////////////////////////////////////////////////////////
 
-    // Mixin: Inside the HTTP Server Listener
-    // if (checkChallengesMixin(res)) { return; }
+    if (optDomains !== null) {
+        urlsArray = optDomains.slice(1, -1).split(',').map(url => url.trim());
+    }
 
-    // Daemon
-    // startLetsEncryptDaemon(fqdn, sslFolder, generateAnyway, staging);
+    if (optGenerateAnyway === true) {
+        optAutoRestart = false;
+        console.log("AutoRestart is set to false because GenerateAnyway is true");
+    }
 
     if (optLetsEncrypt) {
-        startLetsEncryptDaemon(urlsArray, sslFolder, optGenerateAnyway, optStaging);
+        startLetsEncryptDaemon(urlsArray, sslFolder, optGenerateAnyway, optStaging, optAutoRestart);
+
+        if (optAutoRestart) {
+            setTimeout(() => startLetsEncryptDaemon(urlsArray, sslFolder, optGenerateAnyway, optStaging, optAutoRestart), ONE_DAY_MILLISECONDS);
+        }
     }
+
+    /////////////////////////////////////////////////////////////////
+    //                   Lets Encrypt! Daemon                      //
+    /////////////////////////////////////////////////////////////////
 } catch (exception) {
     console.error(exception);
 }

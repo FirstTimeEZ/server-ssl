@@ -36,7 +36,7 @@ const REPLAY_NONCE = 'replay-nonce';
 const pendingChallenges = [];
 
 const ONE_DAY_MILLISECONDS = 24 * 60 * 60 * 1000;
-const SEVENTY_DAYS_MILLISECONDS = 30 * ONE_DAY_MILLISECONDS;
+const SEVENTY_DAYS_MILLISECONDS = 60 * ONE_DAY_MILLISECONDS;
 
 let LOCALHOST = false;
 let checkedForLocalHost = false;
@@ -50,8 +50,9 @@ let jwk = undefined;
  * @param {string} optionalSslPath - The file path where the public and private keys will be stored/loaded from.
  * @param {boolean} generateAnyway - (optional) True to generate certificates before the 30 days has passed
  * @param {boolean} staging - (optional) True to use staging mode instead of production
+ * @param {boolean} optAutoRestart - (optional) True to restart after certificates are generated, must use start-windows.bat or have own mechanism for 123 exit.
  */
-export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAnyway, optStaging) {
+export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAnyway, optStaging, optAutoRestart) {
     if (internalDetermineRequirement(optionalSslPath)) {
         if (generateAnyway !== true) {
             return;
@@ -151,6 +152,8 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
                                                                     console.log("Saved private key to file (private-key.pem) - Restart the Server");
                                                                 });
                                                                 writeFile(optionalSslPath + "/last.ez", JSON.stringify({ time: Date.now() }), () => { });
+
+                                                                optAutoRestart && (console.log("Restarting Server in 2 seconds..."), setTimeout(() => process.exit(123), 2500));
                                                             });
                                                         });
                                                         clearInterval(waitForReady);

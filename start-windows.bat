@@ -1,7 +1,7 @@
 @echo off
 
 set currentPath=%cd%
-setlocal
+set "AR=0"
 
 set "PORT="
 set "CERT="
@@ -18,6 +18,9 @@ if "%~1"=="--port" (
     shift
 ) else if "%~1"=="--pk" (
     set PK=%~2
+    shift
+) else if "%~1"=="--autoRestart" (
+    set AR=1
     shift
 )
 shift
@@ -55,8 +58,6 @@ if "%KEYS%"=="1" (
     if EXIST "%currentPath%/ssl/certificate.pem" ( echo Successfully Generated Certificate ) else ( echo Certificate Needed, Install OpenSSL and run again. )
 )
 
-endlocal
-
 setlocal
 
 if EXIST "node.exe" ( echo Node.js already exists ) else (
@@ -66,6 +67,14 @@ if EXIST "node.exe" ( echo Node.js already exists ) else (
 
 echo Starting SSL Web Server
 
-node.exe server-ssl.js %*
+:restartLoop
+node.exe server-ssl.js %* --ar=%AR%
+
+set exitCode=%errorlevel%
+if %exitCode%==123 (
+    echo Server exited because certificates were generated. 
+    echo Restarting...
+    goto restartLoop
+)
 
 endlocal

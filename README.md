@@ -70,6 +70,7 @@ To use `server-ssl.js` in production you will need to provide arguments, they ar
 | `--domains=` | Specifies the domains to generate certificates for, this can not include wild cards, this should be an array. eg. `--domains=["www.ssl.boats","ssl.boats"]` |
 | `--generateAnyway` | Specifies that certificates should always be generated when the server starts, this could get you rate limited, maybe use `--staging`  |
 | `--staging` | Specifies that the `Lets Encrypt!` staging server should be used instead of production |
+| `--autoRestart` | Specifies that the server should restart after certificates are generated, must use with `start-windows.bat` |
 
 --------
 
