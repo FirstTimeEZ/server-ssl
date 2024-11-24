@@ -3,8 +3,8 @@ import { writeFile, readFileSync, existsSync, mkdirSync } from 'fs';
 import { generateCSRWithExistingKeys } from './csr.js';
 
 // This isn't finished and does not generate certificates
-// success/resolve { answer: { any: any }, nonce: replay-nonce }
-// error/resolve { answer: { error: response } }
+// success/resolve { answer: { any: any }, nonce: replay-nonce-if-exists }
+// error/resolve { answer: { error: response }, nonce: replay-nonce-if-exists }
 // exception { answer: { exception: exception } }
 
 const DIRECTORY_URL = "https://acme-staging-v02.api.letsencrypt.org/directory";
