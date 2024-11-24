@@ -169,6 +169,18 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
     }
 }
 
+/**
+ * Middleware function to check and respond to ACME HTTP-01 challenges.
+ * 
+ * This should be checked in your HTTP Server, example below.
+ *
+ * Checks for ACME challenges responds with the appropriate answer
+ *
+ * @example {Object} req - The HTTP request object.
+ * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
+ *
+ * @throws {Error} - Throws an error if an exception occurs during processing.
+ */
 export function checkChallengesMixin(req, res) {
     try {
         if (jwk !== undefined && req.url.startsWith("/.well-known/acme-challenge/")) {
