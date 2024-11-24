@@ -77,7 +77,7 @@ To use `server-ssl.js` in production you will need to provide arguments, they ar
 
 You can use `Lets Encrypt` to generate certificates, these are valid for 90 days.
 
-These certificates will renew automatically when you restart your server, so make sure you restart at least every 30 days.
+These certificates will renew when you restart your server, so make sure you restart at least every 30 days.
 
 ```
 ./start-windows.bat --letsEncrypt --domains=["www.ssl.boats","ssl.boats"]
