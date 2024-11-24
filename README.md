@@ -4,20 +4,16 @@ Easy to configure `SSL Web Server` that can be used for development or productio
 
 `HTTP` requests are redirected to `HTTPS`
 
-Can be configured to use `Lets Encrypt` 90 day certificates automatically.
-
-Includes the style-sheet from [`responsive`](https://github.com/FirstTimeEZ/responsive)
+Production servers can use and renew `Lets Encrypt 90 Day Certificates` automatically.
 
 --------
 
 ### Start the Server
 
-`start-windows.bat` will start the server for development if you provide no arguments.
-
-This will be on port `443` with a `self signed certificate` at `https://localhost`
+`start-windows.bat` takes arguments and starts the server, it also restarts the server when certificates are renewed.
 
 ```
-# Start for development
+# Start for development (Self Signed Certificate, Port 443, https://localhost)
 ./start-windows.bat
 
 # Start for production (Lets Encrypt!)
@@ -26,20 +22,6 @@ This will be on port `443` with a `self signed certificate` at `https://localhos
 # Start for production (BYO)
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
-
-<details> <summary>Show the differences between starting with <a href="https://git-scm.com/downloads/win">Git Bash</a> or Command Prompt</summary>
-
-Right click and select [`Open Git Bash Here`](https://git-scm.com/downloads/win) in the same folder as `start-windows.bat` (recommended)
-
-[![](https://i.imgur.com/3QTywrk.png)](https://git-scm.com/downloads/win)[![](https://i.imgur.com/dGRvsRe.png)](https://git-scm.com/downloads/win)
-
-You can also use the `Command Prompt`
-
-Portable [`OpenSSL`](https://github.com/FirstTimeEZ/openssl) will be downloaded temporarily if required to generate keys if you use `Command Prompt`
-
-[![](https://i.imgur.com/2anEyXe.png)](https://github.com/FirstTimeEZ/responsive)[![](https://i.imgur.com/wzs3sXc.png)](https://github.com/FirstTimeEZ/responsive)
-
-</details>
 
 [![](https://i.imgur.com/4AeJ9Rs.png)](https://github.com/FirstTimeEZ/responsive)
 
@@ -83,24 +65,6 @@ These certificates will renew when you restart your server, so make sure you res
 ```
 ./start-windows.bat --letsEncrypt --domains=["www.ssl.boats","ssl.boats"]
 ```
-
-### Bring Your Own SSL Certificate
-
-```
-./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
-node server-ssl.js --cert="your-certificate.pem" --pk="your-private-key.pem"
-```
-
-> [!IMPORTANT]
-> Your `Certificate` and `Private Key` should be relative to the `SSL` folder if you bring your own
-
-### Create SSL Certificate
-
-`start-windows.bat` will automatically create a `Certificate` and `Private Key` when you run it if you don't provide any and none exist
-
-![](https://i.imgur.com/vAMuDOG.png)
-
---------
 
 ### Default Structure
 
@@ -147,24 +111,24 @@ If you want to add more specific custom error pages, place them in the `/error` 
 
 --------
 
-### Port
-
-By default, the server runs on port `443`
-
-You can provide a different port as an argument.
+### Bring Your Own SSL Certificate
 
 ```
-./start-windows.bat --port=443 --cert="certificate.pem" --pk="private-key.pem"
+./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
+node server-ssl.js --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
-You can also set the `PORT` env variable in `Node.js` or modify `server-ssl.js`
+> [!IMPORTANT]
+> Your `Certificate` and `Private Key` should be relative to the `SSL` folder if you bring your own
+
+### Create SSL Certificate
+
+`start-windows.bat` will automatically create a `Certificate` and `Private Key` when you run it if you don't provide any and none exist
+
+![](https://i.imgur.com/vAMuDOG.png)
 
 --------
 
 ### Node.js
 
 When you run `start-windows.bat` the first time the latest version of `node.exe` portable will be downloaded
-
-### Use Directly
-
-You can use `server-ssl.js` directly if you have a valid `certificate`,`private key` and `Node.js` already installed
