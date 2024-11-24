@@ -47,18 +47,12 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
     directory = (await newDirectoryAsync()).answer.directory;
 
     if (directory !== null) {
-        //console.log(directory);
-        //console.log("------");
-
         const nonce = await newNonceAsync(directory.newNonce);
 
         if (nonce.nonce !== null) {
             account = await createAccount(nonce.nonce, directory.newAccount, keyChain).catch(console.error);
 
             if (account.answer.account && account.answer.account.status == "valid") {
-                //  console.log("Account Created and Valid", account.answer);
-                //  console.log("Next Nonce", account.nonce);
-
                 let domains = [];
 
                 fqdns.forEach((element) => {
@@ -68,10 +62,6 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
                 const order = await createOrder(account.answer.location, account.nonce, keyChain, directory.newOrder, domains);
                 if (order.answer.order != undefined) {
                     let n;
-                    // console.log("------");
-                    // console.log("Order", order);
-                    // console.log("Identifiers", order.answer.order.identifiers);
-                    // console.log("Authorizations", order.answer.order.authorizations);
                     console.log("Next Nonce", (n = order.nonce));
 
                     authorizations = order.answer.order.authorizations;
@@ -79,19 +69,10 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
                     for (let index = 0; index < authorizations.length; index++) {
                         const element = authorizations[index];
                         n = n;
-
-                        // console.log("authz", element);
                         let auth = await postAsGet(account.answer.location, n, keyChain, element);
 
                         if (auth.answer.get.status) {
-                            //console.log("------");
-                            // console.log("Authorization", auth.answer);
-                            // console.log("Order", account.answer.location);
-                            // console.log("Status", auth.answer.get.status);
-                            // console.log("Identifier", auth.answer.get.identifier);
-                            // console.log("Challenges");
                             pendingChallenges.push(...auth.answer.get.challenges);
-                            // console.log("Expires", new Date(auth.answer.get.expires).toString());
                             console.log("Next Nonce", (n = auth.nonce));
                         } else {
                             console.error("Error getting auth", auth.answer.error, auth.answer.exception);
