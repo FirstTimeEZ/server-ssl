@@ -22,6 +22,7 @@ const REPLAY_NONCE = 'replay-nonce';
 const pendingChallenges = [];
 
 let LOCALHOST = false;
+let checkedForLocalHost = false;
 
 let jwk = undefined;
 
@@ -168,10 +169,14 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
  * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
  */
 export function checkChallengesMixin(req, res) {
-    try {
-        if (jwk !== undefined && req.url.startsWith("/.well-known/acme-challenge/")) {
-            internalCheckIsLocalHost(req); // TODO: When this is completed localhost can only make it to the first challenge and then will fail gracefully until next server restart
+    if (LOCALHOST === true || jwk == undefined) {
+        return false;
+    }
 
+    internalCheckForLocalHostOnce(req);
+
+    try {
+        if (req.url.startsWith("/.well-known/acme-challenge/")) {
             const split = req.url.split("/");
             if (split.length === 4) {
                 const token = split[split.length - 1];
@@ -474,9 +479,10 @@ async function generateKeyPair(sslPath) {
     return keys;
 }
 
-function internalCheckIsLocalHost(req) {
-    if (LOCALHOST == false) {
+function internalCheckForLocalHostOnce(req) {
+    if (checkedForLocalHost === false && LOCALHOST === false) {
         let ip = req.socket.remoteAddress;
+
         if (req.headers['x-forwarded-for']) {
             ip = req.headers['x-forwarded-for'].split(',')[0];
         }
@@ -485,5 +491,7 @@ function internalCheckIsLocalHost(req) {
             LOCALHOST = true;
             console.error(ip, req.headers.host, "You can not generate lets encrypt certificates for localhost");
         }
+
+        checkedForLocalHost = true;
     }
 }
