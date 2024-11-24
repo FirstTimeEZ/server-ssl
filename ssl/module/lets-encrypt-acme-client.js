@@ -170,7 +170,7 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
 export function checkChallengesMixin(req, res) {
     try {
         if (jwk !== undefined && req.url.startsWith("/.well-known/acme-challenge/")) {
-            internalCheckIsLocalHost(req);
+            internalCheckIsLocalHost(req); // TODO: When this is completed localhost can only make it to the first challenge and then will fail gracefully until next server restart
 
             const split = req.url.split("/");
             if (split.length === 4) {
