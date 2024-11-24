@@ -176,7 +176,40 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
     }
 }
 
-export async function newDirectoryAsync() {
+export function checkChallengesMixin(req, res) {
+    try {
+        if (jwk !== undefined && req.url.startsWith("/.well-known/acme-challenge/")) {
+            internalCheckIsLocalHost(req);
+
+            const split = req.url.split("/");
+            if (split.length === 4) {
+                const token = split[split.length - 1];
+                let bufferModified = false;
+                pendingChallenges.forEach(challenge => {
+                    if (challenge.type == "http-01" && challenge.status == "pending" && challenge.token == token) {
+                        console.log("HTTP-01 ACME Challenge");
+                        console.log("token", challenge.token);
+                        jose.calculateJwkThumbprint(jwk, DIGEST).then((thumbPrint) => {
+                            res.writeHead(200, { 'Content-Type': CONTENT_TYPE_OCTET });
+                            const answer = `${challenge.token}.${thumbPrint}`;
+                            res.end(Buffer.from(answer));
+                            console.log("HTTP-01 ACME Challenge Answered", answer);
+                        });
+                        bufferModified = true;
+                    }
+                });
+
+                return bufferModified;
+            }
+        }
+    } catch (exception) {
+        console.log("checkChallengesMixin exception", exception);
+    }
+
+    return false;
+}
+
+async function newDirectoryAsync() {
     return new Promise((resolve) => {
         fetch(DIRECTORY_URL, { method: "GET" }).then(response => {
             response.ok
@@ -186,7 +219,7 @@ export async function newDirectoryAsync() {
     });
 }
 
-export async function newNonceAsync(newNonceUrl) {
+async function newNonceAsync(newNonceUrl) {
     let nonceUrl = newNonceUrl;
 
     if (newNonceUrl == undefined) {
@@ -210,7 +243,7 @@ export async function newNonceAsync(newNonceUrl) {
     }
 }
 
-export async function createAccount(nonce, newAccountUrl, keyPair) {
+async function createAccount(nonce, newAccountUrl, keyPair) {
     try {
         jwk = await jose.exportJWK(keyPair.publicKey);
 
@@ -251,7 +284,7 @@ export async function createAccount(nonce, newAccountUrl, keyPair) {
     }
 }
 
-export async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers) {
+async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers) {
     try {
         const payload = { "identifiers": identifiers };
 
@@ -291,7 +324,7 @@ export async function createOrder(kid, nonce, keyPair, newOrderUrl, identifiers)
     }
 }
 
-export async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl, sans) {
+async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl, sans) {
     try {
         const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyPair.publicKey, keyPair.privateKey, sans, jose) });
 
@@ -335,7 +368,7 @@ export async function finalizeOrder(commonName, kid, nonce, keyPair, finalizeUrl
     }
 }
 
-export async function postAsGet(kid, nonce, keyPair, url) {
+async function postAsGet(kid, nonce, keyPair, url) {
     try {
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -375,7 +408,7 @@ export async function postAsGet(kid, nonce, keyPair, url) {
     }
 }
 
-export async function postAsGetChal(kid, nonce, keyPair, url) {
+async function postAsGetChal(kid, nonce, keyPair, url) {
     try {
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -415,29 +448,13 @@ export async function postAsGetChal(kid, nonce, keyPair, url) {
     }
 }
 
-/**
- * Generates a public-private key pair for cryptographic operations.
- * The generated public key will be associated with a user account,
- * while the private key will be used to sign requests.
- *
- * If existing keys are found at the specified path, they will be loaded
- * from the filesystem instead of generating new ones.
- *
- * @param {string} sslPath - The file path where the public and private keys are stored.
- *                            The keys will be saved as 'publicKey.raw' and 'privateKey.raw'
- *                            if they do not already exist.
- *
- * @returns {Promise<{ publicKey: CryptoKey, privateKey: CryptoKey }>} 
- *          An object containing the generated or loaded public and private keys.
- *          The public key is linked to the user account and can be shared,
- *          while the private key must be kept secure and confidential.
- *
- * @throws {Error} Throws an error if key generation or file operations fail.
- *
- * @example
- * const keyPair = await generateKeyPair('/path/to/keys/'); 
- */
-export async function generateKeyPair(sslPath) {
+async function signPayloadJson(payload, protectedHeader, keyPair) {
+    const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify(payload)));
+    jws.setProtectedHeader(protectedHeader);
+    return JSON.stringify(await jws.sign(keyPair.privateKey));
+}
+
+async function generateKeyPair(sslPath) {
     let keys = {};
 
     if (existsSync(sslPath + PUBLIC_KEY) && existsSync(sslPath + PRIVATE_KEY)) {
@@ -468,60 +485,7 @@ export async function generateKeyPair(sslPath) {
     return keys;
 }
 
-/**
- * Signs a the payload and a protected header using a given key pair.
- *
- * This function creates a JWS (JSON Web Signature) by encoding the provided
- * payload object and signing it with the private key from the provided key pair.
- * The protected header is also set for the JWS.
- *
- * @param {Object} payload - The payload to be signed. This should be a valid object.
- * @param {Object} protectedHeader - The protected header to be included in the JWS. This should be a valid object containing JWS header parameters.
- * @param {Object} keyPair - An object containing the key pair used for signing. It should have a `privateKey` property that holds the private key.
- * @returns {Promise<string>} A promise that resolves to a JSON string representing the signed JWS.
- *
- * @throws {Error} Throws an error if the signing process fails.
- */
-export async function signPayloadJson(payload, protectedHeader, keyPair) {
-    const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify(payload)));
-    jws.setProtectedHeader(protectedHeader);
-    return JSON.stringify(await jws.sign(keyPair.privateKey));
-}
-
-export function checkChallengesMixin(req, res) {
-    try {
-        if (jwk !== undefined && req.url.startsWith("/.well-known/acme-challenge/")) {
-            InternalCheckIsLocalHost(req);
-
-            const split = req.url.split("/");
-            if (split.length === 4) {
-                const token = split[split.length - 1];
-                let bufferModified = false;
-                pendingChallenges.forEach(challenge => {
-                    if (challenge.type == "http-01" && challenge.status == "pending" && challenge.token == token) {
-                        console.log("HTTP-01 ACME Challenge");
-                        console.log("token", challenge.token);
-                        jose.calculateJwkThumbprint(jwk, DIGEST).then((thumbPrint) => {
-                            res.writeHead(200, { 'Content-Type': CONTENT_TYPE_OCTET });
-                            const answer = `${challenge.token}.${thumbPrint}`;
-                            res.end(Buffer.from(answer));
-                            console.log("HTTP-01 ACME Challenge Answered", answer);
-                        });
-                        bufferModified = true;
-                    }
-                });
-
-                return bufferModified;
-            }
-        }
-    } catch (exception) {
-        console.log("checkChallengesMixin exception", exception);
-    }
-
-    return false;
-}
-
-function InternalCheckIsLocalHost(req) {
+function internalCheckIsLocalHost(req) {
     if (LOCALHOST == false) {
         let ip = req.socket.remoteAddress;
         if (req.headers['x-forwarded-for']) {
@@ -534,33 +498,3 @@ function InternalCheckIsLocalHost(req) {
         }
     }
 }
-
-// +-------------------+--------------------------------+--------------+
-// | Action            | Request                        | Response     |
-// +-------------------+--------------------------------+--------------+
-// | Get directory     | GET  directory                 | 200          | x
-// |                   |                                |              |
-// | Get nonce         | HEAD newNonce                  | 200          | x
-// |                   |                                |              |
-// | Create account    | POST newAccount                | 201 ->       | x
-// |                   |                                | account      |
-// |                   |                                |              |
-// | Submit order      | POST newOrder                  | 201 -> order | x
-// |                   |                                |              |
-// | Fetch challenges  | POST-as-GET order's            | 200          | x
-// |                   | authorization urls             |              | x
-// |                   |                                |              | x
-// | Respond to        | POST authorization challenge   | 200          | x
-// | challenges        | urls                           |              | x
-// |                   |                                |              | x
-// | Poll for status   | POST-as-GET order              | 200          | x
-// |                   |                                |              | x
-// | ASN1 DER CSR      |                                |              | x
-// |                   |                                |              |
-// | Finalize order    | POST order's finalize url      | 200          |
-// |                   |                                |              |
-// | Poll for status   | POST-as-GET order              | 200          |
-// |                   |                                |              |
-// | Download          | POST-as-GET order's            | 200          |
-// | certificate       | certificate url                |              |
-// +-------------------+--------------------------------+--------------+
