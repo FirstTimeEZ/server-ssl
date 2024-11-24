@@ -62,8 +62,8 @@ To use `server-ssl.js` in production you will need to provide arguments, they ar
 | Automated Lets Encrypt!       | Description                                      | Default Value         |
 |-------------------------|----------------------------------|-----------------------|
 | `--letsEncrypt` | Specifies that `Lets Encrypt` should be used to generate 90 day certificates |
-| `--domains=` | Specifies the domains to generate certificates for when using `--letsEncrypt` |
-| `--generateAnyway` | Specifies that certificates should always be generated when the server starts |
+| `--domains=` | Specifies the domains to generate certificates for, eg. `--domains=["www.ssl.boats","ssl.boats"]` |
+| `--generateAnyway` | Specifies that certificates should always be generated when the server starts, this could get you rate limited |
 
 > [!IMPORTANT]
 > Your `Certificate` and `Private Key` should be relative to the `SSL` folder if you bring your own
