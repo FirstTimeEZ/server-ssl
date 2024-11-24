@@ -27,17 +27,11 @@ let jwk = undefined;
 
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
- * 
- * If an optional keyPair is provided, it will be used for authentication; the keyPair is basically your user account.
- * 
- * If no keyPair is provided, a random one will be generated and used instead.
  *
- * @param {string} fqdn - The fully qualified domain name (FQDN) for which to manage SSL certificates.
- * @param {string} sslPath - The file path where the public and private keys are stored.
- *                            The keys will be saved as 'publicKey.raw' and 'privateKey.raw'
- *                            if they do not already exist.
+ * @param {array} fqdns - The fully qualified domain name as a SAN ["example.com","www.example.com"]
+ * @param {string} optionalSslPath - The file path where the public and private keys will be stored.
  */
-export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
+export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
     const keyPair = await generateKeyPair(optionalSslPath);
     let account = undefined;
     let directory = undefined;
@@ -72,7 +66,7 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
 
                 let domains = [];
 
-                fqdn.forEach((element) => {
+                fqdns.forEach((element) => {
                     domains.push({ "type": "dns", "value": element });
                 });
 
@@ -131,7 +125,7 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
                                 console.log(order);
                                 clearInterval(waitForReady);
 
-                                const sans = { dnsNames: fqdn };
+                                const sans = { dnsNames: fqdns };
 
                                 console.log("Ready to Finalize", sans);
 
@@ -168,9 +162,7 @@ export async function startLetsEncryptDaemon(fqdn, optionalSslPath) {
 }
 
 /**
- * Middleware function to check and respond to ACME HTTP-01 challenges.
- * 
- * This should be checked in your HTTP Server, see example.
+ * Middleware function to check and respond to ACME HTTP-01 challenges inside the HTTP Server.
  *
  * @example
  * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
