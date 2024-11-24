@@ -162,7 +162,7 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath) {
 }
 
 /**
- * Middleware function to check and respond to ACME HTTP-01 challenges inside the HTTP Server.
+ * Node.js Middleware function to check and respond to ACME HTTP-01 challenges inside the HTTP Server.
  *
  * @example
  * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
