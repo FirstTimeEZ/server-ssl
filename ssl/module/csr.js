@@ -137,15 +137,6 @@ async function encodeSubjectPublicKeyInfo(publicKeyDER) {
     }
 }
 
-function signData(data, privateKey) {
-    return new Promise((resolve, reject) => {
-        sign('sha256', data, privateKey, (err, sig) => {
-            if (err) reject(new Error(`Signing failed: ${err.message}`));
-            resolve(sig);
-        });
-    });
-}
-
 function encodeDERBitString(data) {
     const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
     return Buffer.concat([
@@ -313,6 +304,15 @@ function extractECPoint(derKey) {
     }
 
     return point;
+}
+
+function signData(data, privateKey) {
+    return new Promise((resolve, reject) => {
+        sign('sha256', data, privateKey, (err, sig) => {
+            if (err) reject(new Error(`Signing failed: ${err.message}`));
+            resolve(sig);
+        });
+    });
 }
 
 /**
