@@ -567,23 +567,30 @@ async function generateCSRWithExistingKeys(commonName, publicKey, privateKey) {
 
         const privKeyObj = createPrivateKey(privateKeyPkcs8);
 
-        const subject = [encodeDERAttribute('2.5.4.3', commonName)];
+        const subject = encodeDERSequence([
+            encodeDERSet([
+                encodeDERAttribute('2.5.4.3', commonName)
+            ])
+        ]);
 
+        // Create the certification request info
         const certificationRequestInfo = encodeDERSequence([
             Buffer.from([0x02, 0x01, 0x00]),              // version
-            encodeDERSequence(subject),                    // subject
+            subject,                                       // subject (now properly wrapped)
             await encodeSubjectPublicKeyInfo(publicKeySpki), // pki
-            Buffer.from([0xa0, 0x00])                     // attributes
+            encodeDERContextSpecific(0, Buffer.alloc(0))   // attributes (empty SET)
         ]);
 
         const signature = await signData(certificationRequestInfo, privKeyObj);
 
+        const signatureAlgorithm = encodeDERSequence([
+            encodeDERObjectIdentifier('1.2.840.10045.4.3.2'),  // ecdsa-with-SHA256
+            Buffer.from([0x05, 0x00])                          // NULL
+        ]);
+
         const csrDER = encodeDERSequence([
             certificationRequestInfo,
-            encodeDERSequence([
-                encodeDERObjectIdentifier('1.2.840.10045.4.3.2'),  // ecdsa-with-SHA256
-                Buffer.from([0x05, 0x00])
-            ]),
+            signatureAlgorithm,
             encodeDERBitString(signature)
         ]);
 
@@ -657,13 +664,15 @@ function encodeDERBitString(data) {
 function encodeDERAttribute(oid, value) {
     const oidBuffer = encodeDERObjectIdentifier(oid);
     const valueBuffer = Buffer.from(value, 'utf8');
-    return Buffer.concat([
-        Buffer.from([0x30]),
-        encodeDERLength(oidBuffer.length + valueBuffer.length + 2),
-        oidBuffer,
-        Buffer.from([0x13]),
-        Buffer.from([valueBuffer.length]),
+    const stringValue = Buffer.concat([
+        Buffer.from([0x0c]),
+        encodeDERLength(valueBuffer.length),
         valueBuffer
+    ]);
+
+    return encodeDERSequence([
+        oidBuffer,
+        stringValue
     ]);
 }
 
@@ -673,6 +682,23 @@ function encodeDERSequence(elements) {
         Buffer.from([0x30]),
         encodeDERLength(totalLength),
         ...elements
+    ]);
+}
+
+function encodeDERSet(elements) {
+    const totalLength = elements.reduce((sum, el) => sum + el.length, 0);
+    return Buffer.concat([
+        Buffer.from([0x31]),
+        encodeDERLength(totalLength),
+        ...elements
+    ]);
+}
+
+function encodeDERContextSpecific(tag, value) {
+    return Buffer.concat([
+        Buffer.from([0xa0 | tag]),
+        encodeDERLength(value.length),
+        value
     ]);
 }
 
