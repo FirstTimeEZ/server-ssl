@@ -124,15 +124,15 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
                     }
 
                     const waitForReady = setInterval(() => {
-                        createOrder(account.answer.location, n, keyChain, directory.newOrder, domains).then((order) => {
+                        postAsGet(account.answer.location, n, keyChain, order.answer.location).then((order) => {                            
                             n = order.nonce;
-                            if (order.answer.order.status == "ready") {
+                            if (order.answer.get.status == "ready") {
                                 console.log(order);
                                 clearInterval(waitForReady);
 
                                 console.log("Ready to Finalize", fqdns);
 
-                                finalizeOrder(fqdns[0], account.answer.location, n, keyChain, order.answer.order.finalize, fqdns).then((finalized) => {
+                                finalizeOrder(fqdns[0], account.answer.location, n, keyChain, order.answer.get.finalize, fqdns).then((finalized) => {
                                     if (finalized.answer.get) {
                                         if (finalized.answer.get.status == "processing" || finalized.answer.get.status == "valid") {
                                             console.log("Waiting for Certificate to be Ready for Download");
