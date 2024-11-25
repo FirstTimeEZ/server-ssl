@@ -71,7 +71,8 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
 
     console.log("------");
     console.log("Starting Lets Encrypt Daemon!");
-    console.log("This does not currently generate certificates.");
+    console.log("Copyright © 2024 FirstTimeEZ");
+    console.log("------");
 
     directory = (await newDirectoryAsync()).answer.directory;
 
