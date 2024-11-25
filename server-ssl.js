@@ -74,6 +74,17 @@ const S_SSL = {
     SSL: "ssl",
 }
 
+const CONTENT_TYPES = {
+    '.css': 'text/css',
+    '.js': 'text/javascript',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.jpg': 'image/jpg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon',
+};
+
 try {
     loadArguments();
 
@@ -95,34 +106,8 @@ try {
         const filePath = join(__websiteDir, req.url === S_SSL.WEBSITE_ROOT ? S_SSL.optEntry : req.url);
         const fileExtension = _extname(filePath);
 
-        let contentType = 'text/html';
-
-        switch (fileExtension) {
-            case '.css':
-                contentType = 'text/css';
-                break;
-            case '.js':
-                contentType = 'text/javascript';
-                break;
-            case '.json':
-                contentType = 'application/json';
-                break;
-            case '.png':
-                contentType = 'image/png';
-                break;
-            case '.jpg':
-                contentType = 'image/jpg';
-                break;
-            case '.gif':
-                contentType = 'image/gif';
-                break;
-            case '.svg':
-                contentType = 'image/svg+xml';
-                break;
-            case '.ico':
-                contentType = 'image/x-icon';
-                break;
-        }
+        let contentType = CONTENT_TYPES[fileExtension];
+        !contentType && (contentType = 'text/html');
 
         readFile(filePath, (err, content) => {
             if (err) {
