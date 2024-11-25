@@ -75,7 +75,7 @@ try {
 
     !existsSync(__sslFolder) && S_SSL.useSslFolder(__sslFolder);
     !existsSync(__pkPath) && S_SSL.certNotExist();
-    !existsSync(__certPath) && S_SSL.certNotExist()();
+    !existsSync(__certPath) && S_SSL.certNotExist();
 
     createServerHTTPS({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) }, (req, res) => {
         const filePath = join(__websiteDir, req.url === '/' ? S_SSL.optEntry : req.url);
