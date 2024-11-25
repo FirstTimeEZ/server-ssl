@@ -58,6 +58,13 @@ const S_SSL = {
         console.log(" ");
         process.exit(1);
     },
+    loadErrorPages: (__errorDir) => {
+        readFile(join(__errorDir, '/404.html'), (err404, content404) => !err404 && (S_SSL.ERROR_404_PAGE = content404));
+        readFile(join(__errorDir, '/500.html'), (err500, content500) => !err500 && (S_SSL.ERROR_500_PAGE = content500));
+    },
+    // Pages
+    ERROR_404_PAGE: null,
+    ERROR_500_PAGE: null,
     // Consts
     ONE_DAY_MILLISECONDS: 86400000
 }
@@ -76,6 +83,8 @@ try {
     !existsSync(__sslFolder) && S_SSL.useSslFolder(__sslFolder);
     !existsSync(__pkPath) && S_SSL.certNotExist();
     !existsSync(__certPath) && S_SSL.certNotExist();
+
+    S_SSL.loadErrorPages(__errorDir);
 
     createServerHTTPS({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) }, (req, res) => {
         const filePath = join(__websiteDir, req.url === '/' ? S_SSL.optEntry : req.url);
@@ -113,12 +122,8 @@ try {
         readFile(filePath, (err, content) => {
             if (err) {
                 err.code === 'ENOENT'
-                    ? (readFile(join(__errorDir, '/404.html'), (err404, content404) => err404
-                        ? (res.writeHead(404), res.end('File Not Found'))
-                        : (res.writeHead(404, { 'Content-Type': 'text/html' }), res.end(content404))))
-                    : (readFile(join(__errorDir, '/500.html'), (error500, content500) => error500
-                        ? (res.writeHead(500), res.end('Server Error'))
-                        : (res.writeHead(500, { 'Content-Type': 'text/html' }), res.end(content500))));
+                    ? res.end(S_SSL.ERROR_404_PAGE !== null ? S_SSL.ERROR_404_PAGE : '404 - File Not Found')
+                    : res.end(S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : '500 - Server Error')
                 return;
             }
 
