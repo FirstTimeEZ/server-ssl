@@ -53,6 +53,10 @@ let jwk = undefined;
  * @param {boolean} optAutoRestart - (optional) True to restart after certificates are generated, must use start-windows.bat or have own mechanism for 123 exit.
  */
 export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAnyway, optStaging, optAutoRestart) {
+    console.log("Starting Lets Encrypt Daemon!");
+    console.log("Copyright © 2024 FirstTimeEZ");
+    console.log("--------");
+
     if (internalDetermineRequirement(fqdns, optionalSslPath)) {
         if (generateAnyway !== true) {
             return;
@@ -68,11 +72,6 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
     let account = undefined;
     let directory = undefined;
     let authorizations = undefined;
-
-    console.log("------");
-    console.log("Starting Lets Encrypt Daemon!");
-    console.log("Copyright © 2024 FirstTimeEZ");
-    console.log("------");
 
     directory = (await newDirectoryAsync()).answer.directory;
 
