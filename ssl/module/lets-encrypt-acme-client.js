@@ -16,6 +16,7 @@
  */
 
 import * as jose from './jose/index.js';
+import { join } from 'path';
 import { writeFile, readFileSync, existsSync, mkdirSync } from 'fs';
 import { generateCSRWithExistingKeys } from './crypt/csr.js';
 
@@ -144,17 +145,17 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
                                                                 let savedPk = null;
                                                                 let savedFragment = null;
 
-                                                                writeFile(optionalSslPath + "/certificate.pem", cert, () => {
+                                                                writeFile(join(optionalSslPath, "certificate.pem"), cert, () => {
                                                                     savedCert = true;
                                                                     !optAutoRestart && console.log("Saved Certificate to file (certificate.pem) - Restart the Server");
                                                                 });
 
-                                                                writeFile(optionalSslPath + "/private-key.pem", keyChain.privateKeySignRaw, () => {
+                                                                writeFile(join(optionalSslPath, "private-key.pem"), keyChain.privateKeySignRaw, () => {
                                                                     savedPk = true;
                                                                     !optAutoRestart && console.log("Saved private key to file (private-key.pem) - Restart the Server");
                                                                 });
 
-                                                                writeFile(optionalSslPath + "/last.ez", JSON.stringify({ time: Date.now(), names: fqdns }), () => {
+                                                                writeFile(join(optionalSslPath, "last.ez"), JSON.stringify({ time: Date.now(), names: fqdns }), () => {
                                                                     savedFragment = true;
                                                                 });
 
@@ -564,8 +565,8 @@ function internalCheckForLocalHostOnce(req) {
 }
 
 function internalDetermineRequirement(fqdns, optionalSslPath) {
-    if (existsSync(optionalSslPath + "/last.ez")) {
-        const time = readFileSync(optionalSslPath + "/last.ez");;
+    if (existsSync(join(optionalSslPath, "last.ez"))) {
+        const time = readFileSync(join(optionalSslPath, "last.ez"));;
 
         const last = JSON.parse(time);
 
