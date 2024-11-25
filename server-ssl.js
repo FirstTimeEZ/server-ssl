@@ -93,7 +93,7 @@ try {
             if (err) {
                 err.code === 'ENOENT'
                     ? (readFile(join(__errorDir, '/404.html'), (err404, content404) => err404
-                        ? (res.writeHead(500), res.end('Server Error'))
+                        ? (res.writeHead(404), res.end('File Not Found'))
                         : (res.writeHead(404, { 'Content-Type': 'text/html' }), res.end(content404))))
                     : (readFile(join(__errorDir, '/500.html'), (error500, content500) => error500
                         ? (res.writeHead(500), res.end('Server Error'))
