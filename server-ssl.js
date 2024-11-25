@@ -135,7 +135,7 @@ try {
     S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.optDomains.slice(1, -1).split(',').map(url => url.trim()));
     S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
     S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, __sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart);
-    S_SSL.optLetsEncrypt && S_SSL.optAutoRestart && setTimeout(() => startLetsEncryptDaemon(S_SSL.urlsArray, __sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart), S_SSL.ONE_DAY_MILLISECONDS);
+    S_SSL.optLetsEncrypt && setTimeout(() => startLetsEncryptDaemon(S_SSL.urlsArray, __sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart), S_SSL.ONE_DAY_MILLISECONDS);
     /////////////////////////////////////////////////////////////////
 } catch (exception) {
     console.error(exception);
