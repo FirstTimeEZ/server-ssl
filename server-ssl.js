@@ -66,6 +66,8 @@ const S_SSL = {
     ERROR_404_PAGE: null,
     ERROR_500_PAGE: null,
     // Consts
+    SUCCESS: 200,
+    REDIRECT: 301,
     ONE_DAY_MILLISECONDS: 86400000,
     PAGE_NOT_FOUND: 'ENOENT',
     ERROR_NOT_FOUND: '404 - File Not Found',
@@ -78,7 +80,7 @@ const S_SSL = {
     TEXT_HTML: 'text/html',
     CONTENT_TYPE: 'Content-Type',
     HTTPS: 'https://',
-    REDIRECT: 'Location'
+    REDIRECT_LOCATION: 'Location',
 }
 
 const CONTENT_TYPES = {
@@ -116,16 +118,16 @@ try {
         let contentType = CONTENT_TYPES[fileExtension];
         !contentType && (contentType = S_SSL.TEXT_HTML);
 
-        readFile(filePath, (err, content) => err
-            ? (res.end(err.code === S_SSL.PAGE_NOT_FOUND
+        readFile(filePath, (err, content) => !err
+            ? (res.writeHead(S_SSL.SUCCESS, { [S_SSL.CONTENT_TYPE]: contentType }), res.end(content))
+            : (res.end(err.code === S_SSL.PAGE_NOT_FOUND
                 ? (S_SSL.ERROR_404_PAGE !== null ? S_SSL.ERROR_404_PAGE : S_SSL.ERROR_NOT_FOUND)
-                : (S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : S_SSL.ERROR_SERVER)))
-            : (res.writeHead(200, { [S_SSL.CONTENT_TYPE]: contentType }), res.end(content)));
+                : (S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : S_SSL.ERROR_SERVER))));
     }).listen(S_SSL.optPort, (err) => err ? console.error(S_SSL.ERROR_STARTING, err) : console.log(`${S_SSL.STARTED_HTTPS}${S_SSL.optPort}`));
 
     createServerHTTP((req, res) => {
         if (S_SSL.optLetsEncrypt) { if (checkChallengesMixin(req, res)) { return; } } // Lets Encrypt! HTTP-01 ACME Challenge Mixin
-        res.writeHead(301, { [S_SSL.REDIRECT]: `${S_SSL.HTTPS}${req.headers.host}${req.url}` });
+        res.writeHead(S_SSL.REDIRECT, { [S_SSL.REDIRECT_LOCATION]: `${S_SSL.HTTPS}${req.headers.host}${req.url}` });
         res.end();
     }).listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`));
 
