@@ -201,7 +201,7 @@ function loadArguments() {
         optAutoRestart = false;
     }
 
-    if (optAutoRestart) {
+    if (optAutoRestart === true) {
         console.log("--------");
         console.log("Auto Restart Enabled");
         console.log("Server will restart after certificates are renewed");
