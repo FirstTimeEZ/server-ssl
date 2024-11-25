@@ -135,7 +135,7 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
                                     if (finalized.answer.get) {
                                         if (finalized.answer.get.status == "processing" || finalized.answer.get.status == "valid") {
                                             console.log("Waiting for Certificate to be Ready for Download");
-                                            const waitForReady = setInterval(() => {
+                                            const waitForProcessingValid = setInterval(() => {
                                                 postAsGet(account.answer.location, n, keyChain, finalized.answer.location).then((checkFinalized) => {
                                                     if (checkFinalized.answer.get.status == "valid") {
                                                         console.log("Certificate Ready for Download");
@@ -170,7 +170,7 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
                                                                 }
                                                             });
                                                         });
-                                                        clearInterval(waitForReady);
+                                                        clearInterval(waitForProcessingValid);
                                                     }
 
                                                     console.log("Next Nonce", (n = checkFinalized.nonce));
