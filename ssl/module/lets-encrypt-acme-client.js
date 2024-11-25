@@ -49,25 +49,25 @@ let directory = DIRECTORY_PRODUCTION;
  * Starts the Let's Encrypt daemon to manage SSL certificates.
  *
  * @param {array} fqdns - The fully qualified domain name as a SAN ["example.com","www.example.com"]
- * @param {string} optionalSslPath - The file path where the public and private keys will be stored/loaded from.
- * @param {boolean} generateAnyway - (optional) True to generate certificates before the 30 days has passed
- * @param {boolean} staging - (optional) True to use staging mode instead of production
+ * @param {string} sslPath - The path where the public and private keys will be stored/loaded from.
+ * @param {boolean} optGenerateAnyway - (optional) True to generate certificates before the 30 days has passed
+ * @param {boolean} optStaging - (optional) True to use staging mode instead of production
  * @param {boolean} optAutoRestart - (optional) True to restart after certificates are generated, must use start-windows.bat or have own mechanism for 123 exit.
  */
-export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAnyway, optStaging, optAutoRestart) {
+export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, optStaging, optAutoRestart) {
     console.log("Starting Lets Encrypt ACME Daemon!");
     console.log("Copyright © 2024 FirstTimeEZ");
     console.log("--------");
 
-    if (internalDetermineRequirement(fqdns, optionalSslPath)) {
-        if (generateAnyway !== true) {
+    if (internalDetermineRequirement(fqdns, sslPath)) {
+        if (optGenerateAnyway !== true) {
             return;
         }
     }
 
     optStaging === true && (directory = DIRECTORY_STAGING, console.log("USING THE STAGING SERVER"));
 
-    const keyChain = await generateKeyChain(optionalSslPath);
+    const keyChain = await generateKeyChain(sslPath);
     let account = undefined;
     let authorizations = undefined;
 
@@ -145,17 +145,17 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
                                                                 let savedPk = null;
                                                                 let savedFragment = null;
 
-                                                                writeFile(join(optionalSslPath, "certificate.pem"), cert, () => {
+                                                                writeFile(join(sslPath, "certificate.pem"), cert, () => {
                                                                     savedCert = true;
                                                                     !optAutoRestart && console.log("Saved Certificate to file (certificate.pem) - Restart the Server");
                                                                 });
 
-                                                                writeFile(join(optionalSslPath, "private-key.pem"), keyChain.privateKeySignRaw, () => {
+                                                                writeFile(join(sslPath, "private-key.pem"), keyChain.privateKeySignRaw, () => {
                                                                     savedPk = true;
                                                                     !optAutoRestart && console.log("Saved private key to file (private-key.pem) - Restart the Server");
                                                                 });
 
-                                                                writeFile(join(optionalSslPath, "last.ez"), JSON.stringify({ time: Date.now(), names: fqdns }), () => {
+                                                                writeFile(join(sslPath, "last.ez"), JSON.stringify({ time: Date.now(), names: fqdns }), () => {
                                                                     savedFragment = true;
                                                                 });
 
