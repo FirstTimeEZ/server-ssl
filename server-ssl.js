@@ -116,17 +116,11 @@ try {
         let contentType = CONTENT_TYPES[fileExtension];
         !contentType && (contentType = S_SSL.TEXT_HTML);
 
-        readFile(filePath, (err, content) => {
-            if (err) {
-                err.code === S_SSL.PAGE_NOT_FOUND
-                    ? res.end(S_SSL.ERROR_404_PAGE !== null ? S_SSL.ERROR_404_PAGE : S_SSL.ERROR_NOT_FOUND)
-                    : res.end(S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : S_SSL.ERROR_SERVER)
-                return;
-            }
-
-            res.writeHead(200, { [S_SSL.CONTENT_TYPE]: contentType });
-            res.end(content);
-        });
+        readFile(filePath, (err, content) => err
+            ? (res.end(err.code === S_SSL.PAGE_NOT_FOUND
+                ? (S_SSL.ERROR_404_PAGE !== null ? S_SSL.ERROR_404_PAGE : S_SSL.ERROR_NOT_FOUND)
+                : (S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : S_SSL.ERROR_SERVER)))
+            : (res.writeHead(200, { [S_SSL.CONTENT_TYPE]: contentType }), res.end(content)));
     }).listen(S_SSL.optPort, (err) => err ? console.error(S_SSL.ERROR_STARTING, err) : console.log(`${S_SSL.STARTED_HTTPS}${S_SSL.optPort}`));
 
     createServerHTTP((req, res) => {
