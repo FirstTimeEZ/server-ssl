@@ -40,9 +40,10 @@ const pendingChallenges = [];
 const ONE_DAY_MILLISECONDS = 24 * 60 * 60 * 1000;
 const DAYS_MILLISECONDS = 60 * ONE_DAY_MILLISECONDS;
 
-let jsonWebKey = undefined;
 let localHost = false;
 let checkedForLocalHost = false;
+
+let jsonWebKey = undefined;
 let acmeDirectory = DIRECTORY_PRODUCTION;
 
 /**
@@ -50,7 +51,7 @@ let acmeDirectory = DIRECTORY_PRODUCTION;
  *
  * @param {array} fqdns - The fully qualified domain name as a SAN ["example.com","www.example.com"]
  * @param {string} sslPath - The path where the public and private keys will be stored/loaded from.
- * @param {boolean} optGenerateAnyway - (optional) True to generate certificates before the 30 days has passed
+ * @param {boolean} optGenerateAnyway - (optional) True to generate certificates before the 60 days has passed
  * @param {boolean} optStaging - (optional) True to use staging mode instead of production
  * @param {boolean} optAutoRestart - (optional) True to restart after certificates are generated, must use start-windows.bat or have own mechanism for 123 exit.
  */
