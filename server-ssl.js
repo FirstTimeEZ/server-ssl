@@ -22,11 +22,6 @@ import { readFile, readFileSync, existsSync, mkdir } from 'fs';
 import { join, extname as _extname, dirname } from 'path';
 import { startLetsEncryptDaemon, checkChallengesMixin } from './ssl/module/lets-encrypt-acme-client.js'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const __args = process.argv.slice(2);
-const options = {};
-
 const ONE_DAY_MILLISECONDS = 86400000;
 
 let override = false;
@@ -49,7 +44,11 @@ let optPortHttp = process.env.PORT_HTTP || 80;
 try {
     loadArguments();
 
-    const __sslFolder = join(__dirname, "ssl");
+    const __rootDir = dirname(fileURLToPath(import.meta.url));
+    const __websiteDir = join(__rootDir, optWebsite);
+    const __errorDir = join(__rootDir, optError);
+
+    const __sslFolder = join(__rootDir, "ssl");
     const __pkPath = join(__sslFolder, optPk);
     const __certPath = join(__sslFolder, optCert);
 
@@ -57,11 +56,8 @@ try {
     !existsSync(__pkPath) && certificateNotExist();
     !existsSync(__certPath) && certificateNotExist();
 
-    options.key = readFileSync(__pkPath);
-    options.cert = readFileSync(__certPath);
-
-    createServerHTTPS(options, (req, res) => {
-        let filePath = join(__dirname, optWebsite, req.url === '/' ? optEntry : req.url);
+    createServerHTTPS({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) }, (req, res) => {
+        let filePath = join(__websiteDir, req.url === '/' ? optEntry : req.url);
 
         const extname = _extname(filePath);
 
@@ -97,7 +93,7 @@ try {
         readFile(filePath, (err, content) => {
             if (err) {
                 if (err.code === 'ENOENT') {
-                    readFile(join(__dirname, optError, '/404.html'), (err404, content404) => {
+                    readFile(join(__errorDir, '/404.html'), (err404, content404) => {
                         if (err404) {
                             res.writeHead(500);
                             res.end('Server Error');
@@ -107,7 +103,7 @@ try {
                         }
                     });
                 } else {
-                    readFile(join(__dirname, optError, '/500.html'), (error500, content500) => {
+                    readFile(join(__errorDir, '/500.html'), (error500, content500) => {
                         if (error500) {
                             res.writeHead(500);
                             res.end('Server Error');
@@ -161,7 +157,7 @@ function useSslFolder(sslFolder) {
 }
 
 function loadArguments() {
-    __args.forEach((arg) => {
+    process.argv.slice(2).forEach((arg) => {
         let rightSide = arg.split("=")[1];
         arg.includes("--port=") && (optPort = rightSide);
         arg.includes("--portHttp=") && (optPortHttp = rightSide);
