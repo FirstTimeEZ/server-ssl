@@ -102,15 +102,13 @@ This structure is designed to keep the project organized and maintainable, separ
 
 ### 404/500 Pages
 
-The server is configured to serve custom `404` and `500` error pages. 
+The server is configured to serve custom `404` and `500` error pages.
 
-[![](https://i.imgur.com/LvLnXMR.png)](https://github.com/FirstTimeEZ/responsive)
+[![](https://i.imgur.com/FUKh0k9.png)](https://github.com/FirstTimeEZ/responsive)
 
 Currently everything is treated like a `Server Error` except for `Page Not Found`
 
-[![](https://i.imgur.com/HJoNquS.png)](https://github.com/FirstTimeEZ/responsive)
-
-If you want to add more specific custom error pages, place them in the `/error` folder and update `server-ssl.js`
+[![](https://i.imgur.com/BCbZP02.png)](https://github.com/FirstTimeEZ/responsive)
 
 --------
 

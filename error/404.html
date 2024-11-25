@@ -8,16 +8,16 @@
     <style>
         :root {
             --primary-color: #4f5558;
-            --secondary-color: #282d30;
-            --accent-color: #ffab40;
+            --secondary-color: #34383a;
+            --accent-color: #d68111;
             --text-color: #ffffff;
-            --text-secondary: #04141b;
+            --text-secondary: #9ba5aa;
             --background-color: #0f0f0f;
             --background-secondary: #1d2022;
             --border-color: #171a1b;
-            --shadow: 0 2px 4px rgba(37, 36, 36, 0.5);
+            --shadow: 0 1px 3px var(--accent-color);
             --radius: 4px;
-            --spacing: 1rem;
+            --spacing: 0.4rem;
         }
 
         * {
@@ -63,7 +63,7 @@
         }
 
         .error-message {
-            color: var(--primary-color);
+            color: var(--text-secondary);
             margin-bottom: calc(var(--spacing) * 2);
             line-height: 1.5;
         }
@@ -81,7 +81,7 @@
 
         .error-button:hover {
             background-color: var(--secondary-color);
-            box-shadow: 0 0 12px var(--primary-color);
+            box-shadow: 0 0 4px var(--primary-color);
         }
 
         @media (max-width: 480px) {
