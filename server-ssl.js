@@ -70,8 +70,15 @@ const S_SSL = {
     PAGE_NOT_FOUND: 'ENOENT',
     ERROR_NOT_FOUND: '404 - File Not Found',
     ERROR_SERVER: '500 - Server Error',
+    ERROR_STARTING: 'Error starting server',
+    STARTED_HTTPS: 'HTTPS Server is running on port ',
+    STARTED_HTTP: 'HTTP Server is redirecting requests to',
     WEBSITE_ROOT: '/',
     SSL: "ssl",
+    TEXT_HTML: 'text/html',
+    CONTENT_TYPE: 'Content-Type',
+    HTTPS: 'https://',
+    REDIRECT: 'Location'
 }
 
 const CONTENT_TYPES = {
@@ -107,7 +114,7 @@ try {
         const fileExtension = _extname(filePath);
 
         let contentType = CONTENT_TYPES[fileExtension];
-        !contentType && (contentType = 'text/html');
+        !contentType && (contentType = S_SSL.TEXT_HTML);
 
         readFile(filePath, (err, content) => {
             if (err) {
@@ -117,16 +124,16 @@ try {
                 return;
             }
 
-            res.writeHead(200, { 'Content-Type': contentType });
+            res.writeHead(200, { [S_SSL.CONTENT_TYPE]: contentType });
             res.end(content);
         });
-    }).listen(S_SSL.optPort, (err) => err ? console.error('Error starting server:', err) : console.log(`HTTPS Server is running on port ${S_SSL.optPort}`));
+    }).listen(S_SSL.optPort, (err) => err ? console.error(S_SSL.ERROR_STARTING, err) : console.log(`${S_SSL.STARTED_HTTPS}${S_SSL.optPort}`));
 
     createServerHTTP((req, res) => {
         if (S_SSL.optLetsEncrypt) { if (checkChallengesMixin(req, res)) { return; } } // Lets Encrypt! HTTP-01 ACME Challenge Mixin
-        res.writeHead(301, { "Location": `https://${req.headers.host}${req.url}` });
+        res.writeHead(301, { [S_SSL.REDIRECT]: `${S_SSL.HTTPS}${req.headers.host}${req.url}` });
         res.end();
-    }).listen(S_SSL.optPortHttp, () => console.log(`HTTP Server is redirecting requests to ${S_SSL.optPort}`));
+    }).listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`));
 
     ///////////////// Lets Encrypt! ACME Daemon /////////////////////
     S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.optDomains.slice(1, -1).split(',').map(url => url.trim()));
