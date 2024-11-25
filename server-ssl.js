@@ -160,29 +160,13 @@ function loadArguments() {
         arg.includes("--ok") && (S_SSL.override = true);
     });
 
-    if (S_SSL.autoRestartAvailable == false && S_SSL.override === false) {
-        console.log("--------");
-        console.log("Server must be started with start-windows.bat to enable auto restart");
-        console.log("If you have a way to restart the server on error code 123, use override --ok");
-        console.log("--------");
-        S_SSL.optAutoRestart = false;
-    }
-
-    if (S_SSL.optAutoRestart === true) {
-        console.log("--------");
-        console.log("Auto Restart Enabled");
-        console.log("Server will restart after certificates are renewed");
-        console.log("--------");
-    }
+    S_SSL.autoRestartAvailable == false && S_SSL.override === false && (console.log("--------"), console.log("Server must be started with start-windows.bat to enable auto restart"), console.log("If you have a way to restart the server on error code 123, use override --ok"), console.log("--------"), S_SSL.optAutoRestart = false);
+    S_SSL.optAutoRestart === true && (console.log("--------"), console.log("Auto Restart Enabled"), console.log("Server will restart after certificates are renewed"), console.log("--------"))
+    S_SSL.optLetsEncrypt && S_SSL.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), S_SSL.optLetsEncrypt = false);
 
     !S_SSL.optPk && (S_SSL.optPk = 'private-key.pem');
     !S_SSL.optCert && (S_SSL.optCert = 'certificate.pem');
     !S_SSL.optWebsite && (S_SSL.optWebsite = 'website');
     !S_SSL.optError && (S_SSL.optError = 'error');
     !S_SSL.optEntry && (S_SSL.optEntry = 'index.html');
-
-    if (S_SSL.optLetsEncrypt && S_SSL.optDomains === null) {
-        console.log("You must specify at least one domain to use --letsEncrypt");
-        S_SSL.optLetsEncrypt = false;
-    }
 }
