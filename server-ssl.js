@@ -131,26 +131,12 @@ try {
         res.end();
     }).listen(optPortHttp, () => console.log(`HTTP Server is redirecting requests to ${optPort}`));
 
+    /////////////////////Lets Encrypt! Daemon////////////////////////
+    optDomains !== null && (urlsArray = optDomains.slice(1, -1).split(',').map(url => url.trim()));
+    optGenerateAnyway === true && (optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
+    optLetsEncrypt && startLetsEncryptDaemon(urlsArray, __sslFolder, optGenerateAnyway, optStaging, optAutoRestart);
+    optLetsEncrypt && optAutoRestart && setTimeout(() => startLetsEncryptDaemon(urlsArray, __sslFolder, optGenerateAnyway, optStaging, optAutoRestart), ONE_DAY_MILLISECONDS);
     /////////////////////////////////////////////////////////////////
-    //                   Lets Encrypt! Daemon                      //
-    /////////////////////////////////////////////////////////////////
-
-    if (optDomains !== null) {
-        urlsArray = optDomains.slice(1, -1).split(',').map(url => url.trim());
-    }
-
-    if (optGenerateAnyway === true) {
-        optAutoRestart = false;
-        console.log("AutoRestart is set to false because GenerateAnyway is true");
-    }
-
-    if (optLetsEncrypt) {
-        startLetsEncryptDaemon(urlsArray, __sslFolder, optGenerateAnyway, optStaging, optAutoRestart);
-
-        if (optAutoRestart) {
-            setTimeout(() => startLetsEncryptDaemon(urlsArray, __sslFolder, optGenerateAnyway, optStaging, optAutoRestart), ONE_DAY_MILLISECONDS);
-        }
-    }
 } catch (exception) {
     console.error(exception);
 }
