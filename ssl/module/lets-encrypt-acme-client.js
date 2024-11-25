@@ -40,10 +40,10 @@ const pendingChallenges = [];
 const ONE_DAY_MILLISECONDS = 24 * 60 * 60 * 1000;
 const DAYS_MILLISECONDS = 60 * ONE_DAY_MILLISECONDS;
 
-let jwk = undefined;
+let jsonWebKey = undefined;
 let localHost = false;
 let checkedForLocalHost = false;
-let directory = DIRECTORY_PRODUCTION;
+let acmeDirectory = DIRECTORY_PRODUCTION;
 
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
@@ -65,19 +65,21 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
         }
     }
 
-    optStaging === true && (directory = DIRECTORY_STAGING, console.log("USING THE STAGING SERVER"));
+    optStaging === true && (acmeDirectory = DIRECTORY_STAGING, console.log("USING THE STAGING SERVER"));
 
     const keyChain = await generateKeyChain(sslPath);
+
     let account = undefined;
+    let nextNonce = undefined;
     let authorizations = undefined;
 
-    directory = (await newDirectoryAsync()).answer.directory;
+    acmeDirectory = (await newDirectoryAsync()).answer.directory;
 
-    if (directory !== null) {
-        const nonce = await newNonceAsync(directory.newNonce);
+    if (acmeDirectory !== null) {
+        const firstNonce = await newNonceAsync(acmeDirectory.newNonce);
 
-        if (nonce.nonce !== null) {
-            account = await createAccount(nonce.nonce, directory.newAccount, keyChain).catch(console.error);
+        if (firstNonce.nonce !== null) {
+            account = await createAccount(firstNonce.nonce, acmeDirectory.newAccount, keyChain).catch(console.error);
 
             if (account.answer.account && account.answer.account.status == "valid") {
                 let domains = [];
@@ -86,21 +88,22 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                     domains.push({ "type": "dns", "value": element });
                 });
 
-                const order = await createOrder(account.answer.location, account.nonce, keyChain, directory.newOrder, domains);
+                const order = await createOrder(account.answer.location, account.nonce, keyChain, acmeDirectory.newOrder, domains);
+
                 if (order.answer.order != undefined) {
-                    let n;
-                    console.log("Next Nonce", (n = order.nonce));
+
+                    console.log("Next Nonce", (nextNonce = order.nonce));
 
                     authorizations = order.answer.order.authorizations;
 
                     for (let index = 0; index < authorizations.length; index++) {
                         const element = authorizations[index];
-                        n = n;
-                        let auth = await postAsGet(account.answer.location, n, keyChain, element);
+                        nextNonce = nextNonce;
+                        let auth = await postAsGet(account.answer.location, nextNonce, keyChain, element);
 
                         if (auth.answer.get.status) {
                             pendingChallenges.push(...auth.answer.get.challenges);
-                            console.log("Next Nonce", (n = auth.nonce));
+                            console.log("Next Nonce", (nextNonce = auth.nonce));
                         } else {
                             console.error("Error getting auth", auth.answer.error, auth.answer.exception);
                         }
@@ -108,13 +111,13 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
 
                     for (let index = 0; index < pendingChallenges.length; index++) {
                         const element = pendingChallenges[index];
-                        n = n;
+                        nextNonce = nextNonce;
 
                         if (element.type == "http-01" && element.status == "pending") {
-                            let auth = await postAsGetChal(account.answer.location, n, keyChain, element.url);
+                            let auth = await postAsGetChal(account.answer.location, nextNonce, keyChain, element.url);
 
                             if (auth.answer.get.status) {
-                                console.log("Next Nonce", (n = auth.nonce), auth);
+                                console.log("Next Nonce", (nextNonce = auth.nonce), auth);
                             } else {
                                 console.error("Error getting auth", auth.answer.error, auth.answer.exception);
                             }
@@ -122,19 +125,23 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                     }
 
                     const waitForReady = setInterval(() => {
-                        postAsGet(account.answer.location, n, keyChain, order.answer.location).then((order) => {
-                            n = order.nonce;
+                        postAsGet(account.answer.location, nextNonce, keyChain, order.answer.location).then((order) => {
+                            nextNonce = order.nonce;
+
                             if (order.answer.get.status == "ready") {
                                 clearInterval(waitForReady);
 
                                 console.log("Ready to Finalize", fqdns);
 
-                                finalizeOrder(fqdns[0], account.answer.location, n, keyChain, order.answer.get.finalize, fqdns).then((finalized) => {
+                                finalizeOrder(fqdns[0], account.answer.location, nextNonce, keyChain, order.answer.get.finalize, fqdns).then((finalized) => {
+
                                     if (finalized.answer.get) {
                                         if (finalized.answer.get.status == "processing" || finalized.answer.get.status == "valid") {
+
                                             console.log("Waiting for Certificate to be Ready for Download");
                                             const waitForProcessingValid = setInterval(() => {
-                                                postAsGet(account.answer.location, n, keyChain, finalized.answer.location).then((checkFinalized) => {
+
+                                                postAsGet(account.answer.location, nextNonce, keyChain, finalized.answer.location).then((checkFinalized) => {
                                                     if (checkFinalized.answer.get.status == "valid") {
                                                         console.log("Certificate Ready for Download");
                                                         console.log("Certificate URL:", checkFinalized.answer.get.certificate);
@@ -171,7 +178,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                                                         clearInterval(waitForProcessingValid);
                                                     }
 
-                                                    console.log("Next Nonce", (n = checkFinalized.nonce));
+                                                    console.log("Next Nonce", (nextNonce = checkFinalized.nonce));
                                                 });
                                             }, 1000);
                                         }
@@ -183,7 +190,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                                         console.error("Error getting order", finalized.answer.error, finalized.answer.exception);
                                     }
 
-                                    console.log("Next Nonce", (n = finalized.nonce));
+                                    console.log("Next Nonce", (nextNonce = finalized.nonce));
                                 });
                             }
                         });
@@ -199,11 +206,11 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
             }
         }
         else {
-            console.error("Error getting nonce", nonce.answer.error, nonce.answer.exception);
+            console.error("Error getting nonce", firstNonce.answer.error, firstNonce.answer.exception);
         }
     }
     else {
-        console.error("Error getting directory", directory.answer.error, directory.answer.exception);
+        console.error("Error getting directory", acmeDirectory.answer.error, acmeDirectory.answer.exception);
     }
 }
 
@@ -214,7 +221,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
  * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
  */
 export function checkChallengesMixin(req, res) {
-    if (localHost === true || jwk == undefined) {
+    if (localHost === true || jsonWebKey == undefined) {
         return false;
     }
 
@@ -230,7 +237,7 @@ export function checkChallengesMixin(req, res) {
                     if (challenge.type == "http-01" && challenge.status == "pending" && challenge.token == token) {
                         console.log("HTTP-01 ACME Challenge");
                         console.log("token", challenge.token);
-                        jose.calculateJwkThumbprint(jwk, DIGEST).then((thumbPrint) => {
+                        jose.calculateJwkThumbprint(jsonWebKey, DIGEST).then((thumbPrint) => {
                             res.writeHead(200, { 'Content-Type': CONTENT_TYPE_OCTET });
                             const answer = `${challenge.token}.${thumbPrint}`;
                             res.end(Buffer.from(answer));
@@ -250,7 +257,7 @@ export function checkChallengesMixin(req, res) {
 
 async function newDirectoryAsync() {
     return new Promise((resolve) => {
-        fetch(directory, { method: "GET" }).then(response => {
+        fetch(acmeDirectory, { method: "GET" }).then(response => {
             response.ok
                 ? response.json().then((result) => { resolve({ answer: { directory: result } }); }).catch((exception) => resolve({ answer: { exception: exception } }))
                 : resolve({ answer: { error: response } });
@@ -284,13 +291,13 @@ async function newNonceAsync(newNonceUrl) {
 
 async function createAccount(nonce, newAccountUrl, keyChain) {
     try {
-        jwk = await jose.exportJWK(keyChain.publicKey);
+        jsonWebKey = await jose.exportJWK(keyChain.publicKey);
 
         const payload = { termsOfServiceAgreed: true };
 
         const protectedHeader = {
             alg: ALG_ECDSA,
-            jwk,
+            jwk: jsonWebKey,
             nonce: nonce,
             url: newAccountUrl,
         };
