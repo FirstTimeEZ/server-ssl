@@ -64,7 +64,7 @@ Certificates are valid for `90 days` but are renewed automatically sooner.
 Certificates renew when you restart your server unless you use `--autoRestart`, so restart at least once a month.
 
 ```
-./start-windows.bat --letsEncrypt --domains=["www.ssl.boats","ssl.boats"]
+./start-windows.bat --letsEncrypt --domains=["www.ssl.boats","ssl.boats"] --autoRestart
 ```
 
 --------

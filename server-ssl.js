@@ -22,42 +22,63 @@ import { readFile, readFileSync, existsSync, mkdir } from 'fs';
 import { join, extname as _extname, dirname } from 'path';
 import { startLetsEncryptDaemon, checkChallengesMixin } from './ssl/module/lets-encrypt-acme-client.js'
 
-const ONE_DAY_MILLISECONDS = 86400000;
-
-let override = false;
-let urlsArray = null;
-let autoRestartAvailable = null;
-
-let optPk = null;
-let optCert = null;
-let optError = null;
-let optEntry = null;
-let optStaging = null;
-let optWebsite = null;
-let optDomains = null;
-let optLetsEncrypt = null;
-let optAutoRestart = null;
-let optGenerateAnyway = null;
-let optPort = process.env.PORT || 443;
-let optPortHttp = process.env.PORT_HTTP || 80;
+const S_SSL = {
+    // Config
+    override: false,
+    urlsArray: null,
+    autoRestartAvailable: null,
+    // Args
+    optPk: null,
+    optCert: null,
+    optError: null,
+    optEntry: null,
+    optStaging: null,
+    optWebsite: null,
+    optDomains: null,
+    optLetsEncrypt: null,
+    optAutoRestart: null,
+    optGenerateAnyway: null,
+    optPort: process.env.PORT || 443,
+    optPortHttp: process.env.PORT_HTTP || 80,
+    // Methods
+    certNotExist: () => {
+        console.log(" ");
+        console.log("Certificate and Private Key not found or don't exist, they should be in the ssl folder");
+        console.log(" ");
+        console.log("You need to generate or provide an SSL Certificate and Private Key in PEM format");
+        console.log("You can use the following command from git bash or run start-windows.bat with no arguments");
+        console.log(" ");
+        console.log('openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ssl/private-key.pem -out ssl/certificate.pem -days 365 -subj "//CN=localhost"');
+        process.exit(1);
+    },
+    useSslFolder: (sslFolder) => {
+        mkdir(sslFolder, { recursive: true }, () => { });
+        console.log(" ");
+        console.log("Put your Certificate and Private Key in the SSL folder that was just created");
+        console.log(" ");
+        process.exit(1);
+    },
+    // Consts
+    ONE_DAY_MILLISECONDS: 86400000
+}
 
 try {
     loadArguments();
 
     const __rootDir = dirname(fileURLToPath(import.meta.url));
-    const __websiteDir = join(__rootDir, optWebsite);
-    const __errorDir = join(__rootDir, optError);
+    const __websiteDir = join(__rootDir, S_SSL.optWebsite);
+    const __errorDir = join(__rootDir, S_SSL.optError);
 
     const __sslFolder = join(__rootDir, "ssl");
-    const __pkPath = join(__sslFolder, optPk);
-    const __certPath = join(__sslFolder, optCert);
+    const __pkPath = join(__sslFolder, S_SSL.optPk);
+    const __certPath = join(__sslFolder, S_SSL.optCert);
 
-    !existsSync(__sslFolder) && useSslFolder(__sslFolder);
-    !existsSync(__pkPath) && certificateNotExist();
-    !existsSync(__certPath) && certificateNotExist();
+    !existsSync(__sslFolder) && S_SSL.useSslFolder(__sslFolder);
+    !existsSync(__pkPath) && S_SSL.certNotExist();
+    !existsSync(__certPath) && S_SSL.certNotExist()();
 
     createServerHTTPS({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) }, (req, res) => {
-        const filePath = join(__websiteDir, req.url === '/' ? optEntry : req.url);
+        const filePath = join(__websiteDir, req.url === '/' ? S_SSL.optEntry : req.url);
         const fileExtension = _extname(filePath);
 
         let contentType = 'text/html';
@@ -104,85 +125,66 @@ try {
             res.writeHead(200, { 'Content-Type': contentType });
             res.end(content);
         });
-    }).listen(optPort, (err) => err ? console.error('Error starting server:', err) : console.log(`HTTPS Server is running on port ${optPort}`));
+    }).listen(S_SSL.optPort, (err) => err ? console.error('Error starting server:', err) : console.log(`HTTPS Server is running on port ${S_SSL.optPort}`));
 
     createServerHTTP((req, res) => {
-        if (optLetsEncrypt) { if (checkChallengesMixin(req, res)) { return; } } // Lets Encrypt! HTTP-01 ACME Challenge Mixin
+        if (S_SSL.optLetsEncrypt) { if (checkChallengesMixin(req, res)) { return; } } // Lets Encrypt! HTTP-01 ACME Challenge Mixin
         res.writeHead(301, { "Location": `https://${req.headers.host}${req.url}` });
         res.end();
-    }).listen(optPortHttp, () => console.log(`HTTP Server is redirecting requests to ${optPort}`));
+    }).listen(S_SSL.optPortHttp, () => console.log(`HTTP Server is redirecting requests to ${S_SSL.optPort}`));
 
     ///////////////// Lets Encrypt! ACME Daemon /////////////////////
-    optLetsEncrypt && optDomains !== null && (urlsArray = optDomains.slice(1, -1).split(',').map(url => url.trim()));
-    optLetsEncrypt && optGenerateAnyway === true && (optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
-    optLetsEncrypt && startLetsEncryptDaemon(urlsArray, __sslFolder, optGenerateAnyway, optStaging, optAutoRestart);
-    optLetsEncrypt && optAutoRestart && setTimeout(() => startLetsEncryptDaemon(urlsArray, __sslFolder, optGenerateAnyway, optStaging, optAutoRestart), ONE_DAY_MILLISECONDS);
+    S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.optDomains.slice(1, -1).split(',').map(url => url.trim()));
+    S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
+    S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, __sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart);
+    S_SSL.optLetsEncrypt && S_SSL.optAutoRestart && setTimeout(() => startLetsEncryptDaemon(S_SSL.urlsArray, __sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart), S_SSL.ONE_DAY_MILLISECONDS);
     /////////////////////////////////////////////////////////////////
 } catch (exception) {
     console.error(exception);
 }
 
-function certificateNotExist() {
-    console.log(" ");
-    console.log("Certificate and Private Key not found or don't exist, they should be in the ssl folder");
-    console.log(" ");
-    console.log("You need to generate or provide an SSL Certificate and Private Key in PEM format");
-    console.log("You can use the following command from git bash or run start-windows.bat with no arguments");
-    console.log(" ");
-    console.log('openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ssl/private-key.pem -out ssl/certificate.pem -days 365 -subj "//CN=localhost"');
-    process.exit(1);
-}
-
-function useSslFolder(sslFolder) {
-    mkdir(sslFolder, { recursive: true }, () => { });
-    console.log(" ");
-    console.log("Put your Certificate and Private Key in the SSL folder that was just created");
-    console.log(" ");
-    process.exit(1);
-}
-
 function loadArguments() {
     process.argv.slice(2).forEach((arg) => {
         let rightSide = arg.split("=")[1];
-        arg.includes("--port=") && (optPort = rightSide);
-        arg.includes("--portHttp=") && (optPortHttp = rightSide);
-        arg.includes("--cert=") && (optCert = rightSide);
-        arg.includes("--pk=") && (optPk = rightSide);
-        arg.includes("--site=") && (optWebsite = rightSide);
-        arg.includes("--error=") && (optError = rightSide);
-        arg.includes("--entry=") && (optEntry = rightSide);
-        arg.includes("--letsEncrypt") && (optLetsEncrypt = true);
-        arg.includes("--domains") && (optDomains = rightSide);
-        arg.includes("--generateAnyway") && (optGenerateAnyway = true);
-        arg.includes("--staging") && (optStaging = true);
-        arg.includes("--autoRestart") && (optAutoRestart = true);
-        arg.includes("--arAvailable") && (autoRestartAvailable = true);
-        arg.includes("--ok") && (override = true);
+        arg.includes("--port=") && (S_SSL.optPort = rightSide);
+        arg.includes("--portHttp=") && (S_SSL.optPortHttp = rightSide);
+        arg.includes("--cert=") && (S_SSL.optCert = rightSide);
+        arg.includes("--pk=") && (S_SSL.optPk = rightSide);
+        arg.includes("--site=") && (S_SSL.optWebsite = rightSide);
+        arg.includes("--error=") && (S_SSL.optError = rightSide);
+        arg.includes("--entry=") && (S_SSL.optEntry = rightSide);
+        arg.includes("--letsEncrypt") && (S_SSL.optLetsEncrypt = true);
+        arg.includes("--domains") && (S_SSL.optDomains = rightSide);
+        arg.includes("--generateAnyway") && (S_SSL.optGenerateAnyway = true);
+        arg.includes("--staging") && (S_SSL.optStaging = true);
+        arg.includes("--autoRestart") && (S_SSL.optAutoRestart = true);
+        arg.includes("--arAvailable") && (S_SSL.autoRestartAvailable = true);
+        arg.includes("--ok") && (S_SSL.override = true);
     });
 
-    if (autoRestartAvailable == false && override === false) {
+    if (S_SSL.autoRestartAvailable == false && S_SSL.override === false) {
         console.log("--------");
         console.log("Server must be started with start-windows.bat to enable auto restart");
         console.log("If you have a way to restart the server on error code 123, use override --ok");
         console.log("--------");
-        optAutoRestart = false;
+        S_SSL.optAutoRestart = false;
     }
 
-    if (optAutoRestart === true) {
+    if (S_SSL.optAutoRestart === true) {
         console.log("--------");
         console.log("Auto Restart Enabled");
         console.log("Server will restart after certificates are renewed");
         console.log("--------");
     }
 
-    !optPk && (optPk = 'private-key.pem');
-    !optCert && (optCert = 'certificate.pem');
-    !optWebsite && (optWebsite = 'website');
-    !optError && (optError = 'error');
-    !optEntry && (optEntry = 'index.html');
+    !S_SSL.optPk && (S_SSL.optPk = 'private-key.pem');
+    !S_SSL.optCert && (S_SSL.optCert = 'certificate.pem');
+    !S_SSL.optWebsite && (S_SSL.optWebsite = 'website');
+    !S_SSL.optError && (S_SSL.optError = 'error');
+    !S_SSL.optEntry && (S_SSL.optEntry = 'index.html');
 
-    if (optLetsEncrypt && optDomains === null) {
+    if (S_SSL.optLetsEncrypt && S_SSL.optDomains === null) {
         console.log("You must specify at least one domain to use --letsEncrypt");
-        optLetsEncrypt = false;
+        S_SSL.optLetsEncrypt = false;
     }
 }
