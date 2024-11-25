@@ -287,6 +287,7 @@ async function createAccount(nonce, newAccountUrl, keyChain) {
         jwk = await jose.exportJWK(keyChain.publicKey);
 
         const payload = { termsOfServiceAgreed: true };
+
         const protectedHeader = {
             alg: ALG_ECDSA,
             jwk,
@@ -296,15 +297,7 @@ async function createAccount(nonce, newAccountUrl, keyChain) {
 
         const signed = await signPayloadJson(payload, protectedHeader, keyChain);
 
-        const request = {
-            method: 'POST',
-            headers: {
-                'Content-Type': CONTENT_TYPE_JOSE
-            },
-            body: signed
-        };
-
-        const response = await fetch(newAccountUrl, request);
+        const response = await fetchRequest("POST", newAccountUrl, signed);
 
         if (response.ok) {
             return {
@@ -336,15 +329,7 @@ async function createOrder(kid, nonce, keyChain, newOrderUrl, identifiers) {
 
         const signed = await signPayloadJson(payload, protectedHeader, keyChain);
 
-        const request = {
-            method: 'POST',
-            headers: {
-                'Content-Type': CONTENT_TYPE_JOSE
-            },
-            body: signed
-        };
-
-        const response = await fetch(newOrderUrl, request);
+        const response = await fetchRequest("POST", newOrderUrl, signed);
 
         if (response.ok) {
             return {
@@ -365,7 +350,7 @@ async function createOrder(kid, nonce, keyChain, newOrderUrl, identifiers) {
 
 async function finalizeOrder(commonName, kid, nonce, keyChain, finalizeUrl, dnsNames) {
     try {
-        const out = JSON.stringify({ csr: await generateCSRWithExistingKeys(commonName, keyChain.publicKeySign, keyChain.privateKeySign, dnsNames, jose) });
+        const payload = { csr: await generateCSRWithExistingKeys(commonName, keyChain.publicKeySign, keyChain.privateKeySign, dnsNames, jose) };
 
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -374,21 +359,9 @@ async function finalizeOrder(commonName, kid, nonce, keyChain, finalizeUrl, dnsN
             url: finalizeUrl,
         };
 
-        const jws = new jose.FlattenedSign(new TextEncoder().encode(out));
+        const signed = await signPayloadJson(payload, protectedHeader, keyChain);
 
-        jws.setProtectedHeader(protectedHeader);
-
-        const signed = JSON.stringify(await jws.sign(keyChain.privateKey));
-
-        const request = {
-            method: 'POST',
-            headers: {
-                'Content-Type': CONTENT_TYPE_JOSE
-            },
-            body: signed
-        };
-
-        const response = await fetch(finalizeUrl, request);
+        const response = await fetchRequest("POST", finalizeUrl, signed);
 
         if (response.ok) {
             return {
@@ -416,19 +389,9 @@ async function postAsGet(kid, nonce, keyChain, url) {
             url: url,
         };
 
-        const jws = new jose.FlattenedSign(new TextEncoder().encode(""));
-        jws.setProtectedHeader(protectedHeader);
-        const signed = JSON.stringify(await jws.sign(keyChain.privateKey));
+        const signed = await signPayload("", protectedHeader, keyChain);
 
-        const request = {
-            method: 'POST',
-            headers: {
-                'Content-Type': CONTENT_TYPE_JOSE
-            },
-            body: signed
-        };
-
-        const response = await fetch(url, request);
+        const response = await fetchRequest("POST", url, signed);
 
         if (response.ok) {
             return {
@@ -456,19 +419,9 @@ async function postAsGetChal(kid, nonce, keyChain, url) {
             url: url,
         };
 
-        const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify({})));
-        jws.setProtectedHeader(protectedHeader);
-        const signed = JSON.stringify(await jws.sign(keyChain.privateKey));
+        const signed = await signPayloadJson({}, protectedHeader, keyChain);
 
-        const request = {
-            method: 'POST',
-            headers: {
-                'Content-Type': CONTENT_TYPE_JOSE
-            },
-            body: signed
-        };
-
-        const response = await fetch(url, request);
+        const response = await fetchRequest("POST", url, signed);
 
         if (response.ok) {
             return {
@@ -488,9 +441,25 @@ async function postAsGetChal(kid, nonce, keyChain, url) {
 }
 
 async function signPayloadJson(payload, protectedHeader, keyChain) {
-    const jws = new jose.FlattenedSign(new TextEncoder().encode(JSON.stringify(payload)));
+    return await signPayload(JSON.stringify(payload), protectedHeader, keyChain);
+}
+
+async function signPayload(payload, protectedHeader, keyChain) {
+    const jws = new jose.FlattenedSign(new TextEncoder().encode(payload));
     jws.setProtectedHeader(protectedHeader);
     return JSON.stringify(await jws.sign(keyChain.privateKey));
+}
+
+async function fetchRequest(method, url, signedData) {
+    const request = {
+        method: method,
+        headers: {
+            'Content-Type': CONTENT_TYPE_JOSE
+        },
+        body: signedData
+    };
+
+    return await fetch(url, request);
 }
 
 async function generateKeyChain(sslPath) {
