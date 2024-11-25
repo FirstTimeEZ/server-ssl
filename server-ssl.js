@@ -57,13 +57,12 @@ try {
     !existsSync(__certPath) && certificateNotExist();
 
     createServerHTTPS({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) }, (req, res) => {
-        let filePath = join(__websiteDir, req.url === '/' ? optEntry : req.url);
-
-        const extname = _extname(filePath);
+        const filePath = join(__websiteDir, req.url === '/' ? optEntry : req.url);
+        const fileExtension = _extname(filePath);
 
         let contentType = 'text/html';
 
-        switch (extname) {
+        switch (fileExtension) {
             case '.css':
                 contentType = 'text/css';
                 break;
@@ -92,27 +91,13 @@ try {
 
         readFile(filePath, (err, content) => {
             if (err) {
-                if (err.code === 'ENOENT') {
-                    readFile(join(__errorDir, '/404.html'), (err404, content404) => {
-                        if (err404) {
-                            res.writeHead(500);
-                            res.end('Server Error');
-                        } else {
-                            res.writeHead(404, { 'Content-Type': 'text/html' });
-                            res.end(content404);
-                        }
-                    });
-                } else {
-                    readFile(join(__errorDir, '/500.html'), (error500, content500) => {
-                        if (error500) {
-                            res.writeHead(500);
-                            res.end('Server Error');
-                        } else {
-                            res.writeHead(500, { 'Content-Type': 'text/html' });
-                            res.end(content500);
-                        }
-                    });
-                }
+                err.code === 'ENOENT'
+                    ? (readFile(join(__errorDir, '/404.html'), (err404, content404) => err404
+                        ? (res.writeHead(500), res.end('Server Error'))
+                        : (res.writeHead(404, { 'Content-Type': 'text/html' }), res.end(content404))))
+                    : (readFile(join(__errorDir, '/500.html'), (error500, content500) => error500
+                        ? (res.writeHead(500), res.end('Server Error'))
+                        : (res.writeHead(500, { 'Content-Type': 'text/html' }), res.end(content500))));
                 return;
             }
 
