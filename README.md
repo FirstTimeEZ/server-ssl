@@ -23,7 +23,7 @@ Production servers can use and renew `Lets Encrypt 90 Day Certificates` automati
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
-[![](https://i.imgur.com/4AeJ9Rs.png)](https://github.com/FirstTimeEZ/responsive)
+[![](https://i.imgur.com/GCmY2E2.png)](https://github.com/FirstTimeEZ/responsive)
 
 Your browser may warn you the certificate is self signed, this is normal.
 

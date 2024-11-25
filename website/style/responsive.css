@@ -1,22 +1,15 @@
 /* Base Styles */
+
 :root {
-    --primary-color: #607d8b;
-    /* Blue Gray */
-    --secondary-color: #455a64;
-    /* Dark Blue Gray */
-    --accent-color: #ffab40;
-    /* Light Orange */
+    --primary-color: #4f5558;
+    --secondary-color: #34383a;
+    --accent-color: #d68111;
     --text-color: #ffffff;
-    /* White */
-    --text-secondary: #04141b;
-    /* Dark Color */
-    --background-color: #263238;
-    /* Dark Gray */
-    --background-secondary: #37474f;
-    /* Gray */
+    --text-secondary: #9ba5aa;
+    --background-color: #0f0f0f;
+    --background-secondary: #1d2022;
     --border-color: #171a1b;
-    /* Dark Blue Gray */
-    --shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    --shadow: 0 1px 3px var(--accent-color);
     --radius: 4px;
     --spacing: 1rem;
 }
