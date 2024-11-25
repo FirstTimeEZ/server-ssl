@@ -124,7 +124,7 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
                     }
 
                     const waitForReady = setInterval(() => {
-                        postAsGet(account.answer.location, n, keyChain, order.answer.location).then((order) => {                            
+                        postAsGet(account.answer.location, n, keyChain, order.answer.location).then((order) => {
                             n = order.nonce;
                             if (order.answer.get.status == "ready") {
                                 console.log(order);
