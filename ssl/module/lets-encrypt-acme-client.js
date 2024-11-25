@@ -36,7 +36,7 @@ const REPLAY_NONCE = 'replay-nonce';
 const pendingChallenges = [];
 
 const ONE_DAY_MILLISECONDS = 24 * 60 * 60 * 1000;
-const SEVENTY_DAYS_MILLISECONDS = 60 * ONE_DAY_MILLISECONDS;
+const DAYS_MILLISECONDS = 60 * ONE_DAY_MILLISECONDS;
 
 let LOCALHOST = false;
 let checkedForLocalHost = false;
@@ -53,7 +53,7 @@ let jwk = undefined;
  * @param {boolean} optAutoRestart - (optional) True to restart after certificates are generated, must use start-windows.bat or have own mechanism for 123 exit.
  */
 export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAnyway, optStaging, optAutoRestart) {
-    if (internalDetermineRequirement(optionalSslPath)) {
+    if (internalDetermineRequirement(fqdns, optionalSslPath)) {
         if (generateAnyway !== true) {
             return;
         }
@@ -144,16 +144,31 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
 
                                                         fetch(checkFinalized.answer.get.certificate).then((s) => {
                                                             s.text().then((cert) => {
-                                                                // TODO: restart the server automatically
-                                                                writeFile(optionalSslPath + "/certificate.pem", cert, () => {
-                                                                    console.log("Saved Certificate to file (certificate.pem) - Restart the Server");
-                                                                });
-                                                                writeFile(optionalSslPath + "/private-key.pem", keyChain.privateKeySignRaw, () => {
-                                                                    console.log("Saved private key to file (private-key.pem) - Restart the Server");
-                                                                });
-                                                                writeFile(optionalSslPath + "/last.ez", JSON.stringify({ time: Date.now() }), () => { });
+                                                                let savedCert = null;
+                                                                let savedPk = null;
+                                                                let savedFragment = null;
 
-                                                                optAutoRestart && (console.log("Restarting Server in 2 seconds..."), setTimeout(() => process.exit(123), 2500));
+                                                                writeFile(optionalSslPath + "/certificate.pem", cert, () => {
+                                                                    savedCert = true;
+                                                                    !optAutoRestart && console.log("Saved Certificate to file (certificate.pem) - Restart the Server");
+                                                                });
+
+                                                                writeFile(optionalSslPath + "/private-key.pem", keyChain.privateKeySignRaw, () => {
+                                                                    savedPk = true;
+                                                                    !optAutoRestart && console.log("Saved private key to file (private-key.pem) - Restart the Server");
+                                                                });
+
+                                                                writeFile(optionalSslPath + "/last.ez", JSON.stringify({ time: Date.now(), names: fqdns }), () => {
+                                                                    savedFragment = true;
+                                                                });
+
+                                                                if (optAutoRestart === true) {
+                                                                    console.log("-------");
+                                                                    console.log("Auto Restart is Enabled");
+                                                                    console.log("Restarting Server when ready...");
+                                                                    console.log("-------");
+                                                                    new Promise(() => setInterval(() => (savedCert === true && savedPk === true && savedFragment === true) && process.exit(123), 200));
+                                                                }
                                                             });
                                                         });
                                                         clearInterval(waitForReady);
@@ -552,19 +567,28 @@ function internalCheckForLocalHostOnce(req) {
     }
 }
 
-function internalDetermineRequirement(optionalSslPath) {
+function internalDetermineRequirement(fqdns, optionalSslPath) {
     if (existsSync(optionalSslPath + "/last.ez")) {
         const time = readFileSync(optionalSslPath + "/last.ez");;
+
         const last = JSON.parse(time);
 
-        console.log("Its been: " + ((Date.now() - last.time) / 1000) + " seconds since you last generated certificates");
+        console.log("It has been: " + ((Date.now() - last.time) / 1000) + " seconds since you last generated certificates");
 
-        if (Date.now() + SEVENTY_DAYS_MILLISECONDS < last.time) {
-            return false;
+        for (let index = 0; index < last.names.length; index++) {
+            const element = last.names[index];
+
+            if (fqdns[index] != element) {
+                return false; // Names Changed, Generate Certs
+            }
+        }
+
+        if (Date.now() + DAYS_MILLISECONDS < last.time) {
+            return false; // Time, Generate Certs
         }
 
         return true;
     }
 
-    return false;
+    return false; // No Fragment, Generate Certs
 }
