@@ -5,20 +5,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>500 - Server Error</title>
-    <link rel="stylesheet" href="style/responsive.css">
     <style>
+        :root {
+            --primary-color: #4f5558;
+            --secondary-color: #282d30;
+            --accent-color: #ffab40;
+            --text-color: #ffffff;
+            --text-secondary: #04141b;
+            --background-color: #0f0f0f;
+            --background-secondary: #1d2022;
+            --border-color: #171a1b;
+            --shadow: 0 2px 4px rgba(37, 36, 36, 0.5);
+            --radius: 4px;
+            --spacing: 1rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--background-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing);
+            color: var(--text-color);
+        }
+
+        .error-container {
+            background-color: var(--background-secondary);
+            padding: calc(var(--spacing) * 2.5);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
             text-align: center;
+            max-width: 480px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            line-height: 1;
+            margin-bottom: var(--spacing);
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            color: var(--text-color);
+            margin-bottom: var(--spacing);
+        }
+
+        .error-message {
+            color: var(--primary-color);
+            margin-bottom: calc(var(--spacing) * 2);
+            line-height: 1.5;
+        }
+
+        .error-button {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            padding: calc(var(--spacing) * 0.75) calc(var(--spacing) * 1.5);
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .error-button:hover {
+            background-color: var(--secondary-color);
+            box-shadow: 0 0 12px var(--primary-color);
+        }
+
+        @media (max-width: 480px) {
+            .error-code {
+                font-size: 4rem;
+            }
+
+            .error-title {
+                font-size: 1.25rem;
+            }
         }
     </style>
 </head>
 
 <body>
-    <section class="card">
-        <h1>500 Server Error</h1>
-        <p>Oops! Something went wrong on our end. Please try again later.</p>
-        <a href="/">Return to Home</a>
-    </section>
+    <div class="error-container">
+        <div class="error-code">500</div>
+        <h1 class="error-title">Server Error</h1>
+        <p class="error-message">Sorry, something went wrong on our servers. We're working to fix the issue. Please try
+            again later.</p>
+        <a href="/" class="error-button">Go Back Home</a>
+    </div>
 </body>
 
 </html>
