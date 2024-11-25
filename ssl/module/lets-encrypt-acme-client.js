@@ -127,7 +127,6 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
                         postAsGet(account.answer.location, n, keyChain, order.answer.location).then((order) => {
                             n = order.nonce;
                             if (order.answer.get.status == "ready") {
-                                console.log(order);
                                 clearInterval(waitForReady);
 
                                 console.log("Ready to Finalize", fqdns);
