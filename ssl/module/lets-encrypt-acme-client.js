@@ -19,7 +19,8 @@ import * as jose from './jose/index.js';
 import { writeFile, readFileSync, existsSync, mkdirSync } from 'fs';
 import { generateCSRWithExistingKeys } from './crypt/csr.js';
 
-let DIRECTORY_URL = "https://acme-v02.api.letsencrypt.org/directory";
+const DIRECTORY_PRODUCTION = "https://acme-v02.api.letsencrypt.org/directory";
+const DIRECTORY_STAGING = "https://acme-staging-v02.api.letsencrypt.org/directory";
 
 const ALG_ECDSA = 'ES256';
 const DIGEST = "sha256";
@@ -38,10 +39,10 @@ const pendingChallenges = [];
 const ONE_DAY_MILLISECONDS = 24 * 60 * 60 * 1000;
 const DAYS_MILLISECONDS = 60 * ONE_DAY_MILLISECONDS;
 
-let LOCALHOST = false;
-let checkedForLocalHost = false;
-
 let jwk = undefined;
+let localHost = false;
+let checkedForLocalHost = false;
+let directory = DIRECTORY_PRODUCTION;
 
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
@@ -53,7 +54,7 @@ let jwk = undefined;
  * @param {boolean} optAutoRestart - (optional) True to restart after certificates are generated, must use start-windows.bat or have own mechanism for 123 exit.
  */
 export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAnyway, optStaging, optAutoRestart) {
-    console.log("Starting Lets Encrypt Daemon!");
+    console.log("Starting Lets Encrypt ACME Daemon!");
     console.log("Copyright © 2024 FirstTimeEZ");
     console.log("--------");
 
@@ -63,14 +64,10 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
         }
     }
 
-    if (optStaging === true) {
-        DIRECTORY_URL = "https://acme-staging-v02.api.letsencrypt.org/directory";
-        console.log("USING THE STAGING SERVER");
-    }
+    optStaging === true && (directory = DIRECTORY_STAGING, console.log("USING THE STAGING SERVER"));
 
     const keyChain = await generateKeyChain(optionalSslPath);
     let account = undefined;
-    let directory = undefined;
     let authorizations = undefined;
 
     directory = (await newDirectoryAsync()).answer.directory;
@@ -216,7 +213,7 @@ export async function startLetsEncryptDaemon(fqdns, optionalSslPath, generateAny
  * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
  */
 export function checkChallengesMixin(req, res) {
-    if (LOCALHOST === true || jwk == undefined) {
+    if (localHost === true || jwk == undefined) {
         return false;
     }
 
@@ -252,7 +249,7 @@ export function checkChallengesMixin(req, res) {
 
 async function newDirectoryAsync() {
     return new Promise((resolve) => {
-        fetch(DIRECTORY_URL, { method: "GET" }).then(response => {
+        fetch(directory, { method: "GET" }).then(response => {
             response.ok
                 ? response.json().then((result) => { resolve({ answer: { directory: result } }); }).catch((exception) => resolve({ answer: { exception: exception } }))
                 : resolve({ answer: { error: response } });
@@ -550,7 +547,7 @@ async function generateKeyChain(sslPath) {
 }
 
 function internalCheckForLocalHostOnce(req) {
-    if (checkedForLocalHost === false && LOCALHOST === false) {
+    if (checkedForLocalHost === false && localHost === false) {
         let ip = req.socket.remoteAddress;
 
         if (req.headers['x-forwarded-for']) {
@@ -558,7 +555,7 @@ function internalCheckForLocalHostOnce(req) {
         }
 
         if (ip === '127.0.0.1' || ip === '::1' || ip === 'localhost') {
-            LOCALHOST = true;
+            localHost = true;
             console.error(ip, req.headers.host, "You can not generate lets encrypt certificates for localhost");
         }
 
