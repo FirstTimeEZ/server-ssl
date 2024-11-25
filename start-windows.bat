@@ -19,9 +19,6 @@ if "%~1"=="--port" (
 ) else if "%~1"=="--pk" (
     set PK=%~2
     shift
-) else if "%~1"=="--autoRestart" (
-    set AR=1
-    shift
 )
 shift
 goto loop
@@ -69,7 +66,7 @@ if EXIST "node.exe" ( echo Node.js already exists ) else (
 
 echo Starting SSL Web Server
 
-node.exe server-ssl.js %* --ar=%AR%
+node.exe server-ssl.js %* --arAvailable
 
 set exitCode=%errorlevel%
 

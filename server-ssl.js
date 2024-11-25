@@ -29,9 +29,9 @@ const options = {};
 
 const ONE_DAY_MILLISECONDS = 86400000;
 
-let checkStartWindows = null;
 let override = false;
 let urlsArray = null;
+let autoRestartAvailable = null;
 
 let optPk = null;
 let optCert = null;
@@ -189,16 +189,23 @@ function loadArguments() {
         arg.includes("--generateAnyway") && (optGenerateAnyway = true);
         arg.includes("--staging") && (optStaging = true);
         arg.includes("--autoRestart") && (optAutoRestart = true);
-        arg.includes("--ar") && (checkStartWindows = rightSide);
+        arg.includes("--arAvailable") && (autoRestartAvailable = true);
         arg.includes("--ok") && (override = true);
     });
 
-    if (checkStartWindows != 1 && override === false) {
+    if (autoRestartAvailable == false && override === false) {
         console.log("--------");
         console.log("Server must be started with start-windows.bat to enable auto restart");
         console.log("If you have a way to restart the server on error code 123, use override --ok");
         console.log("--------");
         optAutoRestart = false;
+    }
+
+    if (optAutoRestart) {
+        console.log("--------");
+        console.log("Auto Restart Enabled");
+        console.log("Server will restart after certificates are renewed");
+        console.log("--------");
     }
 
     !optPk && (optPk = 'private-key.pem');
