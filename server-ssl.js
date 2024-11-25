@@ -72,7 +72,7 @@ const S_SSL = {
     ERROR_SERVER: '500 - Server Error',
     ERROR_STARTING: 'Error starting server',
     STARTED_HTTPS: 'HTTPS Server is running on port ',
-    STARTED_HTTP: 'HTTP Server is redirecting requests to',
+    STARTED_HTTP: 'HTTP Server is redirecting requests to ',
     WEBSITE_ROOT: '/',
     SSL: "ssl",
     TEXT_HTML: 'text/html',
