@@ -66,7 +66,12 @@ const S_SSL = {
     ERROR_404_PAGE: null,
     ERROR_500_PAGE: null,
     // Consts
-    ONE_DAY_MILLISECONDS: 86400000
+    ONE_DAY_MILLISECONDS: 86400000,
+    PAGE_NOT_FOUND: 'ENOENT',
+    ERROR_NOT_FOUND: '404 - File Not Found',
+    ERROR_SERVER: '500 - Server Error',
+    WEBSITE_ROOT: '/',
+    SSL: "ssl",
 }
 
 try {
@@ -76,7 +81,7 @@ try {
     const __websiteDir = join(__rootDir, S_SSL.optWebsite);
     const __errorDir = join(__rootDir, S_SSL.optError);
 
-    const __sslFolder = join(__rootDir, "ssl");
+    const __sslFolder = join(__rootDir, S_SSL.SSL);
     const __pkPath = join(__sslFolder, S_SSL.optPk);
     const __certPath = join(__sslFolder, S_SSL.optCert);
 
@@ -87,7 +92,7 @@ try {
     S_SSL.loadErrorPages(__errorDir);
 
     createServerHTTPS({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) }, (req, res) => {
-        const filePath = join(__websiteDir, req.url === '/' ? S_SSL.optEntry : req.url);
+        const filePath = join(__websiteDir, req.url === S_SSL.WEBSITE_ROOT ? S_SSL.optEntry : req.url);
         const fileExtension = _extname(filePath);
 
         let contentType = 'text/html';
@@ -121,9 +126,9 @@ try {
 
         readFile(filePath, (err, content) => {
             if (err) {
-                err.code === 'ENOENT'
-                    ? res.end(S_SSL.ERROR_404_PAGE !== null ? S_SSL.ERROR_404_PAGE : '404 - File Not Found')
-                    : res.end(S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : '500 - Server Error')
+                err.code === S_SSL.PAGE_NOT_FOUND
+                    ? res.end(S_SSL.ERROR_404_PAGE !== null ? S_SSL.ERROR_404_PAGE : S_SSL.ERROR_NOT_FOUND)
+                    : res.end(S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : S_SSL.ERROR_SERVER)
                 return;
             }
 
