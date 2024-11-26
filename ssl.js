@@ -17,6 +17,7 @@
 
 import { readFile, mkdir } from 'fs';
 import { join, extname as _extname } from 'path';
+import { startLetsEncryptDaemon } from './ssl/module/lets-encrypt-acme-client.js'
 
 export const S_SSL = {
     // Config
@@ -91,7 +92,7 @@ export const S_SSL = {
     REDIRECT_LOCATION: 'Location',
 }
 
-export function importRequiredArguments(){
+export function importRequiredArguments() {
     process.argv.slice(2).forEach((arg) => {
         let rightSide = arg.split("=")[1];
         arg.includes("--port=") && (S_SSL.optPort = rightSide);
@@ -123,4 +124,11 @@ export function importRequiredArguments(){
     !S_SSL.optEntry && (S_SSL.optEntry = 'index.html');
 
     S_SSL.expireDate && S_SSL.timeUntilRenew(S_SSL.expireDate);
+}
+
+export function loadLetsEncryptDaemon(sslFolder) {
+    S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.optDomains.slice(1, -1).split(',').map(url => url.trim()));
+    S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
+    S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart);
+    S_SSL.optLetsEncrypt && setTimeout(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart), S_SSL.ONE_DAY_MILLISECONDS);
 }
