@@ -51,7 +51,7 @@ createServerHTTP((req, res) => {
     // Lets Encrypt! HTTP-01 ACME Challenge Mixin
     if (S_SSL.optLetsEncrypt) { if (checkChallengesMixin(req, res)) { return; } }
 
-    // Redirect HTTP to HTTPS
+    // Always Redirect HTTP to HTTPS unless doing a ACME Challenge
     res.writeHead(S_SSL.REDIRECT, { [S_SSL.REDIRECT_LOCATION]: `${S_SSL.HTTPS}${req.headers.host}${req.url}` });
     res.end();
 }).listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`));
