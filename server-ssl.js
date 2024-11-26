@@ -62,6 +62,18 @@ const S_SSL = {
         readFile(join(__errorDir, '/404.html'), (err404, content404) => !err404 && (S_SSL.ERROR_404_PAGE = content404));
         readFile(join(__errorDir, '/500.html'), (err500, content500) => !err500 && (S_SSL.ERROR_500_PAGE = content500));
     },
+    timeUntilRenew: (notAfter) => {
+        const specificDate = new Date(notAfter);
+        const currentDate = new Date();
+
+        const timeDifference = specificDate.getTime() - currentDate.getTime();
+        const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+        const hoursDifference = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutesDifference = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+        const secondsDifference = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+        console.log(`Time until renewal required: ${daysDifference} days, ${hoursDifference} hours, ${minutesDifference} minutes, ${secondsDifference} seconds`);
+    },
     // Pages
     ERROR_404_PAGE: null,
     ERROR_500_PAGE: null,
@@ -131,6 +143,15 @@ try {
         res.end();
     }).listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`));
 
+    // setTimeout(() => {
+    //     try{
+    //     SSLCertificateChecker.checkCertificateExpiry('ssl.boats').then((result) => {
+    //         console.log(result);
+    //     });}catch{
+
+    //     }
+    // }, 1000);
+
     ///////////////// Lets Encrypt! ACME Daemon /////////////////////
     S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.optDomains.slice(1, -1).split(',').map(url => url.trim()));
     S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
@@ -152,7 +173,7 @@ function loadArguments() {
         arg.includes("--error=") && (S_SSL.optError = rightSide);
         arg.includes("--entry=") && (S_SSL.optEntry = rightSide);
         arg.includes("--notAfter=") && (S_SSL.expireDate = rightSide);
-        
+
         arg.includes("--letsEncrypt") && (S_SSL.optLetsEncrypt = true);
         arg.includes("--domains") && (S_SSL.optDomains = rightSide);
         arg.includes("--generateAnyway") && (S_SSL.optGenerateAnyway = true);
@@ -172,5 +193,5 @@ function loadArguments() {
     !S_SSL.optError && (S_SSL.optError = 'error');
     !S_SSL.optEntry && (S_SSL.optEntry = 'index.html');
 
-    S_SSL.expireDate && console.log("The certificate expires on:", S_SSL.expireDate);
+    S_SSL.expireDate && S_SSL.timeUntilRenew(S_SSL.expireDate);
 }
