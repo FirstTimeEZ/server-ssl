@@ -547,12 +547,12 @@ function internalCheckForLocalHostOnce(req) {
 function internalDetermineRequirement(fqdns, optionalSslPath, daysDifference) {
     if (existsSync(join(optionalSslPath, "last.ez"))) {
         if (daysDifference != undefined) {
-            // Determine a random time to update between 60% and 98% of remaining time
+            // Determine a random time to update between 60% and 90% of remaining time
             if (attemptWhen === null) {
                 startedWhen = new Date();
-                const sixtyThreePercent = daysDifference * 0.62;
-                const thirtySeven = daysDifference * 0.38;
-                const attemptDays = sixtyThreePercent + Math.floor(Math.random() * (thirtySeven - 1));
+                const sixty = daysDifference * 0.60;
+                const thirty = daysDifference * 0.30;
+                const attemptDays = sixty + Math.floor(Math.random() * thirty);
 
                 console.log("Will renew certificates in [" + (attemptWhen = attemptDays) + "] days if server doesn't restart");
 
