@@ -28,6 +28,9 @@ const CONTENT_TYPE = "Content-Type";
 const STATUS_PENDING = "pending";
 const HTTP = "http-01";
 
+const SUCESS = 200;
+const EXPECTED_SPLITS = 4;
+
 const ALG_ECDSA = 'ES256';
 const DIGEST = "sha256";
 const PUBLIC_KEY = '/acmePublicKey.raw';
@@ -239,14 +242,15 @@ export function checkChallengesMixin(req, res) {
 
         if (req.url.startsWith(WELL_KNOWN)) {
             const split = req.url.split("/");
-            if (split.length === 4) {
+            if (split.length === EXPECTED_SPLITS) {
                 const token = split[split.length - 1];
                 let bufferModified = false;
+
                 pendingChallenges.forEach(challenge => {
                     if (challenge.type == HTTP && challenge.status == STATUS_PENDING && challenge.token == token) {
                         console.log(ACME_CHALLENGE, challenge.token);
                         jose.calculateJwkThumbprint(jsonWebKey, DIGEST).then((thumbPrint) => {
-                            res.writeHead(200, { [CONTENT_TYPE]: CONTENT_TYPE_OCTET });
+                            res.writeHead(SUCESS, { [CONTENT_TYPE]: CONTENT_TYPE_OCTET });
                             res.end(Buffer.from(`${challenge.token}.${thumbPrint}`));
                         });
                         bufferModified = true;
