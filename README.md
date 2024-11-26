@@ -6,6 +6,8 @@ Easy to configure `SSL Web Server` that can be used for development or productio
 
 Production servers can use and renew `Lets Encrypt 90 Day Certificates` automatically.
 
+Designed to get out of your way, you can still change anything about the server.
+
 --------
 
 ### Start the Server
