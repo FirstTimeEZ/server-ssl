@@ -23,7 +23,7 @@ Production servers can use and renew `Lets Encrypt 90 Day Certificates` automati
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
-[![](https://i.imgur.com/7nvH9nT.png)](https://github.com/FirstTimeEZ/server-ssl)
+[![](https://i.imgur.com/s4bhdHK.png)](https://github.com/FirstTimeEZ/server-ssl)
 
 --------
 
@@ -100,11 +100,11 @@ This structure is designed to keep the project organized and maintainable, separ
 
 The server is configured to serve custom `404` and `500` error pages.
 
-[![](https://i.imgur.com/FUKh0k9.png)](https://github.com/FirstTimeEZ/server-ssl)
+[![](https://i.imgur.com/nMBfDnr.png)](https://github.com/FirstTimeEZ/server-ssl)
 
 Currently everything is treated like a `Server Error` except for `Page Not Found`
 
-[![](https://i.imgur.com/BCbZP02.png)](https://github.com/FirstTimeEZ/server-ssl)
+[![](https://i.imgur.com/ryZTxII.png)](https://github.com/FirstTimeEZ/server-ssl)
 
 --------
 
