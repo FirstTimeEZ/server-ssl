@@ -19,6 +19,7 @@ import { createPrivateKey, createPublicKey, sign } from 'crypto';
 import { extractECPoint } from './pki.js';
 import { TAGS } from './asn1.js';
 import * as asn from './asn1.js';
+import { OIDS } from './oid.js';
 
 /**
  * Generates a Certificate Signing Request (CSR) using existing public and private key pairs.
@@ -56,13 +57,14 @@ import * as asn from './asn1.js';
 export async function generateCSRWithExistingKeys(commonName, publicKey, privateKey, dnsNames, joseImport) {
     try {
         const publicKeySpki = await joseImport.exportSPKI(publicKey);
+
         const privateKeyPkcs8 = await joseImport.exportPKCS8(privateKey);
 
         const privKeyObj = createPrivateKey(privateKeyPkcs8);
 
         const subject = asn.encodeDERSequence([
             asn.encodeDERSet([
-                asn.encodeDERAttribute('2.5.4.3', commonName)
+                asn.encodeDERAttribute(OIDS.COMMON_NAME, commonName)
             ])
         ]);
 
@@ -76,7 +78,7 @@ export async function generateCSRWithExistingKeys(commonName, publicKey, private
         ]);
 
         const signature = await signData(certificationRequestInfo, privKeyObj);
-        const signatureAlgorithm = asn.encodeDERSequence([asn.encodeDERObjectIdentifier('1.2.840.10045.4.3.2')]);
+        const signatureAlgorithm = asn.encodeDERSequence([asn.encodeDERObjectIdentifier(OIDS.ECDSA_SHA256)]);
 
         const csrDER = asn.encodeDERSequence([
             certificationRequestInfo,
@@ -120,8 +122,8 @@ async function encodeSubjectPublicKeyInfo(publicKeyDER) {
 
         return asn.encodeDERSequence([
             asn.encodeDERSequence([
-                asn.encodeDERObjectIdentifier('1.2.840.10045.2.1'),
-                asn.encodeDERObjectIdentifier('1.2.840.10045.3.1.7')
+                asn.encodeDERObjectIdentifier(OIDS.ECDSA),
+                asn.encodeDERObjectIdentifier(OIDS.ECDSA_CURVE)
             ]),
             asn.encodeDERBitString(Buffer.concat([
                 Buffer.from([TAGS.OCTET_STRING]),
@@ -141,7 +143,7 @@ function createExtensionRequest(dnsNames) {
     }
 
     return asn.encodeDERSequence([
-        asn.encodeDERObjectIdentifier("1.2.840.113549.1.9.14"),
+        asn.encodeDERObjectIdentifier(OIDS.VERSION),
         asn.encodeDERSet([asn.encodeDERSequence(extensions)])
     ]);
 }
@@ -165,7 +167,7 @@ function createSANExtension(dnsNames) {
     ]);
 
     return asn.encodeDERSequence([
-        asn.encodeDERObjectIdentifier('2.5.29.17'),
+        asn.encodeDERObjectIdentifier(OIDS.SAN),
         asn.encodeDEROctetString(sanSequence)
     ]);
 }
