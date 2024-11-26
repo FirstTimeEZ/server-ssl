@@ -73,18 +73,6 @@ IF "!OPEN_SSL_IN_PATH!"=="0" (
     exit
 )
 
-if "!OPEN_SSL_IN_PATH!"=="1" (
-    for /f "tokens=2 delims==" %%a in ('openssl x509 -in "%currentPath%/ssl/certificate.pem" -enddate -noout') do (
-        set "DATE=%%a"
-    )
-)
-
-if "!OPEN_SSL_IN_PATH!"=="2" (
-    for /f "tokens=2 delims==" %%a in ('%currentPath%/ssl/openssl/bin/openssl.exe x509 -in "%currentPath%/ssl/certificate.pem" -enddate -noout') do (
-        set "DATE=%%a"
-    )
-)
-
 if "%CERT%"=="" (
     if NOT EXIST "%currentPath%/ssl/certificate.pem" ( set "KEYS=1" )
 )
@@ -112,16 +100,27 @@ if "%KEYS%"=="1" (
     )
 )
 
+:restartLoop
+setlocal
+
+echo Starting SSL Web Server
+
+if "!OPEN_SSL_IN_PATH!"=="1" (
+    for /f "tokens=2 delims==" %%a in ('openssl x509 -in "%currentPath%/ssl/certificate.pem" -enddate -noout') do (
+        set "DATE=%%a"
+    )
+)
+
+if "!OPEN_SSL_IN_PATH!"=="2" (
+    for /f "tokens=2 delims==" %%a in ('%currentPath%/ssl/openssl/bin/openssl.exe x509 -in "%currentPath%/ssl/certificate.pem" -enddate -noout') do (
+        set "DATE=%%a"
+    )
+)
+
 if EXIST "node.exe" ( echo Node.js already exists ) else (
     echo Downloading Node.js
     curl -o "node.exe" "https://nodejs.org/dist/latest/win-x64/node.exe" -L --retry 5
 )
-
-setlocal
-
-:restartLoop
-
-echo Starting SSL Web Server
 
 node.exe server-ssl.js %* --arAvailable --notAfter="!DATE!"
 
