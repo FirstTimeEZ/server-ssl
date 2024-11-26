@@ -32,6 +32,7 @@ const DELIM = "/";
 const ARRAY = 1;
 const SUCESS = 200;
 const EXPECTED_SPLITS = 4;
+const MAX_LENGTH = 1000;
 
 const DIGEST = "sha256";
 const ALG_ECDSA = 'ES256';
@@ -264,8 +265,9 @@ export function checkChallengesMixin(req, res) {
     try {
         internalCheckForLocalHostOnce(req);
 
-        if (req.url.startsWith(WELL_KNOWN)) {
+        if (req.url.startsWith(WELL_KNOWN) && req.url.length < MAX_LENGTH) {
             const split = req.url.split(DELIM);
+            
             if (split.length === EXPECTED_SPLITS) {
                 const token = split[split.length - ARRAY];
                 let bufferModified = false;
