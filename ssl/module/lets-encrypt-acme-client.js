@@ -28,6 +28,7 @@ const CONTENT_TYPE = "Content-Type";
 const STATUS_PENDING = "pending";
 const HTTP = "http-01";
 
+const ARRAY = 1;
 const SUCESS = 200;
 const EXPECTED_SPLITS = 4;
 
@@ -243,7 +244,7 @@ export function checkChallengesMixin(req, res) {
         if (req.url.startsWith(WELL_KNOWN)) {
             const split = req.url.split("/");
             if (split.length === EXPECTED_SPLITS) {
-                const token = split[split.length - 1];
+                const token = split[split.length - ARRAY];
                 let bufferModified = false;
 
                 pendingChallenges.forEach(challenge => {
