@@ -24,6 +24,8 @@ export const S_SSL = {
     override: false,
     urlsArray: null,
     autoRestartAvailable: null,
+    timeDifference: null,
+    daysDifference: null,
     // Args
     optPk: null,
     optCert: null,
@@ -63,13 +65,13 @@ export const S_SSL = {
         const specificDate = new Date(notAfter);
         const currentDate = new Date();
 
-        const timeDifference = specificDate.getTime() - currentDate.getTime();
-        const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-        const hoursDifference = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutesDifference = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-        const secondsDifference = Math.floor((timeDifference % (1000 * 60)) / 1000);
+        S_SSL.timeDifference = specificDate.getTime() - currentDate.getTime();
+        S_SSL.daysDifference = Math.floor(S_SSL.timeDifference / (1000 * 60 * 60 * 24));
+        const hoursDifference = Math.floor((S_SSL.timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutesDifference = Math.floor((S_SSL.timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+        const secondsDifference = Math.floor((S_SSL.timeDifference % (1000 * 60)) / 1000);
 
-        console.log(`Time until renewal required: ${daysDifference} days, ${hoursDifference} hours, ${minutesDifference} minutes, ${secondsDifference} seconds`);
+        console.log(`Time until renewal required: ${S_SSL.daysDifference} days, ${hoursDifference} hours, ${minutesDifference} minutes, ${secondsDifference} seconds`);
     },
     // Pages
     ERROR_404_PAGE: null,
@@ -77,6 +79,7 @@ export const S_SSL = {
     // Consts
     SUCCESS: 200,
     REDIRECT: 301,
+    TWELVE_HOURS_MILLISECONDS: 43200000,
     ONE_DAY_MILLISECONDS: 86400000,
     PAGE_NOT_FOUND: 'ENOENT',
     ERROR_NOT_FOUND: '404 - File Not Found',
@@ -129,6 +132,6 @@ export function importRequiredArguments() {
 export function loadLetsEncryptDaemon(sslFolder) {
     S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.optDomains.slice(1, -1).split(',').map(url => url.trim()));
     S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
-    S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart);
-    S_SSL.optLetsEncrypt && setTimeout(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart), S_SSL.ONE_DAY_MILLISECONDS);
+    S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference);
+    S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference), S_SSL.TWELVE_HOURS_MILLISECONDS);
 }

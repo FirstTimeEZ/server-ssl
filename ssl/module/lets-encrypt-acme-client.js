@@ -46,6 +46,9 @@ let checkedForLocalHost = false;
 let jsonWebKey = undefined;
 let acmeDirectory = DIRECTORY_PRODUCTION;
 
+let attemptWhen = null;
+let startedWhen = null;
+
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
  *
@@ -55,12 +58,12 @@ let acmeDirectory = DIRECTORY_PRODUCTION;
  * @param {boolean} optStaging - (optional) True to use staging mode instead of production
  * @param {boolean} optAutoRestart - (optional) True to restart after certificates are generated, must use start-windows.bat or have own mechanism for 123 exit.
  */
-export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, optStaging, optAutoRestart) {
+export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, optStaging, optAutoRestart, daysDifference) {
     console.log("Starting Lets Encrypt ACME Daemon!");
     console.log("Copyright © 2024 FirstTimeEZ");
     console.log("--------");
 
-    if (internalDetermineRequirement(fqdns, sslPath)) {
+    if (internalDetermineRequirement(fqdns, sslPath, daysDifference)) {
         if (optGenerateAnyway !== true) {
             return;
         }
@@ -541,12 +544,36 @@ function internalCheckForLocalHostOnce(req) {
     }
 }
 
-function internalDetermineRequirement(fqdns, optionalSslPath) {
+function internalDetermineRequirement(fqdns, optionalSslPath, daysDifference) {
     if (existsSync(join(optionalSslPath, "last.ez"))) {
-        const time = readFileSync(join(optionalSslPath, "last.ez"));;
+        if (daysDifference != undefined) {
+            // Determine a random time to update between 60% and 98% of remaining time
+            if (attemptWhen === null) {
+                startedWhen = new Date();
+                const sixtyThreePercent = daysDifference * 0.62;
+                const thirtySeven = daysDifference * 0.38;
+                const attemptDays = sixtyThreePercent + Math.floor(Math.random() * (thirtySeven - 1));
 
+                console.log("Will renew certificates in [" + (attemptWhen = attemptDays) + "] days if server doesn't restart");
+
+                if (attemptWhen > 1) {
+                    return true;
+                }
+                else {
+                    return false; // Random Time Reached, Generate Certs 
+                }
+            }
+            else {
+                let timeDifference = new Date().getTime() - startedWhen.getTime();
+                let daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+                if (daysDifference >= attemptWhen) {
+                    return false; // Random Time Reached, Generate Certs
+                }
+            }
+        }
+
+        const time = readFileSync(join(optionalSslPath, "last.ez"));
         const last = JSON.parse(time);
-
         console.log("It has been: " + ((Date.now() - last.time) / 1000) + " seconds since you last generated certificates");
 
         for (let index = 0; index < last.names.length; index++) {
@@ -558,7 +585,7 @@ function internalDetermineRequirement(fqdns, optionalSslPath) {
         }
 
         if (Date.now() + DAYS_MILLISECONDS < last.time) {
-            return false; // Time, Generate Certs
+            return false; // Fallback Time, Generate Certs
         }
 
         return true;
