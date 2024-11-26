@@ -41,13 +41,13 @@ Designed to get out of your way, you can still change anything about the server.
 
 | Arguments/Flags       | Description                                      | Default Value         |
 |-------------------------|----------------------------------|-----------------------|
-| `--port=`      | Specifies the port number for `HTTPS` | `443` |
-| `--portHttp=`  | Specifies the port number for HTTP that will be redirected | `80` |
-| `--cert=`      | Specifies the path to the `SSL` certificate file. | `"certificate.pem"` |
-| `--pk=`        | Specifies the path to the private key file for the `SSL` certificate. | `"private-key.pem"` |
-| `--site=`      | Specifies the directory for the website files | `"website"` |
-| `--error=`     | Specifies the directory for error messages (404,500) | `"error"` |
-| `--entry=`     | Specifies the page to use for the entry point | `"index.html"` |
+| `--port=`      | The port number for `HTTPS` | `443` |
+| `--portHttp=`  | The port number for HTTP that will be redirected | `80` |
+| `--cert=`      | The path to the `SSL` certificate file. | `"certificate.pem"` |
+| `--pk=`        | The path to the private key file for the `SSL` certificate. | `"private-key.pem"` |
+| `--site=`      | The directory for the website files | `"website"` |
+| `--error=`     | The directory for error messages (404,500) | `"error"` |
+| `--entry=`     | The page to use for the entry point | `"index.html"` |
 
 All Arguments are case sensitive.
 
@@ -59,11 +59,11 @@ Certificates are valid for `90 days` but are renewed automatically sooner.
 
 | Automated Lets Encrypt!       | Description                                      |
 |-------------------------|----------------------------------|
-| `--letsEncrypt` | Specifies that `Lets Encrypt!` should be used to generate 90 day certificates |
-| `--domains=` | Specifies the domains to generate certificates for, this can not include wild cards, this should be an array. eg. `--domains=["www.ssl.boats","ssl.boats"]` |
-| `--generateAnyway` | Specifies that certificates should always be generated when the server starts, this could get you rate limited, maybe use `--staging`  |
-| `--staging` | Specifies that the `Lets Encrypt!` staging server should be used instead of production |
-| `--noAutoRestart` | Specifies that the server should not restart after certificates are generated |
+| `--letsEncrypt` | `Lets Encrypt!` should be used to generate 90 day certificates |
+| `--domains=` | Fomains to generate certificates for, this can not include wild cards, this should be an array. eg. `--domains=["www.ssl.boats","ssl.boats"]` |
+| `--generateAnyway` | Certificates should always be generated when the server starts, this could get you rate limited, maybe use `--staging`  |
+| `--staging` | The `Lets Encrypt!` staging server should be used instead of production |
+| `--noAutoRestart` | The server should not restart after certificates are generated |
 
 Certificates renew when you restart your server unless you use `--autoRestart`, so restart at least once a month.
 

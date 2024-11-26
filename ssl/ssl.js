@@ -129,9 +129,16 @@ export function importRequiredArguments() {
     S_SSL.expireDate && S_SSL.timeUntilRenew(S_SSL.expireDate);
 }
 
-export function loadLetsEncryptDaemon(sslFolder) {
+/**
+ * Starts the Let's Encrypt daemon to manage SSL certificates.
+ *
+ * @param {string} sslFolder - The path where the public and private keys will be stored/loaded from.
+ * @param {function} countdownHandler - (optional) paramterless function that will fire every second during the restart count down
+ * @param {function} countdownTime - (optional) how long in seconds to countdown before restarting, default 30 seconds
+ */
+export function loadLetsEncryptDaemon(sslFolder, countdownHandler, countdownTime) {
     S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.optDomains.slice(1, -1).split(',').map(url => url.trim()));
     S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
-    S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference);
-    S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference), S_SSL.TWELVE_HOURS_MILLISECONDS);
+    S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime);
+    S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
 }

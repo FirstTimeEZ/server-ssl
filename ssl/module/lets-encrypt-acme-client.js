@@ -75,17 +75,19 @@ let startedWhen = null;
  * @param {boolean} optGenerateAnyway - (optional) True to generate certificates before the 60 days has passed
  * @param {boolean} optStaging - (optional) True to use staging mode instead of production
  * @param {boolean} optAutoRestart - (optional) True to restart after certificates are generated, must use start-windows.bat or have own mechanism for 123 exit.
+ * @param {function} countdownHandler - (optional) paramterless function that will fire every second during the restart count down
+ * @param {function} countdownTime - (optional) how long in seconds to countdown before restarting, default 30 seconds
  */
-export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, optStaging, optAutoRestart, daysDifference) {
+export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, optStaging, optAutoRestart, daysDifference, countdownHandler, countdownTime) {
     console.log("Starting Lets Encrypt ACME Daemon!");
     console.log("Copyright © 2024 FirstTimeEZ");
     console.log("--------");
 
-    if (internalDetermineRequirement(fqdns, sslPath, daysDifference)) {
-        if (optGenerateAnyway !== true) {
-            return;
-        }
+    if (internalDetermineRequirement(fqdns, sslPath, daysDifference) && optGenerateAnyway !== true) {
+        return;
     }
+
+    countdownHandler != undefined && (countdownTime == undefined || countdownTime < 30) && (countdownTime = 30);
 
     optStaging === true && (acmeDirectory = DIRECTORY_STAGING, console.log("USING THE STAGING SERVER"));
 
@@ -193,7 +195,19 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                                                                     console.log("Auto Restart is Enabled");
                                                                     console.log("Restarting Server when ready...");
                                                                     console.log("-------");
-                                                                    new Promise(() => setInterval(() => (savedCert === true && savedPk === true && savedFragment === true) && process.exit(123), 200));
+
+                                                                    if (countdownHandler == undefined) {
+                                                                        new Promise(() => setInterval(() => (savedCert === true && savedPk === true && savedFragment === true) && process.exit(123), 200));
+                                                                    }
+                                                                    else {
+                                                                        let count = 0;
+                                                                        let waiting = setInterval(() => {
+                                                                            count++;
+                                                                            count > countdownTime
+                                                                                ? (new Promise(() => setInterval(() => (savedCert === true && savedPk === true && savedFragment === true) && process.exit(123), 200)), clearInterval(waiting))
+                                                                                : countdownHandler();
+                                                                        }, 1000);
+                                                                    }
                                                                 }
                                                             });
                                                         });

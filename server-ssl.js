@@ -56,4 +56,4 @@ createServerHTTP((req, res) => {
     res.end();
 }).listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`));
 
-loadLetsEncryptDaemon(__sslFolder); // Lets Encrypt! ACME Daemon
+loadLetsEncryptDaemon(__sslFolder, () => { console.log("Restarting Soon"); }, 30); // Lets Encrypt! ACME Daemon
