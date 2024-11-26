@@ -1,4 +1,4 @@
-[![](https://i.imgur.com/cTNgRwB.jpeg)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/nSEjI0t.jpeg)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 # server-ssl.js
 
