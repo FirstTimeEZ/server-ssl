@@ -27,13 +27,14 @@ const ACME_CHALLENGE = "HTTP-01 ACME Challenge";
 const CONTENT_TYPE = "Content-Type";
 const STATUS_PENDING = "pending";
 const HTTP = "http-01";
+const DELIM = "/";
 
 const ARRAY = 1;
 const SUCESS = 200;
 const EXPECTED_SPLITS = 4;
 
-const ALG_ECDSA = 'ES256';
 const DIGEST = "sha256";
+const ALG_ECDSA = 'ES256';
 const PUBLIC_KEY = '/acmePublicKey.raw';
 const PRIVATE_KEY = '/acmePrivateKey.raw';
 const PUBLIC_KEY_SIGN = '/acmePublicSignKey.raw';
@@ -42,6 +43,14 @@ const PRIVATE_KEY_SIGN = '/acmePrivateSignKey.raw';
 const CONTENT_TYPE_JOSE = 'application/jose+json';
 const CONTENT_TYPE_OCTET = 'application/octet-stream';
 
+const METHOD_GET = "GET";
+const METHOD_POST = "POST";
+const METHOD_HEAD = "HEAD";
+const METHOD_POST_AS_GET = "";
+const METHOD_POST_AS_GET_CHALLENGE = {};
+
+const SAN = "identifiers";
+const NEXT_URL = "location";
 const REPLAY_NONCE = 'replay-nonce';
 
 const pendingChallenges = [];
@@ -242,7 +251,7 @@ export function checkChallengesMixin(req, res) {
         internalCheckForLocalHostOnce(req);
 
         if (req.url.startsWith(WELL_KNOWN)) {
-            const split = req.url.split("/");
+            const split = req.url.split(DELIM);
             if (split.length === EXPECTED_SPLITS) {
                 const token = split[split.length - ARRAY];
                 let bufferModified = false;
@@ -268,7 +277,7 @@ export function checkChallengesMixin(req, res) {
 
 async function newDirectoryAsync() {
     return new Promise((resolve) => {
-        fetch(acmeDirectory, { method: "GET" }).then(response => {
+        fetch(acmeDirectory, { method: METHOD_GET }).then(response => {
             response.ok
                 ? response.json().then((result) => { resolve({ answer: { directory: result } }); }).catch((exception) => resolve({ answer: { exception: exception } }))
                 : resolve({ answer: { error: response } });
@@ -289,7 +298,7 @@ async function newNonceAsync(newNonceUrl) {
     if (nonceUrl !== null) {
         return new Promise(async (resolve) => {
             fetch(nonceUrl, {
-                method: "HEAD"
+                method: METHOD_HEAD
             }).then((response) => response.ok
                 ? resolve({ answer: { response: response }, nonce: response.headers.get(REPLAY_NONCE) })
                 : resolve({ answer: { error: response } }))
@@ -315,11 +324,11 @@ async function createAccount(nonce, newAccountUrl, keyChain) {
 
         const signed = await signPayloadJson(payload, protectedHeader, keyChain);
 
-        const response = await fetchRequest("POST", newAccountUrl, signed);
+        const response = await fetchRequest(METHOD_POST, newAccountUrl, signed);
 
         if (response.ok) {
             return {
-                answer: { account: await response.json(), location: response.headers.get('location') },
+                answer: { account: await response.json(), location: response.headers.get(NEXT_URL) },
                 nonce: response.headers.get(REPLAY_NONCE)
             };
         }
@@ -336,7 +345,7 @@ async function createAccount(nonce, newAccountUrl, keyChain) {
 
 async function createOrder(kid, nonce, keyChain, newOrderUrl, identifiers) {
     try {
-        const payload = { "identifiers": identifiers };
+        const payload = { [SAN]: identifiers };
 
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -347,11 +356,11 @@ async function createOrder(kid, nonce, keyChain, newOrderUrl, identifiers) {
 
         const signed = await signPayloadJson(payload, protectedHeader, keyChain);
 
-        const response = await fetchRequest("POST", newOrderUrl, signed);
+        const response = await fetchRequest(METHOD_POST, newOrderUrl, signed);
 
         if (response.ok) {
             return {
-                answer: { order: await response.json(), location: response.headers.get('location') },
+                answer: { order: await response.json(), location: response.headers.get(NEXT_URL) },
                 nonce: response.headers.get(REPLAY_NONCE)
             };
         }
@@ -379,11 +388,11 @@ async function finalizeOrder(commonName, kid, nonce, keyChain, finalizeUrl, dnsN
 
         const signed = await signPayloadJson(payload, protectedHeader, keyChain);
 
-        const response = await fetchRequest("POST", finalizeUrl, signed);
+        const response = await fetchRequest(METHOD_POST, finalizeUrl, signed);
 
         if (response.ok) {
             return {
-                answer: { get: await response.json(), location: response.headers.get('location') },
+                answer: { get: await response.json(), location: response.headers.get(NEXT_URL) },
                 nonce: response.headers.get(REPLAY_NONCE)
             };
         }
@@ -407,13 +416,13 @@ async function postAsGet(kid, nonce, keyChain, url) {
             url: url,
         };
 
-        const signed = await signPayload("", protectedHeader, keyChain);
+        const signed = await signPayload(METHOD_POST_AS_GET, protectedHeader, keyChain);
 
-        const response = await fetchRequest("POST", url, signed);
+        const response = await fetchRequest(METHOD_POST, url, signed);
 
         if (response.ok) {
             return {
-                answer: { get: await response.json(), location: response.headers.get('location') },
+                answer: { get: await response.json(), location: response.headers.get(NEXT_URL) },
                 nonce: response.headers.get(REPLAY_NONCE)
             };
         }
@@ -437,13 +446,13 @@ async function postAsGetChal(kid, nonce, keyChain, url) {
             url: url,
         };
 
-        const signed = await signPayloadJson({}, protectedHeader, keyChain);
+        const signed = await signPayloadJson(METHOD_POST_AS_GET_CHALLENGE, protectedHeader, keyChain);
 
-        const response = await fetchRequest("POST", url, signed);
+        const response = await fetchRequest(METHOD_POST, url, signed);
 
         if (response.ok) {
             return {
-                answer: { get: await response.json(), location: response.headers.get('location') },
+                answer: { get: await response.json(), location: response.headers.get(NEXT_URL) },
                 nonce: response.headers.get(REPLAY_NONCE)
             };
         }
@@ -472,7 +481,7 @@ async function fetchRequest(method, url, signedData) {
     const request = {
         method: method,
         headers: {
-            'Content-Type': CONTENT_TYPE_JOSE
+            [CONTENT_TYPE]: CONTENT_TYPE_JOSE
         },
         body: signedData
     };
