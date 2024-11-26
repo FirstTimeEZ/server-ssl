@@ -83,6 +83,7 @@ This structure is designed to keep the project organized and maintainable, separ
 │   └── 500.html
 │
 ├── /ssl
+│   ├── /openssl
 │   ├── /module
 │   │   ├── /crypt
 │   │   ├── /jose
@@ -91,12 +92,12 @@ This structure is designed to keep the project organized and maintainable, separ
 │   ├── acmeKeys
 │   ├── private-key.pem
 │   └── certificate.pem
+│   └── ssl.js
 │
 ├── /website
 │   └── index.html <---- Your website goes here
 │
 ├── node.exe
-├── ssl.js
 ├── server-ssl.js
 └── start-windows.bat
 ```
