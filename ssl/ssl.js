@@ -35,7 +35,7 @@ export const S_SSL = {
     optWebsite: null,
     optDomains: null,
     optLetsEncrypt: null,
-    optAutoRestart: null,
+    optAutoRestart: true,
     optGenerateAnyway: null,
     optPort: process.env.PORT || 443,
     optPortHttp: process.env.PORT_HTTP || 80,
@@ -111,7 +111,7 @@ export function importRequiredArguments() {
         arg.includes("--domains") && (S_SSL.optDomains = rightSide);
         arg.includes("--generateAnyway") && (S_SSL.optGenerateAnyway = true);
         arg.includes("--staging") && (S_SSL.optStaging = true);
-        arg.includes("--autoRestart") && (S_SSL.optAutoRestart = true);
+        arg.includes("--noAutoRestart") && (S_SSL.optAutoRestart = false);
         arg.includes("--arAvailable") && (S_SSL.autoRestartAvailable = true);
         arg.includes("--ok") && (S_SSL.override = true);
     });
