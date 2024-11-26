@@ -143,15 +143,6 @@ try {
         res.end();
     }).listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`));
 
-    // setTimeout(() => {
-    //     try{
-    //     SSLCertificateChecker.checkCertificateExpiry('ssl.boats').then((result) => {
-    //         console.log(result);
-    //     });}catch{
-
-    //     }
-    // }, 1000);
-
     ///////////////// Lets Encrypt! ACME Daemon /////////////////////
     S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.optDomains.slice(1, -1).split(',').map(url => url.trim()));
     S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
