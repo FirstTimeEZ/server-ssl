@@ -110,11 +110,11 @@ This structure is designed to keep the project organized and maintainable, separ
 
 The server is configured to serve custom `404` and `500` error pages.
 
-[![](https://i.imgur.com/GDyCxwu.png)](https://github.com/FirstTimeEZ/server-ssl)
+[![](https://i.imgur.com/w4Awnc1.png)](https://github.com/FirstTimeEZ/server-ssl)
 
 Currently everything is treated like a `Server Error` except for `Page Not Found`
 
-[![](https://i.imgur.com/cJ7gzkg.png)](https://github.com/FirstTimeEZ/server-ssl)
+[![](https://i.imgur.com/mQlVhjL.png)](https://github.com/FirstTimeEZ/server-ssl)
 
 --------
 
