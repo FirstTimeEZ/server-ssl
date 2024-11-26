@@ -22,6 +22,11 @@ import { generateCSRWithExistingKeys } from './crypt/csr.js';
 
 const DIRECTORY_PRODUCTION = "https://acme-v02.api.letsencrypt.org/directory";
 const DIRECTORY_STAGING = "https://acme-staging-v02.api.letsencrypt.org/directory";
+const WELL_KNOWN = "/.well-known/acme-challenge/";
+const ACME_CHALLENGE = "HTTP-01 ACME Challenge";
+const CONTENT_TYPE = "Content-Type";
+const STATUS_PENDING = "pending";
+const HTTP = "http-01";
 
 const ALG_ECDSA = 'ES256';
 const DIGEST = "sha256";
@@ -232,20 +237,17 @@ export function checkChallengesMixin(req, res) {
     try {
         internalCheckForLocalHostOnce(req);
 
-        if (req.url.startsWith("/.well-known/acme-challenge/")) {
+        if (req.url.startsWith(WELL_KNOWN)) {
             const split = req.url.split("/");
             if (split.length === 4) {
                 const token = split[split.length - 1];
                 let bufferModified = false;
                 pendingChallenges.forEach(challenge => {
-                    if (challenge.type == "http-01" && challenge.status == "pending" && challenge.token == token) {
-                        console.log("HTTP-01 ACME Challenge");
-                        console.log("token", challenge.token);
+                    if (challenge.type == HTTP && challenge.status == STATUS_PENDING && challenge.token == token) {
+                        console.log(ACME_CHALLENGE, challenge.token);
                         jose.calculateJwkThumbprint(jsonWebKey, DIGEST).then((thumbPrint) => {
-                            res.writeHead(200, { 'Content-Type': CONTENT_TYPE_OCTET });
-                            const answer = `${challenge.token}.${thumbPrint}`;
-                            res.end(Buffer.from(answer));
-                            console.log("HTTP-01 ACME Challenge Answered", answer);
+                            res.writeHead(200, { [CONTENT_TYPE]: CONTENT_TYPE_OCTET });
+                            res.end(Buffer.from(`${challenge.token}.${thumbPrint}`));
                         });
                         bufferModified = true;
                     }
