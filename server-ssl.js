@@ -151,6 +151,8 @@ function loadArguments() {
         arg.includes("--site=") && (S_SSL.optWebsite = rightSide);
         arg.includes("--error=") && (S_SSL.optError = rightSide);
         arg.includes("--entry=") && (S_SSL.optEntry = rightSide);
+        arg.includes("--notAfter=") && (S_SSL.expireDate = rightSide);
+        
         arg.includes("--letsEncrypt") && (S_SSL.optLetsEncrypt = true);
         arg.includes("--domains") && (S_SSL.optDomains = rightSide);
         arg.includes("--generateAnyway") && (S_SSL.optGenerateAnyway = true);
@@ -169,4 +171,6 @@ function loadArguments() {
     !S_SSL.optWebsite && (S_SSL.optWebsite = 'website');
     !S_SSL.optError && (S_SSL.optError = 'error');
     !S_SSL.optEntry && (S_SSL.optEntry = 'index.html');
+
+    S_SSL.expireDate && console.log("The certificate expires on:", S_SSL.expireDate);
 }

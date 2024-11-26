@@ -76,16 +76,12 @@ IF "!OPEN_SSL_IN_PATH!"=="0" (
 if "!OPEN_SSL_IN_PATH!"=="1" (
     for /f "tokens=2 delims==" %%a in ('openssl x509 -in "%currentPath%/ssl/certificate.pem" -enddate -noout') do (
         set "DATE=%%a"
-        echo --------
-        echo The certificate expires on: %%a
     )
 )
 
 if "!OPEN_SSL_IN_PATH!"=="2" (
     for /f "tokens=2 delims==" %%a in ('%currentPath%/ssl/openssl/bin/openssl.exe x509 -in "%currentPath%/ssl/certificate.pem" -enddate -noout') do (
         set "DATE=%%a"
-        echo --------
-        echo The certificate expires on: %%a
     )
 )
 
@@ -127,7 +123,7 @@ setlocal
 
 echo Starting SSL Web Server
 
-node.exe server-ssl.js %* --arAvailable --notAfter=!DATE!
+node.exe server-ssl.js %* --arAvailable --notAfter="!DATE!"
 
 set exitCode=%errorlevel%
 
