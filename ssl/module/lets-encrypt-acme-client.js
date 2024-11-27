@@ -167,7 +167,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                                             const waitForProcessingValid = setInterval(() => {
 
                                                 postAsGet(account.answer.location, nextNonce, keyChain, finalized.answer.location).then((checkFinalized) => {
-                                                    if (checkFinalized.answer.get.status == "valid") {
+                                                    if (checkFinalized.answer.get != undefined && checkFinalized.answer.get.status == "valid") {
                                                         console.log("Certificate Ready for Download");
                                                         console.log("Certificate URL:", checkFinalized.answer.get.certificate);
 
@@ -232,7 +232,6 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                             }
                         });
                     }, 1000);
-
                 }
                 else {
                     console.error("Error getting order", order.answer.error, order.answer.exception);
@@ -267,7 +266,7 @@ export function checkChallengesMixin(req, res) {
 
         if (req.url.startsWith(WELL_KNOWN) && req.url.length < MAX_LENGTH) {
             const split = req.url.split(DELIM);
-            
+
             if (split.length === EXPECTED_SPLITS) {
                 const token = split[split.length - ARRAY];
                 let bufferModified = false;
