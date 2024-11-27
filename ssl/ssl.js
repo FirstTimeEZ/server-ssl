@@ -68,7 +68,7 @@ export const S_SSL = {
     NODE_URL: "https://nodejs.org/dist/latest/win-x64",
     NODE_YES: "Node.js is up to date",
     NODE_NO: "There is a more recent version of Node.js",
-    NODE_FN: "update.ez",
+    NODE_FN: "last_update.ez",
     NODE_VERSION: "v",
     NODE_URL_SPLITS: 7,
     // Methods

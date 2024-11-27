@@ -1,9 +1,9 @@
 node.exe
 ssl/private-key.pem
-ssl/last.ez
 ssl/certificate.pem
 ssl/acmePublicSignKey.raw
 ssl/acmePublicKey.raw
 ssl/acmePrivateSignKey.raw
 ssl/acmePrivateKey.raw
-ssl/update.ez
+ssl/last_update.ez
+ssl/last_certification.ez

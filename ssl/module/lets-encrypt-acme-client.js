@@ -29,6 +29,8 @@ const STATUS_PENDING = "pending";
 const HTTP = "http-01";
 const DELIM = "/";
 
+const LAST_CERT_FILE = "last_certification.ez";
+
 const ARRAY = 1;
 const SUCESS = 200;
 const EXPECTED_SPLITS = 4;
@@ -187,7 +189,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                                                                     optNoAutoRestart === true && console.log("Saved private key to file (private-key.pem) - Restart the Server");
                                                                 });
 
-                                                                writeFile(join(sslPath, "last.ez"), JSON.stringify({ time: Date.now(), names: fqdns }), () => {
+                                                                writeFile(join(sslPath, LAST_CERT_FILE), JSON.stringify({ time: Date.now(), names: fqdns }), () => {
                                                                     savedFragment = true;
                                                                 });
 
@@ -576,7 +578,7 @@ function internalCheckForLocalHostOnce(req) {
 }
 
 function internalDetermineRequirement(fqdns, optionalSslPath, daysDifference) {
-    if (existsSync(join(optionalSslPath, "last.ez"))) {
+    if (existsSync(join(optionalSslPath, LAST_CERT_FILE))) {
         if (daysDifference != undefined) {
             // Determine a random time to update between 60% and 90% of remaining time
             if (attemptWhen === null) {
@@ -603,7 +605,7 @@ function internalDetermineRequirement(fqdns, optionalSslPath, daysDifference) {
             }
         }
 
-        const time = readFileSync(join(optionalSslPath, "last.ez"));
+        const time = readFileSync(join(optionalSslPath, LAST_CERT_FILE));
         const last = JSON.parse(time);
         console.log("It has been: " + ((Date.now() - last.time) / 1000) + " seconds since you last generated certificates");
 
