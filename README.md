@@ -31,7 +31,7 @@ Designed to get out of your way, you can still change anything about the server.
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
-![](https://i.imgur.com/paTbd90.gif)
+[![](https://i.imgur.com/paTbd90.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 ### Optional Arguments
 
@@ -106,7 +106,7 @@ This structure is designed to keep the project organized and maintainable, separ
 
 The default page is a little boat game, the goal is to survive.
 
-[![](https://i.imgur.com/lNhCeBN.gif)](https://github.com/FirstTimeEZ/server-ssl)
+[![](https://i.imgur.com/lNhCeBN.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 You can adjust the difficulty by zooming.
 
@@ -116,11 +116,11 @@ You can adjust the difficulty by zooming.
 
 The server is configured to serve custom `404` and `500` error pages.
 
-[![](https://i.imgur.com/w4Awnc1.png)](https://github.com/FirstTimeEZ/server-ssl)
+[![](https://i.imgur.com/w4Awnc1.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 Currently everything is treated like a `Server Error` except for `Page Not Found`
 
-[![](https://i.imgur.com/mQlVhjL.png)](https://github.com/FirstTimeEZ/server-ssl)
+[![](https://i.imgur.com/mQlVhjL.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 --------
 
@@ -138,7 +138,7 @@ node server-ssl.js --cert="your-certificate.pem" --pk="your-private-key.pem"
 
 `start-windows.bat` will automatically create a `Certificate` and `Private Key` when you run it if you don't provide any and none exist
 
-![](https://i.imgur.com/vAMuDOG.png)
+[![](https://i.imgur.com/vAMuDOG.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 --------
 
