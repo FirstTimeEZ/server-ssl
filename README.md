@@ -25,7 +25,7 @@ Designed to get out of your way, you can still change anything about the server.
 ./start-windows.bat
 
 # Start for production (Lets Encrypt!)
-./start-windows.bat --letsEncrypt --domains=["www.ssl.boats","ssl.boats"]
+./start-windows.bat --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
 
 # Start for production (BYO)
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
@@ -60,7 +60,7 @@ Certificates are valid for `90 days` but are renewed automatically sooner.
 | Automated Lets Encrypt!       | Description                                      |
 |-------------------------|----------------------------------|
 | `--letsEncrypt` | `Lets Encrypt!` should be used to generate 90 day certificates |
-| `--domains=` | Fomains to generate certificates for, this can not include wild cards, this should be an array. eg. `--domains=["www.ssl.boats","ssl.boats"]` |
+| `--domains=` | Fomains to generate certificates for, this can not include wild cards, this should be an array. eg. `--domains=['www.ssl.boats','ssl.boats']` |
 | `--generateAnyway` | Certificates should always be generated when the server starts, this could get you rate limited, maybe use `--staging`  |
 | `--staging` | The `Lets Encrypt!` staging server should be used instead of production |
 | `--noAutoRestart` | The server should not restart after certificates are generated |
@@ -68,7 +68,7 @@ Certificates are valid for `90 days` but are renewed automatically sooner.
 Certificates renew when you restart your server unless you use `--autoRestart`, so restart at least once a month.
 
 ```
-./start-windows.bat --letsEncrypt --domains=["www.ssl.boats","ssl.boats"] --autoRestart
+./start-windows.bat --letsEncrypt --domains=['www.ssl.boats','ssl.boats'] --autoRestart
 ```
 
 --------

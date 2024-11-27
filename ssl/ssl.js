@@ -142,3 +142,20 @@ export function loadLetsEncryptDaemon(sslFolder, countdownHandler, countdownTime
     S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime);
     S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
 }
+
+export async function checkNodeForUpdates() {
+    const current = (await fetch("https://nodejs.org/dist/latest/win-x64", { method: 'GET', redirect: 'follow' })).url
+
+    if (current != undefined) {
+        console.log("Current Dist:", current);
+        const split = current.split("/");
+
+        if (split.length === 7) {
+            for (let index = 0; index < split.length; index++) {
+                if (split[index][0] === "v") {
+                    console.log(split[index]);
+                }
+            }
+        }
+    }
+}

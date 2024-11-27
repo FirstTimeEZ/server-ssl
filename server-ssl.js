@@ -4,7 +4,7 @@ import { createServer as createServerHTTP } from 'http';
 import { readFile, readFileSync, existsSync } from 'fs';
 import { join, extname as _extname, dirname } from 'path';
 import { checkChallengesMixin } from './ssl/module/lets-encrypt-acme-client.js'
-import { S_SSL, importRequiredArguments, loadLetsEncryptDaemon } from './ssl/ssl.js'
+import { S_SSL, importRequiredArguments, loadLetsEncryptDaemon, checkNodeForUpdates } from './ssl/ssl.js'
 
 const CONTENT_TYPES = {
     '.css': 'text/css',
@@ -55,5 +55,7 @@ createServerHTTP((req, res) => {
     res.writeHead(S_SSL.REDIRECT, { [S_SSL.REDIRECT_LOCATION]: `${S_SSL.HTTPS}${req.headers.host}${req.url}` });
     res.end();
 }).listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`));
+
+//setInterval(() => { checkNodeForUpdates() }, S_SSL.TWELVE_HOURS_MILLISECONDS);
 
 loadLetsEncryptDaemon(__sslFolder, () => { console.log("Restarting Soon"); }, 30); // Lets Encrypt! ACME Daemon
