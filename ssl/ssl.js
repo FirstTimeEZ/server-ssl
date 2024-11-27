@@ -107,12 +107,12 @@ export function importRequiredArguments() {
         arg.includes("--site=") && (S_SSL.optWebsite = rightSide);
         arg.includes("--error=") && (S_SSL.optError = rightSide);
         arg.includes("--entry=") && (S_SSL.optEntry = rightSide);
+        arg.includes("--noAutoUpdate") && (S_SSL.optNoAutoUpdate = true);
         // Lets Encrypt!
         arg.includes("--domains=") && (S_SSL.optDomains = rightSide);
         arg.includes("--letsEncrypt") && (S_SSL.optLetsEncrypt = true);
         arg.includes("--generateAnyway") && (S_SSL.optGenerateAnyway = true);
         arg.includes("--noAutoRestart") && (S_SSL.optNoAutoRestart = true);
-        arg.includes("--noAutoUpdate") && (S_SSL.optNoAutoUpdate = true);
         arg.includes("--staging") && (S_SSL.optStaging = true);
         // Internal
         arg.includes("--notAfter=") && (S_SSL.expireDate = rightSide);
