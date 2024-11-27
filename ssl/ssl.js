@@ -43,6 +43,34 @@ export const S_SSL = {
     optGenerateAnyway: null,
     optPort: process.env.PORT || 443,
     optPortHttp: process.env.PORT_HTTP || 80,
+    // Pages
+    ERROR_404_PAGE: null,
+    ERROR_500_PAGE: null,
+    // Consts
+    SUCCESS: 200,
+    REDIRECT: 301,
+    TWELVE_HOURS_MILLISECONDS: 43200000,
+    ONE_DAY_MILLISECONDS: 86400000,
+    PAGE_NOT_FOUND: 'ENOENT',
+    ADDR_IN_USE: 'EADDRINUSE',
+    ERROR_NOT_FOUND: '404 - File Not Found',
+    ERROR_SERVER: '500 - Server Error',
+    ERROR_STARTING: 'Error starting server',
+    STARTED_HTTPS: 'HTTPS Server is running on port ',
+    STARTED_HTTP: 'HTTP Server is redirecting requests to ',
+    WEBSITE_ROOT: '/',
+    SSL: "ssl",
+    TEXT_HTML: 'text/html',
+    CONTENT_TYPE: 'Content-Type',
+    HTTPS: 'https://',
+    REDIRECT_LOCATION: 'Location',
+    IN_USE: "in use, please close whatever is using the port and restart",
+    NODE_URL: "https://nodejs.org/dist/latest/win-x64",
+    NODE_YES: "Node.js is up to date",
+    NODE_NO: "There is a more recent version of Node.js",
+    NODE_FN: "update.ez",
+    NODE_VERSION: "v",
+    NODE_URL_SPLITS: 7,
     // Methods
     importRequiredArguments: () => {
         process.argv.slice(2).forEach((arg) => {
@@ -166,33 +194,5 @@ export const S_SSL = {
         S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optNoAutoRestart = true, console.log("AutoRestart is set to false because GenerateAnyway is true"));
         S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime);
         S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
-    },
-    // Pages
-    ERROR_404_PAGE: null,
-    ERROR_500_PAGE: null,
-    // Consts
-    SUCCESS: 200,
-    REDIRECT: 301,
-    TWELVE_HOURS_MILLISECONDS: 43200000,
-    ONE_DAY_MILLISECONDS: 86400000,
-    PAGE_NOT_FOUND: 'ENOENT',
-    ADDR_IN_USE: 'EADDRINUSE',
-    ERROR_NOT_FOUND: '404 - File Not Found',
-    ERROR_SERVER: '500 - Server Error',
-    ERROR_STARTING: 'Error starting server',
-    STARTED_HTTPS: 'HTTPS Server is running on port ',
-    STARTED_HTTP: 'HTTP Server is redirecting requests to ',
-    WEBSITE_ROOT: '/',
-    SSL: "ssl",
-    TEXT_HTML: 'text/html',
-    CONTENT_TYPE: 'Content-Type',
-    HTTPS: 'https://',
-    REDIRECT_LOCATION: 'Location',
-    IN_USE: "in use, please close whatever is using the port and restart",
-    NODE_URL: "https://nodejs.org/dist/latest/win-x64",
-    NODE_YES: "Node.js is up to date",
-    NODE_NO: "There is a more recent version of Node.js",
-    NODE_FN: "update.ez",
-    NODE_VERSION: "v",
-    NODE_URL_SPLITS: 7
+    }
 }
