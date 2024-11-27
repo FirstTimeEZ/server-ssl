@@ -172,8 +172,11 @@ export async function checkNodeForUpdates() {
     }
 }
 
+//['www.ssl.boats']
 //['www.ssl.boats', 'ssl.boats', 'oh.ssl.boats']
+//["www.ssl.boats"]
 //["www.ssl.boats","ssl.boats","oh.ssl.boats"]
+//[www.ssl.boats]
 //[www.ssl.boats,ssl.boats,oh.ssl.boats]
 function extractDomainsAnyFormat(input) {
     const bracketsRemoved = String(input).trim().replace(/[\[\]]/g, '');
