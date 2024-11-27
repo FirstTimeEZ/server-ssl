@@ -172,29 +172,11 @@ export async function checkNodeForUpdates() {
     }
 }
 
-//['www.ssl.boats','ssl.boats']
-//["www.ssl.boats","ssl.boats"]
-//[www.ssl.boats,ssl.boats]
+//['www.ssl.boats', 'ssl.boats', 'oh.ssl.boats']
+//["www.ssl.boats","ssl.boats","oh.ssl.boats"]
+//[www.ssl.boats,ssl.boats,oh.ssl.boats]
 function extractDomainsAnyFormat(input) {
-    const str = String(input).trim();
-    const domainRegex = /'([^']+)'|"([^"]+)"/g;
-    const domains = [];
-
-    let match;
-    while ((match = domainRegex.exec(str)) !== null) {
-        const domain = match[1] || match[2];
-        if (domain) domains.push(domain);
-    }
-
-    if (domains.length === 0) {
-        const bracketsRemoved = str.replace(/[\[\]]/g, '');
-        const commaSplit = bracketsRemoved.split(',')
-            .map(d => d.trim().replace(/^['"]|['"]$/g, ''));
-
-        if (commaSplit.length > 0 && commaSplit[0]) {
-            return commaSplit;
-        }
-    }
-
-    return domains;
+    const bracketsRemoved = String(input).trim().replace(/[\[\]]/g, '');
+    const commaSplit = bracketsRemoved.split(',').map(d => d.trim().replace(/^['"]|['"]$/g, ''));
+    return commaSplit.length > 0 && commaSplit[0] ? commaSplit : domains;
 }
