@@ -31,9 +31,7 @@ Designed to get out of your way, you can still change anything about the server.
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
-[![](https://i.imgur.com/lNhCeBN.gif)](https://github.com/FirstTimeEZ/server-ssl)
-
---------
+![](https://i.imgur.com/paTbd90.gif)
 
 ### Optional Arguments
 
@@ -101,6 +99,16 @@ This structure is designed to keep the project organized and maintainable, separ
 ├── server-ssl.js
 └── start-windows.bat
 ```
+
+--------
+
+### Default Page
+
+The default page is a little boat game, the goal is to survive.
+
+[![](https://i.imgur.com/lNhCeBN.gif)](https://github.com/FirstTimeEZ/server-ssl)
+
+You can adjust the difficulty by zooming.
 
 --------
 
