@@ -58,4 +58,6 @@ createServerHTTP((req, res) => {
 
 //setInterval(() => { checkNodeForUpdates() }, S_SSL.TWELVE_HOURS_MILLISECONDS);
 
+checkNodeForUpdates(__sslFolder);
+
 loadLetsEncryptDaemon(__sslFolder, () => { console.log("Restarting Soon"); }, 30); // Lets Encrypt! ACME Daemon

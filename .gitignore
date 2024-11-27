@@ -6,3 +6,4 @@ ssl/acmePublicSignKey.raw
 ssl/acmePublicKey.raw
 ssl/acmePrivateSignKey.raw
 ssl/acmePrivateKey.raw
+ssl/update.ez

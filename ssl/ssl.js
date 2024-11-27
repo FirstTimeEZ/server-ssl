@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { readFile, mkdir } from 'fs';
+import { readFile, writeFile, mkdir, existsSync, readFileSync } from 'fs';
 import { join, extname as _extname } from 'path';
 import { startLetsEncryptDaemon } from './module/lets-encrypt-acme-client.js'
 
@@ -73,6 +73,11 @@ export const S_SSL = {
         const secondsDifference = Math.floor((S_SSL.timeDifference % (1000 * 60)) / 1000);
 
         console.log(`Time until renewal required: ${S_SSL.daysDifference} days, ${hoursDifference} hours, ${minutesDifference} minutes, ${secondsDifference} seconds`);
+    },
+    extractDomainsAnyFormat: (input) => {
+        const bracketsRemoved = String(input).trim().replace(/[\[\]]/g, '');
+        const commaSplit = bracketsRemoved.split(',').map(d => d.trim().replace(/^['"]|['"]$/g, ''));
+        return commaSplit.length > 0 && commaSplit[0] ? commaSplit : domains;
     },
     // Pages
     ERROR_404_PAGE: null,
@@ -147,39 +152,46 @@ export function importRequiredArguments() {
  * @param {function} countdownTime - (optional) how long in seconds to countdown before restarting, default 30 seconds
  */
 export function loadLetsEncryptDaemon(sslFolder, countdownHandler, countdownTime) {
-    S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = extractDomainsAnyFormat(S_SSL.optDomains));
+    S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.extractDomainsAnyFormat(S_SSL.optDomains));
     S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optNoAutoRestart = true, console.log("AutoRestart is set to false because GenerateAnyway is true"));
     S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime);
     S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
 }
 
-export async function checkNodeForUpdates() {
-    if (S_SSL.optNoAutoUpdate === true) {
+export async function checkNodeForUpdates(sslFolder) {
+    if (S_SSL.optNoAutoUpdate !== true) {
         const current = (await fetch("https://nodejs.org/dist/latest/win-x64", { method: 'GET', redirect: 'follow' })).url
 
         if (current != undefined) {
-            console.log("Current Dist:", current);
             const split = current.split("/");
 
             if (split.length === 7) {
                 for (let index = 0; index < split.length; index++) {
-                    if (split[index][0] === "v") {
-                        console.log(split[index]);
+                    const dist = split[index];
+
+                    if (dist[0] === "v") {
+                        const updatePath = join(sslFolder, "update.ez");
+
+                        if (existsSync(updatePath)) {
+                            const lastUpdate = JSON.parse(readFileSync(updatePath));
+
+                            if (lastUpdate != undefined) {
+                                const lastVersion = lastUpdate.version;
+
+                                if (lastVersion === dist) {
+                                    console.log("Node.js is up to date", dist);
+                                }
+                                else {
+                                    console.log("There is a more recent version of Node.js", dist);
+                                    // Update Required
+                                }
+                            }
+                        } else {
+                            writeFile(updatePath, JSON.stringify({ version: dist }), () => { });
+                        }
                     }
                 }
             }
         }
     }
-}
-
-//['www.ssl.boats']
-//['www.ssl.boats', 'ssl.boats', 'oh.ssl.boats']
-//["www.ssl.boats"]
-//["www.ssl.boats","ssl.boats","oh.ssl.boats"]
-//[www.ssl.boats]
-//[www.ssl.boats,ssl.boats,oh.ssl.boats]
-function extractDomainsAnyFormat(input) {
-    const bracketsRemoved = String(input).trim().replace(/[\[\]]/g, '');
-    const commaSplit = bracketsRemoved.split(',').map(d => d.trim().replace(/^['"]|['"]$/g, ''));
-    return commaSplit.length > 0 && commaSplit[0] ? commaSplit : domains;
 }
