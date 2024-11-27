@@ -99,6 +99,7 @@ export const S_SSL = {
 export function importRequiredArguments() {
     process.argv.slice(2).forEach((arg) => {
         let rightSide = arg.split("=")[1];
+        // Server
         arg.includes("--port=") && (S_SSL.optPort = rightSide);
         arg.includes("--portHttp=") && (S_SSL.optPortHttp = rightSide);
         arg.includes("--cert=") && (S_SSL.optCert = rightSide);
@@ -106,21 +107,22 @@ export function importRequiredArguments() {
         arg.includes("--site=") && (S_SSL.optWebsite = rightSide);
         arg.includes("--error=") && (S_SSL.optError = rightSide);
         arg.includes("--entry=") && (S_SSL.optEntry = rightSide);
-        arg.includes("--notAfter=") && (S_SSL.expireDate = rightSide);
-
+        // Lets Encrypt!
+        arg.includes("--domains=") && (S_SSL.optDomains = rightSide);
         arg.includes("--letsEncrypt") && (S_SSL.optLetsEncrypt = true);
-        arg.includes("--domains") && (S_SSL.optDomains = rightSide);
         arg.includes("--generateAnyway") && (S_SSL.optGenerateAnyway = true);
-        arg.includes("--staging") && (S_SSL.optStaging = true);
         arg.includes("--noAutoRestart") && (S_SSL.optNoAutoRestart = true);
         arg.includes("--noAutoUpdate") && (S_SSL.optNoAutoUpdate = true);
+        arg.includes("--staging") && (S_SSL.optStaging = true);
+        // Internal
+        arg.includes("--notAfter=") && (S_SSL.expireDate = rightSide);
         arg.includes("--arAvailable") && (S_SSL.isRestartAvailable = true);
         arg.includes("--ok") && (S_SSL.override = true);
     });
 
     if (S_SSL.optLetsEncrypt === true) {
         S_SSL.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), S_SSL.optLetsEncrypt = null, S_SSL.optNoAutoRestart = true);
-        
+
         if (S_SSL.optLetsEncrypt !== null) {
             S_SSL.isRestartAvailable === null && S_SSL.override === null && (console.log("--------"), console.log("Server must be started with start-windows.bat to enable lets encrypt auto restart at this time"), console.log("If you have a way to restart the server on error code 123, use override --ok"), console.log("--------"), S_SSL.optNoAutoRestart = true);
             S_SSL.isRestartAvailable === true && S_SSL.optNoAutoRestart === true && (console.log("--------"), console.log("Auto Restart Disabled"), console.log("Auto Restart is Available but you have deliberately disabled it"), console.log("--------"));
