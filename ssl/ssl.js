@@ -160,6 +160,22 @@ export function loadLetsEncryptDaemon(sslFolder, countdownHandler, countdownTime
     S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
 }
 
+/**
+ * Checks for available Node.js updates by fetching the latest version from the official distribution site
+ * and comparing it with the locally stored version information.
+ * 
+ * This function does the following:
+ * - Fetches the latest Node.js distribution URL for Windows x64
+ * - Extracts the version number from the URL
+ * - Compares the latest version with the locally stored version
+ * - Creates or updates a version tracking file named 'update.ez'
+ * - Logs the update status to the console
+ * 
+ * @async
+ * @function checkNodeForUpdates
+ * @param {string} sslFolder - The directory path where the update tracking file will be stored
+ * @returns {Promise<void>}
+ */
 export async function checkNodeForUpdates(sslFolder) {
     if (S_SSL.optNoAutoUpdate !== true) {
         const current = (await fetch("https://nodejs.org/dist/latest/win-x64", { method: 'GET', redirect: 'follow' })).url
