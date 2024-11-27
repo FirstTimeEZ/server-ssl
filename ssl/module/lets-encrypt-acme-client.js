@@ -75,11 +75,11 @@ let startedWhen = null;
  * @param {string} sslPath - The path where the public and private keys will be stored/loaded from.
  * @param {boolean} optGenerateAnyway - (optional) True to generate certificates before the 60 days has passed
  * @param {boolean} optStaging - (optional) True to use staging mode instead of production
- * @param {boolean} optAutoRestart - (optional) True to restart after certificates are generated, must use start-windows.bat or have own mechanism for 123 exit.
+ * @param {boolean} optNoAutoRestart - (optional) True to disable restart after certificates are generated
  * @param {function} countdownHandler - (optional) paramterless function that will fire every second during the restart count down
  * @param {function} countdownTime - (optional) how long in seconds to countdown before restarting, default 30 seconds
  */
-export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, optStaging, optAutoRestart, daysDifference, countdownHandler, countdownTime) {
+export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, optStaging, optNoAutoRestart, daysDifference, countdownHandler, countdownTime) {
     console.log("Starting Lets Encrypt ACME Daemon!");
     console.log("Copyright © 2024 FirstTimeEZ");
     console.log("--------");
@@ -179,19 +179,19 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
 
                                                                 writeFile(join(sslPath, "certificate.pem"), cert, () => {
                                                                     savedCert = true;
-                                                                    !optAutoRestart && console.log("Saved Certificate to file (certificate.pem) - Restart the Server");
+                                                                    optNoAutoRestart === true && console.log("Saved Certificate to file (certificate.pem) - Restart the Server");
                                                                 });
 
                                                                 writeFile(join(sslPath, "private-key.pem"), keyChain.privateKeySignRaw, () => {
                                                                     savedPk = true;
-                                                                    !optAutoRestart && console.log("Saved private key to file (private-key.pem) - Restart the Server");
+                                                                    optNoAutoRestart === true && console.log("Saved private key to file (private-key.pem) - Restart the Server");
                                                                 });
 
                                                                 writeFile(join(sslPath, "last.ez"), JSON.stringify({ time: Date.now(), names: fqdns }), () => {
                                                                     savedFragment = true;
                                                                 });
 
-                                                                if (optAutoRestart === true) {
+                                                                if (optNoAutoRestart == undefined) {
                                                                     console.log("-------");
                                                                     console.log("Auto Restart is Enabled");
                                                                     console.log("Restarting Server when ready...");

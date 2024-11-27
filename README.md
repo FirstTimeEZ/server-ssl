@@ -65,10 +65,8 @@ Certificates are valid for `90 days` but are renewed automatically sooner.
 | `--staging` | The `Lets Encrypt!` staging server should be used instead of production |
 | `--noAutoRestart` | The server should not restart after certificates are generated |
 
-Certificates renew when you restart your server unless you use `--autoRestart`, so restart at least once a month.
-
 ```
-./start-windows.bat --letsEncrypt --domains=['www.ssl.boats','ssl.boats'] --autoRestart
+./start-windows.bat --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
 ```
 
 --------

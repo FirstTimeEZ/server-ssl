@@ -23,7 +23,7 @@ export const S_SSL = {
     // Config
     override: false,
     urlsArray: null,
-    autoRestartAvailable: null,
+    isRestartAvailable: null,
     timeDifference: null,
     daysDifference: null,
     // Args
@@ -35,7 +35,8 @@ export const S_SSL = {
     optWebsite: null,
     optDomains: null,
     optLetsEncrypt: null,
-    optAutoRestart: true,
+    optNoAutoRestart: null,
+    optNoAutoUpdate: null,
     optGenerateAnyway: null,
     optPort: process.env.PORT || 443,
     optPortHttp: process.env.PORT_HTTP || 80,
@@ -111,13 +112,14 @@ export function importRequiredArguments() {
         arg.includes("--domains") && (S_SSL.optDomains = rightSide);
         arg.includes("--generateAnyway") && (S_SSL.optGenerateAnyway = true);
         arg.includes("--staging") && (S_SSL.optStaging = true);
-        arg.includes("--noAutoRestart") && (S_SSL.optAutoRestart = false);
-        arg.includes("--arAvailable") && (S_SSL.autoRestartAvailable = true);
+        arg.includes("--noAutoRestart") && (S_SSL.optNoAutoRestart = true);
+        arg.includes("--noAutoUpdate") && (S_SSL.optNoAutoUpdate = true);
+        arg.includes("--arAvailable") && (S_SSL.isRestartAvailable = true);
         arg.includes("--ok") && (S_SSL.override = true);
     });
 
-    S_SSL.autoRestartAvailable == false && S_SSL.override === false && (console.log("--------"), console.log("Server must be started with start-windows.bat to enable auto restart"), console.log("If you have a way to restart the server on error code 123, use override --ok"), console.log("--------"), S_SSL.optAutoRestart = false);
-    S_SSL.optAutoRestart === true && (console.log("--------"), console.log("Auto Restart Enabled"), console.log("Server will restart after certificates are renewed"), console.log("--------"))
+    S_SSL.isRestartAvailable == false && S_SSL.override === false && (console.log("--------"), console.log("Server must be started with start-windows.bat to enable auto restart"), console.log("If you have a way to restart the server on error code 123, use override --ok"), console.log("--------"), S_SSL.optNoAutoRestart = true);
+    S_SSL.optNoAutoRestart == undefined && (console.log("--------"), console.log("Auto Restart Enabled"), console.log("Server will restart after certificates are renewed"), console.log("--------"))
     S_SSL.optLetsEncrypt && S_SSL.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), S_SSL.optLetsEncrypt = false);
 
     !S_SSL.optPk && (S_SSL.optPk = 'private-key.pem');
@@ -137,25 +139,54 @@ export function importRequiredArguments() {
  * @param {function} countdownTime - (optional) how long in seconds to countdown before restarting, default 30 seconds
  */
 export function loadLetsEncryptDaemon(sslFolder, countdownHandler, countdownTime) {
-    S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.optDomains.slice(1, -1).split(',').map(url => url.trim()));
-    S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
-    S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime);
-    S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
+    S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = extractDomainsAnyFormat(S_SSL.optDomains));
+    S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optNoAutoRestart = true, console.log("AutoRestart is set to false because GenerateAnyway is true"));
+    S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime);
+    S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
 }
 
 export async function checkNodeForUpdates() {
-    const current = (await fetch("https://nodejs.org/dist/latest/win-x64", { method: 'GET', redirect: 'follow' })).url
+    if (S_SSL.optNoAutoUpdate === true) {
+        const current = (await fetch("https://nodejs.org/dist/latest/win-x64", { method: 'GET', redirect: 'follow' })).url
 
-    if (current != undefined) {
-        console.log("Current Dist:", current);
-        const split = current.split("/");
+        if (current != undefined) {
+            console.log("Current Dist:", current);
+            const split = current.split("/");
 
-        if (split.length === 7) {
-            for (let index = 0; index < split.length; index++) {
-                if (split[index][0] === "v") {
-                    console.log(split[index]);
+            if (split.length === 7) {
+                for (let index = 0; index < split.length; index++) {
+                    if (split[index][0] === "v") {
+                        console.log(split[index]);
+                    }
                 }
             }
         }
     }
+}
+
+//['www.ssl.boats','ssl.boats']
+//["www.ssl.boats","ssl.boats"]
+//[www.ssl.boats,ssl.boats]
+function extractDomainsAnyFormat(input) {
+    const str = String(input).trim();
+    const domainRegex = /'([^']+)'|"([^"]+)"/g;
+    const domains = [];
+
+    let match;
+    while ((match = domainRegex.exec(str)) !== null) {
+        const domain = match[1] || match[2];
+        if (domain) domains.push(domain);
+    }
+
+    if (domains.length === 0) {
+        const bracketsRemoved = str.replace(/[\[\]]/g, '');
+        const commaSplit = bracketsRemoved.split(',')
+            .map(d => d.trim().replace(/^['"]|['"]$/g, ''));
+
+        if (commaSplit.length > 0 && commaSplit[0]) {
+            return commaSplit;
+        }
+    }
+
+    return domains;
 }
