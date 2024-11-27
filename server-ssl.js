@@ -4,7 +4,7 @@ import { createServer as createServerHTTP } from 'http';
 import { readFile, readFileSync, existsSync } from 'fs';
 import { join, extname as _extname, dirname } from 'path';
 import { checkChallengesMixin } from './ssl/module/lets-encrypt-acme-client.js'
-import { S_SSL, importRequiredArguments, loadLetsEncryptDaemon, checkNodeForUpdates } from './ssl/ssl.js'
+import { S_SSL } from './ssl/ssl.js'
 
 const CONTENT_TYPES = {
     '.css': 'text/css',
@@ -17,7 +17,7 @@ const CONTENT_TYPES = {
     '.ico': 'image/x-icon',
 };
 
-importRequiredArguments();
+S_SSL.importRequiredArguments();
 
 const __rootDir = dirname(fileURLToPath(import.meta.url));
 const __websiteDir = join(__rootDir, S_SSL.optWebsite);
@@ -55,5 +55,5 @@ createServerHTTP((req, res) => {
 }).on('error', (e) => e.code === S_SSL.ADDR_IN_USE // Port in use
     && console.error(`${S_SSL.optPortHttp}${S_SSL.IN_USE}`)).listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`));
 
-loadLetsEncryptDaemon(__sslFolder, () => { console.log("Restarting Soon"); }, 30); // Lets Encrypt! ACME Daemon
-checkNodeForUpdates(__sslFolder); // Check Node.js version
+S_SSL.loadLetsEncryptDaemon(__sslFolder, () => { console.log("Restarting Soon"); }, 30); // Lets Encrypt! ACME Daemon
+S_SSL.checkNodeForUpdates(__sslFolder); // Check Node.js version
