@@ -31,7 +31,7 @@ Designed to get out of your way, you can still change anything about the server.
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
-[![](https://i.imgur.com/s4bhdHK.png)](https://github.com/FirstTimeEZ/server-ssl)
+[![](https://i.imgur.com/lNhCeBN.gif)](https://github.com/FirstTimeEZ/server-ssl)
 
 --------
 
