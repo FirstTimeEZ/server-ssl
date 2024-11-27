@@ -45,19 +45,15 @@ createServerHTTPS({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) 
         : (res.end(err.code === S_SSL.PAGE_NOT_FOUND
             ? (S_SSL.ERROR_404_PAGE !== null ? S_SSL.ERROR_404_PAGE : S_SSL.ERROR_NOT_FOUND)
             : (S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : S_SSL.ERROR_SERVER))));
-}).listen(S_SSL.optPort, (err) => err ? console.error(S_SSL.ERROR_STARTING, err) : console.log(`${S_SSL.STARTED_HTTPS}${S_SSL.optPort}`));
+}).on('error', (e) => e.code === S_SSL.ADDR_IN_USE  // Port in use
+    && console.error(`${S_SSL.optPort}${S_SSL.IN_USE}`)).listen(S_SSL.optPort, (err) => err ? console.error(S_SSL.ERROR_STARTING, err) : console.log(`${S_SSL.STARTED_HTTPS}${S_SSL.optPort}`));
 
 createServerHTTP((req, res) => {
-    // Lets Encrypt! HTTP-01 ACME Challenge Mixin
-    if (S_SSL.optLetsEncrypt) { if (checkChallengesMixin(req, res)) { return; } }
-
-    // Always Redirect HTTP to HTTPS unless doing a ACME Challenge
-    res.writeHead(S_SSL.REDIRECT, { [S_SSL.REDIRECT_LOCATION]: `${S_SSL.HTTPS}${req.headers.host}${req.url}` });
+    if (S_SSL.optLetsEncrypt) { if (checkChallengesMixin(req, res)) { return; } } // Lets Encrypt! HTTP-01 ACME Challenge Mixin
+    res.writeHead(S_SSL.REDIRECT, { [S_SSL.REDIRECT_LOCATION]: `${S_SSL.HTTPS}${req.headers.host}${req.url}` }); // Always Redirect HTTP to HTTPS unless doing a ACME Challenge
     res.end();
-}).listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`));
-
-//setInterval(() => { checkNodeForUpdates() }, S_SSL.TWELVE_HOURS_MILLISECONDS);
-
-checkNodeForUpdates(__sslFolder);
+}).on('error', (e) => e.code === S_SSL.ADDR_IN_USE // Port in use
+    && console.error(`${S_SSL.optPortHttp}${S_SSL.IN_USE}`)).listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`));
 
 loadLetsEncryptDaemon(__sslFolder, () => { console.log("Restarting Soon"); }, 30); // Lets Encrypt! ACME Daemon
+checkNodeForUpdates(__sslFolder); // Check Node.js version

@@ -88,6 +88,7 @@ export const S_SSL = {
     TWELVE_HOURS_MILLISECONDS: 43200000,
     ONE_DAY_MILLISECONDS: 86400000,
     PAGE_NOT_FOUND: 'ENOENT',
+    ADDR_IN_USE: 'EADDRINUSE',
     ERROR_NOT_FOUND: '404 - File Not Found',
     ERROR_SERVER: '500 - Server Error',
     ERROR_STARTING: 'Error starting server',
@@ -99,6 +100,7 @@ export const S_SSL = {
     CONTENT_TYPE: 'Content-Type',
     HTTPS: 'https://',
     REDIRECT_LOCATION: 'Location',
+    IN_USE: "in use, please close whatever is using the port and restart"
 }
 
 export function importRequiredArguments() {
