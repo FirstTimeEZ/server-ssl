@@ -19,6 +19,9 @@ import { readFile, writeFile, mkdir, existsSync, readFileSync } from 'fs';
 import { join, extname as _extname } from 'path';
 import { startLetsEncryptDaemon } from './module/lets-encrypt-acme-client.js'
 
+/**
+* **SSL-Server** configuration state
+*/
 export const S_SSL = {
     // Config
     override: null,
@@ -103,6 +106,14 @@ export const S_SSL = {
     IN_USE: "in use, please close whatever is using the port and restart"
 }
 
+/**
+ * Parses command-line arguments and configures SSL-related settings
+ * 
+ * **IMPORTANT**: This function **MUST** be called early to ensure proper configuration of all runtime parameters.
+ * 
+ * @throws {Error} Fails if critical configuration is missing
+ * @returns {void}
+ */
 export function importRequiredArguments() {
     process.argv.slice(2).forEach((arg) => {
         let rightSide = arg.split("=")[1];
