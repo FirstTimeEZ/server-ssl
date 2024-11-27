@@ -103,7 +103,13 @@ export const S_SSL = {
     CONTENT_TYPE: 'Content-Type',
     HTTPS: 'https://',
     REDIRECT_LOCATION: 'Location',
-    IN_USE: "in use, please close whatever is using the port and restart"
+    IN_USE: "in use, please close whatever is using the port and restart",
+    NODE_URL: "https://nodejs.org/dist/latest/win-x64",
+    NODE_YES: "Node.js is up to date",
+    NODE_NO: "There is a more recent version of Node.js",
+    NODE_FN: "update.ez",
+    NODE_VERSION: "v",
+    NODE_URL_SPLITS: 7
 }
 
 /**
@@ -189,17 +195,17 @@ export function loadLetsEncryptDaemon(sslFolder, countdownHandler, countdownTime
  */
 export async function checkNodeForUpdates(sslFolder) {
     if (S_SSL.optNoAutoUpdate !== true) {
-        const current = (await fetch("https://nodejs.org/dist/latest/win-x64", { method: 'GET', redirect: 'follow' })).url
+        const current = (await fetch(S_SSL.NODE_URL, { method: 'GET', redirect: 'follow' })).url
 
         if (current != undefined) {
             const split = current.split("/");
 
-            if (split.length === 7) {
+            if (split.length === S_SSL.NODE_URL_SPLITS) {
                 for (let index = 0; index < split.length; index++) {
                     const dist = split[index];
 
-                    if (dist[0] === "v") {
-                        const updatePath = join(sslFolder, "update.ez");
+                    if (dist[0] === S_SSL.NODE_VERSION) {
+                        const updatePath = join(sslFolder, S_SSL.NODE_FN);
 
                         if (existsSync(updatePath)) {
                             const lastUpdate = JSON.parse(readFileSync(updatePath));
@@ -208,10 +214,10 @@ export async function checkNodeForUpdates(sslFolder) {
                                 const lastVersion = lastUpdate.version;
 
                                 if (lastVersion === dist) {
-                                    console.log("Node.js is up to date", dist);
+                                    console.log(S_SSL.NODE_YES, dist);
                                 }
                                 else {
-                                    console.log("There is a more recent version of Node.js", dist);
+                                    console.log(S_SSL.NODE_NO, dist);
                                     // Update Required
                                 }
                             }
