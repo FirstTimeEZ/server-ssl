@@ -118,11 +118,13 @@ export function importRequiredArguments() {
         arg.includes("--ok") && (S_SSL.override = true);
     });
 
-    S_SSL.optLetsEncrypt === true && S_SSL.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), S_SSL.optLetsEncrypt = null, S_SSL.optNoAutoRestart = true);
-    S_SSL.optLetsEncrypt === true && S_SSL.isRestartAvailable === null && S_SSL.override === null && (console.log("--------"), console.log("Server must be started with start-windows.bat to enable lets encrypt auto restart at this time"), console.log("If you have a way to restart the server on error code 123, use override --ok"), console.log("--------"), S_SSL.optNoAutoRestart = true);
-    S_SSL.optLetsEncrypt === true && S_SSL.isRestartAvailable === true && S_SSL.optNoAutoRestart === true && (console.log("--------"), console.log("Auto Restart Disabled"), console.log("Auto Restart is Available but you have deliberately disabled it"), console.log("--------"));
-    S_SSL.optNoAutoRestart === null && (console.log("--------"), console.log("Auto Restart Enabled"), console.log("Server will restart after certificates are renewed"), console.log("--------"));
-
+    if (S_SSL.optLetsEncrypt === true) {
+        S_SSL.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), S_SSL.optLetsEncrypt = null, S_SSL.optNoAutoRestart = true);
+        S_SSL.isRestartAvailable === null && S_SSL.override === null && (console.log("--------"), console.log("Server must be started with start-windows.bat to enable lets encrypt auto restart at this time"), console.log("If you have a way to restart the server on error code 123, use override --ok"), console.log("--------"), S_SSL.optNoAutoRestart = true);
+        S_SSL.isRestartAvailable === true && S_SSL.optNoAutoRestart === true && (console.log("--------"), console.log("Auto Restart Disabled"), console.log("Auto Restart is Available but you have deliberately disabled it"), console.log("--------"));
+        S_SSL.optNoAutoRestart === null && (console.log("--------"), console.log("Auto Restart Enabled"), console.log("Server will restart after certificates are renewed"), console.log("--------"));
+    }
+    
     !S_SSL.optPk && (S_SSL.optPk = 'private-key.pem');
     !S_SSL.optCert && (S_SSL.optCert = 'certificate.pem');
     !S_SSL.optWebsite && (S_SSL.optWebsite = 'website');
