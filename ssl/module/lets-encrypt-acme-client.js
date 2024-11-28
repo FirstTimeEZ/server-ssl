@@ -579,12 +579,12 @@ function internalCheckForLocalHostOnce(req) {
     }
 }
 
-function internalDetermineRequirement(fqdns, optionalSslPath, daysDifference) {
-    const openSslPath = join(optionalSslPath, LAST_CERT_FILE);
+function internalDetermineRequirement(fqdns, certFilePath, daysDifference) {
+    const certFile = join(certFilePath, LAST_CERT_FILE);
     let ok = false;
 
-    if (existsSync(openSslPath)) {
-        const time = readFileSync(openSslPath);
+    if (existsSync(certFile)) {
+        const time = readFileSync(certFile);
 
         if (time != undefined) {
             const last = JSON.parse(time);
