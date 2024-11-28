@@ -658,6 +658,8 @@ function internalCheckChallenges() {
 
     pendingChallenges = [];
 
+    console.log("Cleared Answered Challenges");
+
     return true;
 }
 
