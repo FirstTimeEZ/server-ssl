@@ -612,7 +612,7 @@ function internalDetermineRequirement(fqdns, optionalSslPath, daysDifference) {
                 const timeDifference = new Date().getTime() - startedWhen.getTime();
                 const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 
-                ok = daysDifference >= attemptWhen;  //TODO: if this fails it will try every 12 hours (ssl.js:196) until it succeeds, should probably improve this but apparently its okay
+                ok = daysDifference > attemptWhen;  //TODO: if this fails it will try every 12 hours (ssl.js:196) until it succeeds, should probably improve this but apparently its okay
             }
         }
     }
