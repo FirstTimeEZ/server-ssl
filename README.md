@@ -51,17 +51,19 @@ All Arguments are case sensitive.
 
 ### Use Lets Encrypt!
 
-You can use `Lets Encrypt` to generate certificates, 
+You can use `Lets Encrypt` to generate certificates.
 
 Certificates are valid for `90 days` but are renewed automatically sooner.
 
+The certificates will be changed automatically when they are updated, you don't need to do anything.
+
 | Automated Lets Encrypt!       | Description                                      |
 |-------------------------|----------------------------------|
-| `--letsEncrypt` | `Lets Encrypt!` should be used to generate 90 day certificates |
-| `--domains=` | Fomains to generate certificates for, this can not include wild cards, this should be an array. eg. `--domains=['www.ssl.boats','ssl.boats']` |
+| `--letsEncrypt` | `Lets Encrypt!` should be used to generate 90 day certificates automatically |
+| `--domains=` | Domains to generate certificates for, this can not include wild cards, this should be an array. eg. `--domains=['www.ssl.boats','ssl.boats']` |
 | `--generateAnyway` | Certificates should always be generated when the server starts, this could get you rate limited, maybe use `--staging`  |
 | `--staging` | The `Lets Encrypt!` staging server should be used instead of production |
-| `--noAutoRestart` | The server should not restart after certificates are generated |
+| `--autoRestart` | You can restart the server after certificates are generated (optional) |
 
 ```
 ./start-windows.bat --letsEncrypt --domains=['www.ssl.boats','ssl.boats']

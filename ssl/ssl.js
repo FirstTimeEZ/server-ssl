@@ -38,7 +38,7 @@ export const S_SSL = {
     optWebsite: null,
     optDomains: null,
     optLetsEncrypt: null,
-    optNoAutoRestart: null,
+    optAutoRestart: null,
     optNoAutoUpdate: null,
     optGenerateAnyway: null,
     optPort: process.env.PORT || 443,
@@ -88,7 +88,7 @@ export const S_SSL = {
             arg.includes("--domains=") && (S_SSL.optDomains = rightSide);
             arg.includes("--letsEncrypt") && (S_SSL.optLetsEncrypt = true);
             arg.includes("--generateAnyway") && (S_SSL.optGenerateAnyway = true);
-            arg.includes("--noAutoRestart") && (S_SSL.optNoAutoRestart = true);
+            arg.includes("--autoRestart") && (S_SSL.optAutoRestart = true);
             arg.includes("--staging") && (S_SSL.optStaging = true);
             // Internal
             arg.includes("--notAfter=") && (S_SSL.expireDate = rightSide);
@@ -97,12 +97,11 @@ export const S_SSL = {
         });
 
         if (S_SSL.optLetsEncrypt === true) {
-            S_SSL.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), S_SSL.optLetsEncrypt = null, S_SSL.optNoAutoRestart = true);
+            S_SSL.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), S_SSL.optLetsEncrypt = null, S_SSL.optAutoRestart = false);
 
-            if (S_SSL.optLetsEncrypt !== null) {
-                S_SSL.isRestartAvailable === null && S_SSL.override === null && (console.log("--------"), console.log("Server must be started with start-windows.bat to enable lets encrypt auto restart at this time"), console.log("If you have a way to restart the server on error code 123, use override --ok"), console.log("--------"), S_SSL.optNoAutoRestart = true);
-                S_SSL.isRestartAvailable === true && S_SSL.optNoAutoRestart === true && (console.log("--------"), console.log("Auto Restart Disabled"), console.log("Auto Restart is Available but you have deliberately disabled it"), console.log("--------"));
-                S_SSL.optNoAutoRestart === null && (console.log("--------"), console.log("Auto Restart Enabled"), console.log("Server will restart after certificates are renewed"), console.log("--------"));
+            if (S_SSL.optLetsEncrypt !== null && S_SSL.optAutoRestart === true) {
+                S_SSL.isRestartAvailable === null && S_SSL.override === null && (console.log("--------"), console.log("Server must be started with start-windows.bat to enable lets encrypt auto restart at this time"), console.log("If you have a way to restart the server on error code 123, use override --ok"), console.log("--------"), S_SSL.optAutoRestart = false);
+                console.log("--------"), console.log("Auto Restart Enabled"), console.log("Server will restart after certificates are renewed"), console.log("--------");
             }
         }
 
@@ -191,8 +190,8 @@ export const S_SSL = {
     },
     loadLetsEncryptDaemon: (sslFolder, countdownHandler, countdownTime, certificateCallback) => {
         S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.extractDomainsAnyFormat(S_SSL.optDomains));
-        S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optNoAutoRestart = true, console.log("AutoRestart is set to false because GenerateAnyway is true"));
-        S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime, certificateCallback);
-        S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime, certificateCallback), S_SSL.TWELVE_HOURS_MILLISECONDS);
+        S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
+        S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime);
+        S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
     }
 }

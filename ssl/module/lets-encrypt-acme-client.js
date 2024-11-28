@@ -82,14 +82,14 @@ let startedWhen = null;
  *
  * @param {array} fqdns - The fully qualified domain name as a SAN ["example.com","www.example.com"]
  * @param {string} sslPath - The path where the public and private keys will be stored/loaded from.
+ * @param {function} certificateCallback - callback that can be used to update the certificates if auto restart is disabled
  * @param {boolean} optGenerateAnyway - (optional) True to generate certificates before the 60 days has passed
  * @param {boolean} optStaging - (optional) True to use staging mode instead of production
  * @param {boolean} optNoAutoRestart - (optional) True to disable restart after certificates are generated
  * @param {function} countdownHandler - (optional) paramterless function that will fire every second during the restart count down
  * @param {function} countdownTime - (optional) how long in seconds to countdown before restarting, default 30 seconds
- * @param {function} certificateCallback - (optional) callback that can be used to update the certificates if auto restart is disabled
  */
-export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, optStaging, optNoAutoRestart, daysDifference, countdownHandler, countdownTime, certificateCallback) {
+export async function startLetsEncryptDaemon(fqdns, sslPath, certificateCallback, optGenerateAnyway, optStaging, optAutoRestart, daysDifference, countdownHandler, countdownTime) {
     console.log("Starting Lets Encrypt ACME Daemon!");
     console.log("Copyright © 2024 FirstTimeEZ");
     console.log("--------");
@@ -198,7 +198,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
 
                                                                 writeFile(join(sslPath, LAST_CERT_FILE), JSON.stringify({ time: Date.now(), names: fqdns }), () => { savedFragment = true; });
 
-                                                                if (optNoAutoRestart == undefined) {
+                                                                if (optAutoRestart === true) {
                                                                     console.log("-------");
                                                                     console.log("Auto Restart is Enabled");
                                                                     console.log("Restarting Server when ready...");
