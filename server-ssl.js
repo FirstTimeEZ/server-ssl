@@ -56,7 +56,7 @@ createServerHTTP((req, res) => {
     && console.error(`${S_SSL.optPortHttp}${S_SSL.IN_USE}`)).listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`));
 
 S_SSL.loadLetsEncryptDaemon(__sslFolder, // Lets Encrypt! ACME Daemon
-    () => { // Restart Callback
+    () => { // Restart Callback, use --autoRestart
         console.log("Restarting Soon");
     }, 30, // Restart Seconds (number of callbacks)
     () => { // Update Certificates Callback

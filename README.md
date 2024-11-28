@@ -63,7 +63,7 @@ The certificates will be changed automatically when they are updated, you don't 
 | `--domains=` | Domains to generate certificates for, this can not include wild cards, this should be an array. eg. `--domains=['www.ssl.boats','ssl.boats']` |
 | `--generateAnyway` | Certificates should always be generated when the server starts, this could get you rate limited, maybe use `--staging`  |
 | `--staging` | The `Lets Encrypt!` staging server should be used instead of production |
-| `--autoRestart` | You can restart the server after certificates are generated (optional) |
+| `--autoRestart` | Restart the server after certificates are generated, firing a callback to notify of the restart (not required) |
 
 ```
 ./start-windows.bat --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
