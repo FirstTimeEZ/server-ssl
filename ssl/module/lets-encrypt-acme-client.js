@@ -52,6 +52,7 @@ const METHOD_HEAD = "HEAD";
 const METHOD_POST_AS_GET = "";
 const METHOD_POST_AS_GET_CHALLENGE = {};
 
+const VALID = "valid";
 const SAN = "identifiers";
 const NEXT_URL = "location";
 const REPLAY_NONCE = 'replay-nonce';
@@ -60,6 +61,7 @@ const ONE_SECOND_MS = 1000;
 const SIXTY_PERCENT = 0.60;
 const THIRTY_PERCENT = 0.30;
 const ONE_DAY_MILLISECONDS = 86400000;
+const CHECK_CLOSE_TIME = 65000;
 
 let pendingChallenges = [];
 
@@ -111,7 +113,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
         if (firstNonce.nonce !== null) {
             account = await createAccount(firstNonce.nonce, acmeDirectory.newAccount, keyChain).catch(console.error);
 
-            if (account.answer.account && account.answer.account.status == "valid") {
+            if (account.answer.account && account.answer.account.status == VALID) {
                 let domains = [];
 
                 fqdns.forEach((element) => {
@@ -171,13 +173,13 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                                 finalizeOrder(fqdns[0], account.answer.location, nextNonce, keyChain, order.answer.get.finalize, fqdns).then((finalized) => {
 
                                     if (finalized.answer.get) {
-                                        if (finalized.answer.get.status == "processing" || finalized.answer.get.status == "valid") {
+                                        if (finalized.answer.get.status == "processing" || finalized.answer.get.status == VALID) {
 
                                             console.log("Waiting for Certificate to be Ready for Download");
                                             const waitForProcessingValid = setInterval(() => {
 
                                                 postAsGet(account.answer.location, nextNonce, keyChain, finalized.answer.location).then((checkFinalized) => {
-                                                    if (checkFinalized.answer.get != undefined && checkFinalized.answer.get.status == "valid") {
+                                                    if (checkFinalized.answer.get != undefined && checkFinalized.answer.get.status == VALID) {
                                                         console.log("Certificate Ready for Download");
                                                         console.log("Certificate URL:", checkFinalized.answer.get.certificate);
 
@@ -295,7 +297,7 @@ export function checkChallengesMixin(req, res) {
 
                         bufferModified = true;
 
-                        checkAnswersFlag === false && (checkAnswersFlag = true, setTimeout(() => internalCheckAnswered(), 60000));
+                        checkAnswersFlag === false && (checkAnswersFlag = true, setTimeout(() => internalCheckAnswered(), CHECK_CLOSE_TIME));
                     }
                 }
 
@@ -649,9 +651,7 @@ function internalDetermineRequirement(fqdns, certFilePath, daysDifference) {
 
 function internalCheckChallenges() {
     for (let index = 0; index < pendingChallenges.length; index++) {
-        const element = pendingChallenges[index];
-
-        if (element.answered == false) {
+        if (pendingChallenges[index].answered === false) {
             return false;
         }
     }
@@ -664,18 +664,22 @@ function internalCheckChallenges() {
 function internalCheckAnswered() {
     checkAnswersFlag = false;
 
-    for (let index = 0; index < pendingChallenges.length; index++) {
-        const element = pendingChallenges[index];
+    try {
+        for (let index = 0; index < pendingChallenges.length; index++) {
+            const element = pendingChallenges[index];
 
-        fetch(element.url).then(async (response) => {
-            const record = await response.json();
-            if (record.status === 'valid') {
-                console.log(record);
-                pendingChallenges[index].answered = true;
-            }
-            else if (record.status === 404) {
-                pendingChallenges[index].answered = true;
-            }
-        });
+            fetch(element.url).then(async (response) => {
+                const record = await response.json();
+                if (record.status === VALID) {
+                    console.log(record);
+                    pendingChallenges[index].answered = true;
+                }
+                else if (record.status === 404) {
+                    pendingChallenges[index].answered = true;
+                }
+            });
+        }
+    } catch (exception) {
+        console.error(exception);
     }
 }
