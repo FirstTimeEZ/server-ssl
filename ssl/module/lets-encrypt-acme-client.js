@@ -219,6 +219,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
                                                                             if (savedCert === true && savedPk === true && savedFragment === true) {
                                                                                 certificateCallback();
                                                                                 clearInterval(certI);
+                                                                                internalCheckAnswered();
                                                                                 resolve();
                                                                             }
                                                                         }, 200);
@@ -670,16 +671,18 @@ async function internalCheckAnswered() {
         for (let index = 0; index < pendingChallenges.length; index++) {
             const element = pendingChallenges[index];
 
-            await fetch(element.url).then(async (response) => {
-                const record = await response.json();
-                if (record.status === VALID) {
-                    console.log(record);
-                    pendingChallenges[index].answered = true;
-                }
-                else if (record.status === 404) {
-                    pendingChallenges[index].answered = true;
-                }
-            });
+            if (pendingChallenges[index].answered === false) {
+                await fetch(element.url).then(async (response) => {
+                    const record = await response.json();
+                    if (record.status === VALID) {
+                        console.log(record);
+                        pendingChallenges[index].answered = true;
+                    }
+                    else if (record.status === 404) {
+                        pendingChallenges[index].answered = true;
+                    }
+                });
+            }
         }
 
         internalCheckChallenges();
