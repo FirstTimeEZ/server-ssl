@@ -57,6 +57,8 @@ const SAN = "identifiers";
 const NEXT_URL = "location";
 const REPLAY_NONCE = 'replay-nonce';
 
+const REDIRECT_ONLY = "Cleared Answered Challenges - HTTP is now redirect only";
+
 const ONE_SECOND_MS = 1000;
 const SIXTY_PERCENT = 0.60;
 const THIRTY_PERCENT = 0.30;
@@ -297,7 +299,7 @@ export function checkChallengesMixin(req, res) {
 
                         bufferModified = true;
 
-                        checkAnswersFlag === false && (checkAnswersFlag = true, setTimeout(() => internalCheckAnswered(), CHECK_CLOSE_TIME));
+                        checkAnswersFlag === false && (checkAnswersFlag = true, setTimeout(async () => await internalCheckAnswered(), CHECK_CLOSE_TIME));
                     }
                 }
 
@@ -658,7 +660,7 @@ function internalCheckChallenges() {
 
     pendingChallenges = [];
 
-    console.log("Cleared Answered Challenges");
+    console.log(REDIRECT_ONLY);
 
     return true;
 }
