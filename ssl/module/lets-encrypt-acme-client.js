@@ -679,6 +679,8 @@ function internalCheckAnswered() {
                 }
             });
         }
+
+        internalCheckChallenges();
     } catch (exception) {
         console.error(exception);
     }
