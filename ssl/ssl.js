@@ -189,10 +189,10 @@ export const S_SSL = {
             }
         }
     },
-    loadLetsEncryptDaemon: (sslFolder, countdownHandler, countdownTime) => {
+    loadLetsEncryptDaemon: (sslFolder, countdownHandler, countdownTime, certificateCallback) => {
         S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.extractDomainsAnyFormat(S_SSL.optDomains));
         S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optNoAutoRestart = true, console.log("AutoRestart is set to false because GenerateAnyway is true"));
-        S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime);
-        S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
+        S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime, certificateCallback);
+        S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optNoAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime, certificateCallback), S_SSL.TWELVE_HOURS_MILLISECONDS);
     }
 }

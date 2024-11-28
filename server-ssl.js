@@ -33,7 +33,7 @@ const __certPath = join(__sslFolder, S_SSL.optCert);
 
 S_SSL.loadErrorPages(__errorDir);
 
-createServerHTTPS({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) }, (req, res) => {
+const HTTPS_SERVER = createServerHTTPS({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) }, (req, res) => {
     const filePath = join(__websiteDir, req.url === S_SSL.WEBSITE_ROOT ? S_SSL.optEntry : req.url);
     const fileExtension = _extname(filePath);
 
@@ -55,5 +55,8 @@ createServerHTTP((req, res) => {
 }).on('error', (e) => e.code === S_SSL.ADDR_IN_USE // Port in use
     && console.error(`${S_SSL.optPortHttp}${S_SSL.IN_USE}`)).listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`));
 
-S_SSL.loadLetsEncryptDaemon(__sslFolder, () => { console.log("Restarting Soon"); }, 30); // Lets Encrypt! ACME Daemon
+S_SSL.loadLetsEncryptDaemon(__sslFolder, () => { console.log("Restarting Soon"); }, 30, () => { // Lets Encrypt! ACME Daemon
+    HTTPS_SERVER.setSecureContext({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) });
+});
+
 S_SSL.checkNodeForUpdates(__sslFolder); // Check Node.js version
