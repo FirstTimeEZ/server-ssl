@@ -594,12 +594,12 @@ function internalDetermineRequirement(fqdns, certFilePath, daysDifference) {
 
                 if (last.names instanceof Array) {
                     if (fqdns.length !== last.names.length) {
-                        return false;
+                        return ok;
                     }
 
                     for (let index = 0; index < last.names.length; index++) {
                         if (fqdns[index] != last.names[index]) {
-                            return false;
+                            return ok;
                         }
                     }
                 }
