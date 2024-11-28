@@ -56,6 +56,11 @@ const SAN = "identifiers";
 const NEXT_URL = "location";
 const REPLAY_NONCE = 'replay-nonce';
 
+const ONE_SECOND_MS = 1000;
+const SIXTY_PERCENT = 0.60;
+const THIRTY_PERCENT = 0.30;
+const ONE_DAY_MILLISECONDS = 86400000;
+
 const pendingChallenges = [];
 
 let localHost = false;
@@ -584,7 +589,7 @@ function internalDetermineRequirement(fqdns, optionalSslPath, daysDifference) {
             const last = JSON.parse(time);
 
             if (last != undefined) {
-                console.log("It has been: " + ((Date.now() - last.time) / 1000) + " seconds since you last generated certificates");
+                console.log("It has been: " + ((Date.now() - last.time) / ONE_SECOND_MS) + " seconds since you last generated certificates");
 
                 for (let index = 0; index < last.names.length; index++) {
                     const element = last.names[index];
@@ -597,9 +602,9 @@ function internalDetermineRequirement(fqdns, optionalSslPath, daysDifference) {
         }
 
         if (daysDifference != undefined) {
-            if (attemptWhen === null) {                
-                const sixty = daysDifference * 0.60;
-                const thirty = daysDifference * 0.30;
+            if (attemptWhen === null) {
+                const sixty = daysDifference * SIXTY_PERCENT;
+                const thirty = daysDifference * THIRTY_PERCENT;
                 const attemptDays = sixty + Math.floor(Math.random() * thirty);
 
                 console.log("Will renew certificates in [" + attemptDays + "] days if server doesn't restart");
@@ -610,7 +615,7 @@ function internalDetermineRequirement(fqdns, optionalSslPath, daysDifference) {
                 startedWhen = new Date();
             } else {
                 const timeDifference = new Date().getTime() - startedWhen.getTime();
-                const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+                const daysDifference = Math.floor(timeDifference / ONE_DAY_MILLISECONDS);
 
                 ok = daysDifference > attemptWhen;  //TODO: if this fails it will try every 12 hours (ssl.js:196) until it succeeds, should probably improve this but apparently its okay
             }
