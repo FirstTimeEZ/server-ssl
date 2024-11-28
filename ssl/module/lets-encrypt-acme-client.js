@@ -58,9 +58,6 @@ const REPLAY_NONCE = 'replay-nonce';
 
 const pendingChallenges = [];
 
-const ONE_DAY_MILLISECONDS = 24 * 60 * 60 * 1000;
-const DAYS_MILLISECONDS = 60 * ONE_DAY_MILLISECONDS;
-
 let localHost = false;
 let checkedForLocalHost = false;
 
@@ -609,7 +606,7 @@ function internalDetermineRequirement(fqdns, optionalSslPath, daysDifference) {
 
                 attemptWhen = attemptDays;
                 ok = attemptDays > 1;
-                
+
                 startedWhen = new Date();
             } else {
                 let timeDifference = new Date().getTime() - startedWhen.getTime();
