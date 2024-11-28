@@ -142,7 +142,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                         const element = pendingChallenges[index];
                         nextNonce = nextNonce;
 
-                        if (element.type == "http-01" && element.status == "pending") {
+                        if (element.type == HTTP && element.status == STATUS_PENDING) {
                             let auth = await postAsGetChal(account.answer.location, nextNonce, keyChain, element.url);
 
                             if (auth.answer.get.status) {
