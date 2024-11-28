@@ -593,11 +593,11 @@ function internalDetermineRequirement(fqdns, certFilePath, daysDifference) {
                 last.time != undefined && console.log("It has been: " + ((Date.now() - last.time) / ONE_SECOND_MS) + " seconds since you last generated certificates");
 
                 if (last.names instanceof Array) {
-                    for (let index = 0; index < last.names.length; index++) {
-                        if (fqdns.length !== last.names.length) {
-                            return false;
-                        }
+                    if (fqdns.length !== last.names.length) {
+                        return false;
+                    }
 
+                    for (let index = 0; index < last.names.length; index++) {
                         if (fqdns[index] != last.names[index]) {
                             return false;
                         }
