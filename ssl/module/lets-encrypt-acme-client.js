@@ -209,12 +209,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                                                                     }
                                                                     else {
                                                                         let count = 0;
-                                                                        setInterval(() => {
-                                                                            count++;
-                                                                            count > countdownTime
-                                                                                ? new Promise(() => setInterval(() => (savedCert === true && savedPk === true && savedFragment === true) && process.exit(123), 200))
-                                                                                : countdownHandler();
-                                                                        }, 1000);
+                                                                        setInterval(() => (count++, count > countdownTime ? process.exit(123) : countdownHandler()), 1000);
                                                                     }
                                                                 }
                                                                 else if (certificateCallback != undefined) {
