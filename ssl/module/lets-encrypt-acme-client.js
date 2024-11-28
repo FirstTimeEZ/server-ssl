@@ -57,7 +57,7 @@ const SAN = "identifiers";
 const NEXT_URL = "location";
 const REPLAY_NONCE = 'replay-nonce';
 
-const REDIRECT_ONLY = "Cleared Answered Challenges - HTTP is now redirect only";
+const REDIRECT_ONLY = "Cleared Answered Challenges - HTTP is now redirect only until new challenges are created";
 
 const ONE_SECOND_MS = 1000;
 const SIXTY_PERCENT = 0.60;
