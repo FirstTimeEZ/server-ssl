@@ -82,19 +82,20 @@ let startedWhen = null;
  *
  * @param {array} fqdns - The fully qualified domain name as a SAN ["example.com","www.example.com"]
  * @param {string} sslPath - The path where the public and private keys will be stored/loaded from.
+ * @param {boolean} daysRemaining - The number of days left before the certificate expires
  * @param {function} certificateCallback - callback that can be used to update the certificates if auto restart is disabled
  * @param {boolean} optGenerateAnyway - (optional) True to generate certificates before the 60 days has passed
  * @param {boolean} optStaging - (optional) True to use staging mode instead of production
- * @param {boolean} optNoAutoRestart - (optional) True to disable restart after certificates are generated
+ * @param {boolean} optAutoRestart - (optional) True to restart after certificates are generated, You don't need to do this but you might want to
  * @param {function} countdownHandler - (optional) paramterless function that will fire every second during the restart count down
  * @param {function} countdownTime - (optional) how long in seconds to countdown before restarting, default 30 seconds
  */
-export async function startLetsEncryptDaemon(fqdns, sslPath, certificateCallback, optGenerateAnyway, optStaging, optAutoRestart, daysDifference, countdownHandler, countdownTime) {
+export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, certificateCallback, optGenerateAnyway, optStaging, optAutoRestart, countdownHandler, countdownTime) {
     console.log("Starting Lets Encrypt ACME Daemon!");
     console.log("Copyright © 2024 FirstTimeEZ");
     console.log("--------");
 
-    if (internalDetermineRequirement(fqdns, sslPath, daysDifference) && optGenerateAnyway !== true) {
+    if (internalDetermineRequirement(fqdns, sslPath, daysRemaining) && optGenerateAnyway !== true) {
         return;
     }
 
@@ -599,7 +600,7 @@ function internalCheckForLocalHostOnce(req) {
     return false;
 }
 
-function internalDetermineRequirement(fqdns, certFilePath, daysDifference) {
+function internalDetermineRequirement(fqdns, certFilePath, daysRemaining) {
     const certFile = join(certFilePath, LAST_CERT_FILE);
     let ok = false;
 
@@ -626,24 +627,22 @@ function internalDetermineRequirement(fqdns, certFilePath, daysDifference) {
             }
         }
 
-        if (daysDifference != undefined) {
-            if (attemptWhen === null) {
-                const sixty = daysDifference * SIXTY_PERCENT;
-                const thirty = daysDifference * THIRTY_PERCENT;
-                const attemptDays = sixty + Math.floor(Math.random() * thirty);
+        if (attemptWhen === null) {
+            const sixty = daysRemaining * SIXTY_PERCENT;
+            const thirty = daysRemaining * THIRTY_PERCENT;
+            const attemptDays = sixty + Math.floor(Math.random() * thirty);
 
-                console.log("Will renew certificates in [" + attemptDays + "] days if server doesn't restart");
+            console.log("Will renew certificates in [" + attemptDays + "] days if server doesn't restart");
 
-                ok = attemptDays > 1;
-                attemptWhen = attemptDays;
+            ok = attemptDays > 1;
+            attemptWhen = attemptDays;
 
-                startedWhen = new Date().getTime();
-            } else {
-                const timeDifference = new Date().getTime() - startedWhen;
-                const daysDifference = Math.floor(timeDifference / ONE_DAY_MILLISECONDS);
+            startedWhen = new Date().getTime();
+        } else {
+            const timeDiffMilliseconds = new Date().getTime() - startedWhen;
+            const daysSince = Math.floor(timeDiffMilliseconds / ONE_DAY_MILLISECONDS);
 
-                ok = daysDifference < attemptWhen;  //TODO: if this fails it will try every 12 hours (ssl.js:196) until it succeeds, should probably improve this but apparently its okay
-            }
+            ok = daysSince < attemptWhen;  //TODO: if this fails it will try every 12 hours (ssl.js:196) until it succeeds, should probably improve this but apparently its okay
         }
     }
 

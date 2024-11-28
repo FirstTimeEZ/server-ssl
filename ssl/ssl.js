@@ -27,8 +27,8 @@ export const S_SSL = {
     override: null,
     urlsArray: null,
     isRestartAvailable: null,
-    timeDifference: null,
-    daysDifference: null,
+    timeRemaining: null,
+    daysRemaining: null,
     // Args
     optPk: null,
     optCert: null,
@@ -138,13 +138,11 @@ export const S_SSL = {
         const specificDate = new Date(notAfter);
         const currentDate = new Date();
 
-        S_SSL.timeDifference = specificDate.getTime() - currentDate.getTime();
-        S_SSL.daysDifference = Math.floor(S_SSL.timeDifference / (1000 * 60 * 60 * 24));
-        const hoursDifference = Math.floor((S_SSL.timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutesDifference = Math.floor((S_SSL.timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-        const secondsDifference = Math.floor((S_SSL.timeDifference % (1000 * 60)) / 1000);
-
-        console.log(`Time until renewal required: ${S_SSL.daysDifference} days, ${hoursDifference} hours, ${minutesDifference} minutes, ${secondsDifference} seconds`);
+        S_SSL.timeRemaining = specificDate.getTime() - currentDate.getTime();
+        S_SSL.daysRemaining = Math.floor(S_SSL.timeRemaining / (1000 * 60 * 60 * 24));
+        const hoursRemaining = Math.floor((S_SSL.timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutesRemaining = Math.floor((S_SSL.timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+        console.log(`Time until renewal required: ${S_SSL.daysRemaining} days, ${hoursRemaining} hours, ${minutesRemaining} minutes`);
     },
     extractDomainsAnyFormat: (input) => {
         const bracketsRemoved = String(input).trim().replace(/[\[\]]/g, '');
@@ -191,7 +189,7 @@ export const S_SSL = {
     loadLetsEncryptDaemon: (sslFolder, countdownHandler, countdownTime, certificateCallback) => {
         S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.extractDomainsAnyFormat(S_SSL.optDomains));
         S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
-        S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime);
-        S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, S_SSL.daysDifference, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
+        S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.daysRemaining, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, countdownHandler, countdownTime);
+        S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.daysRemaining, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
     }
 }
