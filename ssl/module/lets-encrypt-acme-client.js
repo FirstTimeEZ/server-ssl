@@ -217,7 +217,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                                                                         }, 1000);
                                                                     }
                                                                 }
-                                                                else {
+                                                                else if (certificateCallback != undefined) {
                                                                     new Promise((resolve) => {
                                                                         const certI = setInterval(() => {
                                                                             if (savedCert === true && savedPk === true && savedFragment === true) {
