@@ -613,9 +613,9 @@ function internalDetermineRequirement(fqdns, certFilePath, daysDifference) {
                 attemptWhen = attemptDays;
                 ok = attemptDays > 1;
 
-                startedWhen = new Date();
+                startedWhen = new Date().getTime();
             } else {
-                const timeDifference = new Date().getTime() - startedWhen.getTime();
+                const timeDifference = new Date().getTime() - startedWhen;
                 const daysDifference = Math.floor(timeDifference / ONE_DAY_MILLISECONDS);
 
                 ok = daysDifference > attemptWhen;  //TODO: if this fails it will try every 12 hours (ssl.js:196) until it succeeds, should probably improve this but apparently its okay
