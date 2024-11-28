@@ -87,8 +87,9 @@ let startedWhen = null;
  * @param {boolean} optNoAutoRestart - (optional) True to disable restart after certificates are generated
  * @param {function} countdownHandler - (optional) paramterless function that will fire every second during the restart count down
  * @param {function} countdownTime - (optional) how long in seconds to countdown before restarting, default 30 seconds
+ * @param {function} certificateCallback - (optional) callback that can be used to update the certificates if auto restart is disabled
  */
-export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, optStaging, optNoAutoRestart, daysDifference, countdownHandler, countdownTime) {
+export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, optStaging, optNoAutoRestart, daysDifference, countdownHandler, countdownTime, certificateCallback) {
     console.log("Starting Lets Encrypt ACME Daemon!");
     console.log("Copyright © 2024 FirstTimeEZ");
     console.log("--------");
@@ -191,19 +192,11 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                                                                 let savedPk = null;
                                                                 let savedFragment = null;
 
-                                                                writeFile(join(sslPath, "certificate.pem"), cert, () => {
-                                                                    savedCert = true;
-                                                                    optNoAutoRestart === true && console.log("Saved Certificate to file (certificate.pem) - Restart the Server");
-                                                                });
+                                                                writeFile(join(sslPath, "certificate.pem"), cert, () => { savedCert = true; });
 
-                                                                writeFile(join(sslPath, "private-key.pem"), keyChain.privateKeySignRaw, () => {
-                                                                    savedPk = true;
-                                                                    optNoAutoRestart === true && console.log("Saved private key to file (private-key.pem) - Restart the Server");
-                                                                });
+                                                                writeFile(join(sslPath, "private-key.pem"), keyChain.privateKeySignRaw, () => { savedPk = true; });
 
-                                                                writeFile(join(sslPath, LAST_CERT_FILE), JSON.stringify({ time: Date.now(), names: fqdns }), () => {
-                                                                    savedFragment = true;
-                                                                });
+                                                                writeFile(join(sslPath, LAST_CERT_FILE), JSON.stringify({ time: Date.now(), names: fqdns }), () => { savedFragment = true; });
 
                                                                 if (optNoAutoRestart == undefined) {
                                                                     console.log("-------");
@@ -216,13 +209,24 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                                                                     }
                                                                     else {
                                                                         let count = 0;
-                                                                        let waiting = setInterval(() => {
+                                                                        setInterval(() => {
                                                                             count++;
                                                                             count > countdownTime
-                                                                                ? (new Promise(() => setInterval(() => (savedCert === true && savedPk === true && savedFragment === true) && process.exit(123), 200)), clearInterval(waiting))
+                                                                                ? new Promise(() => setInterval(() => (savedCert === true && savedPk === true && savedFragment === true) && process.exit(123), 200))
                                                                                 : countdownHandler();
                                                                         }, 1000);
                                                                     }
+                                                                }
+                                                                else {
+                                                                    new Promise((resolve) => {
+                                                                        const certI = setInterval(() => {
+                                                                            if (savedCert === true && savedPk === true && savedFragment === true) {
+                                                                                certificateCallback();
+                                                                                clearInterval(certI);
+                                                                                resolve();
+                                                                            }
+                                                                        }, 200);
+                                                                    });
                                                                 }
                                                             });
                                                         });
