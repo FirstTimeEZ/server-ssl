@@ -634,7 +634,7 @@ function internalDetermineRequirement(fqdns, certFilePath, daysRemaining) {
 
             console.log("Will renew certificates in [" + attemptDays + "] days if server doesn't restart");
 
-            ok = attemptDays > 1;
+            ok = attemptDays > 7;
             attemptWhen = attemptDays;
 
             startedWhen = new Date().getTime();
