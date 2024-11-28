@@ -61,8 +61,9 @@ const SIXTY_PERCENT = 0.60;
 const THIRTY_PERCENT = 0.30;
 const ONE_DAY_MILLISECONDS = 86400000;
 
-const pendingChallenges = [];
+let pendingChallenges = [];
 
+let checkAnswersFlag = false;
 let localHost = false;
 let checkedForLocalHost = false;
 
@@ -128,10 +129,15 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
                     for (let index = 0; index < authorizations.length; index++) {
                         const element = authorizations[index];
                         nextNonce = nextNonce;
+
                         let auth = await postAsGet(account.answer.location, nextNonce, keyChain, element);
 
                         if (auth.answer.get.status) {
-                            pendingChallenges.push(...auth.answer.get.challenges);
+                            for (let index = 0; index < auth.answer.get.challenges.length; index++) {
+                                const challenge = auth.answer.get.challenges[index];
+                                challenge.type == HTTP && (challenge.answered = false, pendingChallenges.push(challenge));
+                            }
+
                             console.log("Next Nonce", (nextNonce = auth.nonce));
                         } else {
                             console.error("Error getting auth", auth.answer.error, auth.answer.exception);
@@ -261,7 +267,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
  * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
  */
 export function checkChallengesMixin(req, res) {
-    if (pendingChallenges.length === 0 || localHost === true || jsonWebKey == undefined) {
+    if (pendingChallenges.length === 0 || localHost === true || jsonWebKey == undefined || internalCheckChallenges()) {
         return false;
     }
 
@@ -286,7 +292,10 @@ export function checkChallengesMixin(req, res) {
                             res.writeHead(SUCESS, { [CONTENT_TYPE]: CONTENT_TYPE_OCTET });
                             res.end(Buffer.from(`${challenge.token}.${thumbPrint}`));
                         });
+
                         bufferModified = true;
+
+                        checkAnswersFlag === false && (checkAnswersFlag = true, setTimeout(() => internalCheckAnswered(), 60000));
                     }
                 }
 
@@ -636,4 +645,37 @@ function internalDetermineRequirement(fqdns, certFilePath, daysDifference) {
     }
 
     return ok;
+}
+
+function internalCheckChallenges() {
+    for (let index = 0; index < pendingChallenges.length; index++) {
+        const element = pendingChallenges[index];
+
+        if (element.answered == false) {
+            return false;
+        }
+    }
+
+    pendingChallenges = [];
+
+    return true;
+}
+
+function internalCheckAnswered() {
+    checkAnswersFlag = false;
+
+    for (let index = 0; index < pendingChallenges.length; index++) {
+        const element = pendingChallenges[index];
+
+        fetch(element.url).then(async (response) => {
+            const record = await response.json();
+            if (record.status === 'valid') {
+                console.log(record);
+                pendingChallenges[index].answered = true;
+            }
+            else if (record.status === 404) {
+                pendingChallenges[index].answered = true;
+            }
+        });
+    }
 }
