@@ -261,7 +261,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, optGenerateAnyway, 
  * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
  */
 export function checkChallengesMixin(req, res) {
-    if (localHost === true || jsonWebKey == undefined) {
+    if (pendingChallenges.length === 0 || localHost === true || jsonWebKey == undefined) {
         return false;
     }
 
