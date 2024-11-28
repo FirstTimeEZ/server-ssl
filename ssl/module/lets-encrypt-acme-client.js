@@ -266,7 +266,9 @@ export function checkChallengesMixin(req, res) {
     }
 
     try {
-        internalCheckForLocalHostOnce(req);
+        if (internalCheckForLocalHostOnce(req)) {
+            return false;
+        }
 
         if (req.url.startsWith(WELL_KNOWN) && req.url.length < MAX_LENGTH) {
             const split = req.url.split(DELIM);
@@ -564,6 +566,8 @@ async function generateKeyChain(sslPath) {
 
 function internalCheckForLocalHostOnce(req) {
     if (checkedForLocalHost === false && localHost === false) {
+        checkedForLocalHost = true;
+
         let ip = req.socket.remoteAddress;
 
         if (req.headers['x-forwarded-for']) {
@@ -573,10 +577,12 @@ function internalCheckForLocalHostOnce(req) {
         if (ip === '127.0.0.1' || ip === '::1' || ip === 'localhost') {
             localHost = true;
             console.error(ip, req.headers.host, "You can not generate lets encrypt certificates for localhost");
-        }
 
-        checkedForLocalHost = true;
+            return true;
+        }
     }
+
+    return false;
 }
 
 function internalDetermineRequirement(fqdns, certFilePath, daysDifference) {
