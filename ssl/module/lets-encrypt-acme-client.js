@@ -663,14 +663,14 @@ function internalCheckChallenges() {
     return true;
 }
 
-function internalCheckAnswered() {
+async function internalCheckAnswered() {
     checkAnswersFlag = false;
 
     try {
         for (let index = 0; index < pendingChallenges.length; index++) {
             const element = pendingChallenges[index];
 
-            fetch(element.url).then(async (response) => {
+            await fetch(element.url).then(async (response) => {
                 const record = await response.json();
                 if (record.status === VALID) {
                     console.log(record);
