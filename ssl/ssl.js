@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { readFile, writeFile, mkdir, existsSync, readFileSync } from 'fs';
+import { readFile, writeFile, existsSync, readFileSync } from 'fs';
 import { join, extname as _extname } from 'path';
 import { startLetsEncryptDaemon } from './module/lets-encrypt-acme-client.js';
 
@@ -64,7 +64,7 @@ export const S_SSL = {
     CONTENT_TYPE: 'Content-Type',
     HTTPS: 'https://',
     REDIRECT_LOCATION: 'Location',
-    IN_USE: "in use, please close whatever is using the port and restart",
+    IN_USE: " in use, please close whatever is using the port and restart",
     NODE_URL: "https://nodejs.org/dist/latest/win-x64",
     NODE_YES: "Node.js is up to date",
     NODE_NO: "There is a more recent version of Node.js",
@@ -72,7 +72,7 @@ export const S_SSL = {
     NODE_VERSION: "v",
     NODE_URL_SPLITS: 7,
     // Methods
-    importRequiredArguments: () => {
+    importRequiredArguments: (__rootDir) => {
         process.argv.slice(2).forEach((arg) => {
             let rightSide = arg.split("=")[1];
             // Server
@@ -112,6 +112,21 @@ export const S_SSL = {
         !S_SSL.optEntry && (S_SSL.optEntry = 'index.html');
 
         S_SSL.expireDate && S_SSL.timeUntilRenew(S_SSL.expireDate);
+
+        const SSL = join(__rootDir, S_SSL.SSL);
+        const PK = join(SSL, S_SSL.optPk);
+        const CERT = join(SSL, S_SSL.optCert);
+
+        !existsSync(PK) && S_SSL.certNotExist();
+        !existsSync(CERT) && S_SSL.certNotExist();
+
+        return {
+            __websiteDir: join(__rootDir, S_SSL.optWebsite),
+            __errorDir: join(__rootDir, S_SSL.optError),
+            __sslFolder: SSL,
+            __pkPath: PK,
+            __certPath: CERT
+        }
     },
     certNotExist: () => {
         console.log(" ");
@@ -121,13 +136,6 @@ export const S_SSL = {
         console.log("You can use the following command from git bash or run start-windows.bat with no arguments");
         console.log(" ");
         console.log('openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ssl/private-key.pem -out ssl/certificate.pem -days 365 -subj "//CN=localhost"');
-        process.exit(1);
-    },
-    useSslFolder: (sslFolder) => {
-        mkdir(sslFolder, { recursive: true }, () => { });
-        console.log(" ");
-        console.log("Put your Certificate and Private Key in the SSL folder that was just created");
-        console.log(" ");
         process.exit(1);
     },
     loadErrorPages: (__errorDir) => {
