@@ -578,51 +578,47 @@ function internalCheckForLocalHostOnce(req) {
 }
 
 function internalDetermineRequirement(fqdns, optionalSslPath, daysDifference) {
+    let ok = false;
+
     if (existsSync(join(optionalSslPath, LAST_CERT_FILE))) {
+        const time = readFileSync(join(optionalSslPath, LAST_CERT_FILE));
+
+        if (time != undefined) {
+            const last = JSON.parse(time);
+
+            if (last != undefined) {
+                console.log("It has been: " + ((Date.now() - last.time) / 1000) + " seconds since you last generated certificates");
+
+                for (let index = 0; index < last.names.length; index++) {
+                    const element = last.names[index];
+
+                    if (fqdns[index] != element) {
+                        return false;
+                    }
+                }
+            }
+        }
+
         if (daysDifference != undefined) {
-            // Determine a random time to update between 60% and 90% of remaining time
-            if (attemptWhen === null) {
-                startedWhen = new Date();
+            if (attemptWhen === null) {                
                 const sixty = daysDifference * 0.60;
                 const thirty = daysDifference * 0.30;
                 const attemptDays = sixty + Math.floor(Math.random() * thirty);
 
-                console.log("Will renew certificates in [" + (attemptWhen = attemptDays) + "] days if server doesn't restart");
+                console.log("Will renew certificates in [" + attemptDays + "] days if server doesn't restart");
 
-                if (attemptWhen > 1) {
-                    return true;
-                }
-                else {
-                    return false; // Random Time Reached, Generate Certs 
-                }
-            }
-            else {
+                attemptWhen = attemptDays;
+                ok = attemptDays > 1;
+                
+                startedWhen = new Date();
+            } else {
                 let timeDifference = new Date().getTime() - startedWhen.getTime();
                 let daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-                if (daysDifference >= attemptWhen) {
-                    return false; // Random Time Reached, Generate Certs
-                }
+
+                ok = daysDifference >= attemptWhen;  //TODO: if this fails it will try every 12 hours until it succeeds, should probably improve this but apparently its okay
             }
         }
-
-        const time = readFileSync(join(optionalSslPath, LAST_CERT_FILE));
-        const last = JSON.parse(time);
-        console.log("It has been: " + ((Date.now() - last.time) / 1000) + " seconds since you last generated certificates");
-
-        for (let index = 0; index < last.names.length; index++) {
-            const element = last.names[index];
-
-            if (fqdns[index] != element) {
-                return false; // Names Changed, Generate Certs
-            }
-        }
-
-        if (Date.now() + DAYS_MILLISECONDS < last.time) {
-            return false; // Fallback Time, Generate Certs
-        }
-
-        return true;
     }
 
-    return false; // No Fragment, Generate Certs
+    return ok;
 }
