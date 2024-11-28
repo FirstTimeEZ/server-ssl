@@ -580,10 +580,11 @@ function internalCheckForLocalHostOnce(req) {
 }
 
 function internalDetermineRequirement(fqdns, optionalSslPath, daysDifference) {
+    const openSslPath = join(optionalSslPath, LAST_CERT_FILE);
     let ok = false;
 
-    if (existsSync(join(optionalSslPath, LAST_CERT_FILE))) {
-        const time = readFileSync(join(optionalSslPath, LAST_CERT_FILE));
+    if (existsSync(openSslPath)) {
+        const time = readFileSync(openSslPath);
 
         if (time != undefined) {
             const last = JSON.parse(time);
