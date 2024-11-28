@@ -277,8 +277,10 @@ export function checkChallengesMixin(req, res) {
                 const token = split[split.length - ARRAY];
                 let bufferModified = false;
 
-                pendingChallenges.forEach(challenge => {
-                    if (challenge.type == HTTP && challenge.status == STATUS_PENDING && challenge.token == token) {
+                for (let index = 0; index < pendingChallenges.length; index++) {
+                    const challenge = pendingChallenges[index];
+
+                    if (challenge.type == HTTP && challenge.token == token) {
                         console.log(ACME_CHALLENGE, challenge.token);
                         jose.calculateJwkThumbprint(jsonWebKey, DIGEST).then((thumbPrint) => {
                             res.writeHead(SUCESS, { [CONTENT_TYPE]: CONTENT_TYPE_OCTET });
@@ -286,7 +288,7 @@ export function checkChallengesMixin(req, res) {
                         });
                         bufferModified = true;
                     }
-                });
+                }
 
                 return bufferModified;
             }
