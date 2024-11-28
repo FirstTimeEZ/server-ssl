@@ -29,11 +29,7 @@ const HTTPS_SERVER = createServerHTTPS({ key: readFileSync(__pkPath), cert: read
     let contentType = CONTENT_TYPES[fileExtension];
     !contentType && (contentType = S_SSL.TEXT_HTML);
 
-    readFile(filePath, (err, content) => !err
-        ? (res.writeHead(S_SSL.SUCCESS, { [S_SSL.CONTENT_TYPE]: contentType }), res.end(content))
-        : (res.end(err.code === S_SSL.PAGE_NOT_FOUND
-            ? (S_SSL.ERROR_404_PAGE !== null ? S_SSL.ERROR_404_PAGE : S_SSL.ERROR_NOT_FOUND)
-            : (S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : S_SSL.ERROR_SERVER))));
+    readFile(filePath, (err, content) => !err ? (res.writeHead(S_SSL.SUCCESS, { [S_SSL.CONTENT_TYPE]: contentType }), res.end(content)) : S_SSL.getErrorPage(res, err));
 }).on('error', (e) => e.code === S_SSL.ADDR_IN_USE && console.error(`${S_SSL.optPort}${S_SSL.IN_USE}`)).listen(S_SSL.optPort, (err) => err ? console.error(S_SSL.ERROR_STARTING, err) : console.log(`${S_SSL.STARTED_HTTPS}${S_SSL.optPort}`));
 
 createServerHTTP((req, res) => {
