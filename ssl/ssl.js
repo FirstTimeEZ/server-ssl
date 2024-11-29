@@ -198,40 +198,44 @@ export const S_SSL = {
     },
     checkNodeForUpdates: async () => {
         if (S_SSL.optNoAutoUpdate !== true) {
-            const current = (await fetch(S_SSL.NODE_URL, { method: 'GET', redirect: 'follow' })).url
+            try {
+                const current = (await fetch(S_SSL.NODE_URL, { method: 'GET', redirect: 'follow' })).url
 
-            if (current != undefined) {
-                const split = current.split("/");
+                if (current != undefined) {
+                    const split = current.split("/");
 
-                if (split.length === S_SSL.NODE_URL_SPLITS) {
-                    for (let index = 0; index < split.length; index++) {
-                        const dist = split[index];
+                    if (split.length === S_SSL.NODE_URL_SPLITS) {
+                        for (let index = 0; index < split.length; index++) {
+                            const dist = split[index];
 
-                        if (dist[0] === S_SSL.NODE_VERSION) {
-                            const updatePath = join(S_SSL.__sslFolder, S_SSL.NODE_FN);
+                            if (dist[0] === S_SSL.NODE_VERSION) {
+                                const updatePath = join(S_SSL.__sslFolder, S_SSL.NODE_FN);
 
-                            if (existsSync(updatePath)) {
-                                const lastUpdate = JSON.parse(readFileSync(updatePath));
+                                if (existsSync(updatePath)) {
+                                    const lastUpdate = JSON.parse(readFileSync(updatePath));
 
-                                if (lastUpdate != undefined) {
-                                    const lastVersion = lastUpdate.version;
+                                    if (lastUpdate != undefined) {
+                                        const lastVersion = lastUpdate.version;
 
-                                    if (lastVersion === dist) {
-                                        console.log(S_SSL.NODE_YES, dist);
+                                        if (lastVersion === dist) {
+                                            console.log(S_SSL.NODE_YES, dist);
+                                        }
+                                        else {
+                                            console.log(S_SSL.NODE_NO, dist);
+                                            // Update Required
+                                        }
                                     }
-                                    else {
-                                        console.log(S_SSL.NODE_NO, dist);
-                                        // Update Required
-                                    }
+                                } else {
+                                    console.log(S_SSL.NODE_FIRST, dist);
+
+                                    writeFile(updatePath, JSON.stringify({ version: dist }), () => { });
                                 }
-                            } else {
-                                console.log(S_SSL.NODE_FIRST, dist);
-
-                                writeFile(updatePath, JSON.stringify({ version: dist }), () => { });
                             }
                         }
                     }
                 }
+            } catch {
+                console.log("Could not determine if Node.js version is recent");
             }
         }
     },
@@ -256,6 +260,14 @@ export const S_SSL = {
         let contentType = contentTypes[fileExtension];
         !contentType && (contentType = S_SSL.TEXT_HTML);
 
-        readFile(route, (err, content) => !err ? (res.writeHead(S_SSL.SUCCESS, { [S_SSL.CONTENT_TYPE]: contentType }), res.end(content)) : S_SSL.getErrorPage(res, err));
+        readFile(route, (err, content) => {
+            if (!err) {
+                res.writeHead(S_SSL.SUCCESS, { [S_SSL.CONTENT_TYPE]: contentType });
+                res.end(content);
+            }
+            else {
+                S_SSL.getErrorPage(res, err);
+            }
+        });
     }
 }

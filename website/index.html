@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="bg.png">
     <title>Server Started</title>
     <style>
         body {
-            font-family: -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             background-color: #f4f4f4;
             display: flex;
             justify-content: center;
@@ -16,40 +17,73 @@
             text-align: center;
         }
         .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            max-width: 300px;
+            background-image: url("bg.png");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 350px;
             width: 100%;
+            backdrop-filter: blur(10px);
+            background-color: rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
         }
         .status-icon {
             font-size: 72px;
             font-weight: bold;
-            color: #10b981;
-            margin-bottom: 10px;
+            color: white;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .status-message {
-            font-size: 16px;
-            color: #667085;
-            margin-bottom: 15px;
+            font-size: 18px;
+            color: white;
+            margin-bottom: 20px;
+            font-weight: 800;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 1);        
         }
         .server-details {
             font-size: 14px;
-            color: #6b7280;
-            margin-top: 10px;
+            color: white;
+            margin-top: 5px;
+            font-weight: 800;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 1);       
         }
-        .action-link {
-            display: inline-block;
-            background-color: #3b82f6;
+        .a {
+            background-color: rgba(0, 0, 0, 0.418);
+            border: 1px solid rgba(0,0,0,0.2);
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-weight: 800;
             color: white;
             text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 1);
+            transition: all 0.3s ease;
         }
-        .action-link:hover {
-            background-color: #2563eb;
+        .a:hover {
+            background-color: rgba(0, 0, 0, 0.618);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .b {
+            background-color: rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.2);
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-family: 'Courier New', Courier, monospace;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        @supports not (backdrop-filter: blur(10px)) {
+            .container {
+                background-color: rgba(255,255,255,0.8);
+            }
         }
     </style>
 </head>
@@ -58,7 +92,7 @@
         <div class="status-icon">✓</div>
         <div class="status-message">Server Started Successfully</div>
         <div class="server-details">
-            Default page for server running <a href="https://github.com/FirstTimeEZ/server-ssl">server-ssl</a>
+            Default page for server running <a href="https://github.com/FirstTimeEZ/server-ssl" class="a">server-ssl</a>
         </div>
     </div>
 </body>

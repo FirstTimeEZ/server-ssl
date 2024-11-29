@@ -27,7 +27,7 @@ const HTTPS_SERVER = createServerHTTPS(S_SSL.loadDefaultSecureContext(), (req, r
         route = join(__websiteDir, "md", S_SSL.optEntry);
     }
 
-    route == undefined && (route = req.url); // no route, follow the url
+    route == undefined && (route = join(__websiteDir, req.url)); // no route, follow the url
 
     S_SSL.defaultFileHandling(res, route, CONTENT_TYPES);
 }).on('error', (e) => e.code === S_SSL.ADDR_IN_USE && console.error(`${S_SSL.optPort}${S_SSL.IN_USE}`)).listen(S_SSL.optPort, (err) => err ? console.error(S_SSL.ERROR_STARTING, err) : console.log(`${S_SSL.STARTED_HTTPS}${S_SSL.optPort}`));

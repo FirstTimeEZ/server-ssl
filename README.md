@@ -36,7 +36,7 @@ It can be as simple as this:
 
 [![](https://i.imgur.com/NxJQeLm.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
-[![](https://i.imgur.com/8ETLFzk.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/AZlWH5n.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 ### Optional Arguments
 
