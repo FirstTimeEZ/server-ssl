@@ -657,9 +657,10 @@ function internalCheckChallenges() {
         }
     }
 
-    pendingChallenges = [];
-
-    console.log(REDIRECT_ONLY);
+    if (pendingChallenges.length > 0) {
+        pendingChallenges = [];
+        console.log(REDIRECT_ONLY);
+    }
 
     return true;
 }
