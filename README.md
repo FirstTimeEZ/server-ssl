@@ -14,9 +14,12 @@ Designed to get out of your way, you can still change anything about the server.
 
 ### Getting Started
 
+It can be as simple as this:
+
 1. [`Clone`](https://github.com/FirstTimeEZ/server-ssl.git) or [`Download`](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip) the main branch and extract it somewhere
-2. Open the folder in `Command Prompt` or `Git Bash`
-3. Run `start-windows.bat` 
+2. Put your website in the `website` folder
+3. Open the `server-ssl` in `Command Prompt` or `Git Bash`
+4. Run `start-windows.bat` 
 
 `start-windows.bat` takes arguments and starts the server, it also restarts the server when certificates are renewed.
 
