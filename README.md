@@ -113,13 +113,15 @@ This structure is designed to keep the project organized and maintainable, separ
 
 ### 404/500 Pages
 
-The server is configured to serve custom `404` and `500` error pages.
+The server is configured to serve custom `404` and `500` error pages, instead of plain-text.
 
-[![](https://i.imgur.com/gzgRNdQ.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/gzgRNdQ.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip) [![](https://i.imgur.com/KSixh7q.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 Currently everything is treated like a `Server Error` except for `Page Not Found`
 
-[![](https://i.imgur.com/l8DMrQY.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/l8DMrQY.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip) [![](https://i.imgur.com/mP2d4vi.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+
+These pages will automatically select light/dark mode
 
 --------
 

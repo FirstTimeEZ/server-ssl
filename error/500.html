@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,25 +16,29 @@
             margin: 0;
             text-align: center;
         }
+    
         .container {
             background-color: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             max-width: 300px;
             width: 100%;
         }
+    
         .error-code {
             font-size: 72px;
             font-weight: bold;
             color: #3b82f6;
             margin-bottom: 10px;
         }
+    
         .error-message {
             font-size: 16px;
             color: #667085;
             margin-bottom: 15px;
         }
+    
         .home-link {
             display: inline-block;
             background-color: #3b82f6;
@@ -43,11 +48,29 @@
             border-radius: 4px;
             transition: background-color 0.2s;
         }
+    
         .home-link:hover {
             background-color: #2563eb;
         }
+    
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: rgb(17, 16, 16);
+                color: white;
+            }
+    
+            .container {
+                background-color: rgb(27, 24, 24);
+                color: white
+            }
+    
+            .error-message {
+                color: #c3c8d1;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="error-code">500</div>
@@ -56,4 +79,5 @@
         <a href="/" class="home-link">Go Home</a>
     </div>
 </body>
+
 </html>
