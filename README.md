@@ -36,6 +36,8 @@ It can be as simple as this:
 
 [![](https://i.imgur.com/NxJQeLm.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
+[![](https://i.imgur.com/8ETLFzk.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+
 ### Optional Arguments
 
 `server-ssl.js` has some optional arguments you can use in production if the defaults aren't enough.
@@ -106,12 +108,6 @@ This structure is designed to keep the project organized and maintainable, separ
 ├── server-ssl.js            <--- server config
 └── start-windows.bat
 ```
-
---------
-
-### Default Page
-
-[![](https://i.imgur.com/8ETLFzk.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 --------
 
