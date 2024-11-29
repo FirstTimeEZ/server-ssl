@@ -237,6 +237,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
                                                                 }
                                                                 else {
                                                                     console.error("Something went wrong generating the certificate, will try again at the usual time");
+                                                                    // todo: try download the cert again
                                                                 }
                                                             });
                                                         });
