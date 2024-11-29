@@ -21,17 +21,7 @@ const { __websiteDir, __errorDir, __sslFolder, __pkPath, __certPath } = S_SSL.im
 S_SSL.loadErrorPages(__errorDir);
 
 const HTTPS_SERVER = createServerHTTPS({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) }, (req, res) => {
-    let route = undefined;
-
-    if (req.url === S_SSL.WEBSITE_ROOT) {
-        route = join(__websiteDir, S_SSL.optEntry);
-    }
-    else if (req.url === "/md") {
-        route = join(__websiteDir, "md", S_SSL.optEntry);
-    }
-
-    route == undefined && (route = req.url); // no route, follow the url
-
+    const route = join(__websiteDir, req.url === S_SSL.WEBSITE_ROOT ? S_SSL.optEntry : req.url);
     const fileExtension = _extname(route);
 
     let contentType = CONTENT_TYPES[fileExtension];
