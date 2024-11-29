@@ -184,7 +184,6 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
 
                                                 postAsGet(account.answer.location, nextNonce, keyChain, finalized.answer.location).then((checkFinalized) => {
                                                     if (checkFinalized.answer.get != undefined && checkFinalized.answer.get.status == VALID) {
-                                                        console.log("Certificate Ready for Download");
                                                         console.log("Certificate URL:", checkFinalized.answer.get.certificate);
 
                                                         fetch(checkFinalized.answer.get.certificate).then((s) => {
@@ -193,37 +192,50 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
                                                                 let savedPk = null;
                                                                 let savedFragment = null;
 
-                                                                writeFile(join(sslPath, "certificate.pem"), cert, () => { savedCert = true; });
+                                                                if (cert.startsWith("-----BEGIN CERTIFICATE-----") && (cert.endsWith("-----END CERTIFICATE-----\n") || cert.endsWith("-----END CERTIFICATE-----") || cert.endsWith("-----END CERTIFICATE----- "))) {
 
-                                                                writeFile(join(sslPath, "private-key.pem"), keyChain.privateKeySignRaw, () => { savedPk = true; });
+                                                                    if (keyChain.privateKeySignRaw.startsWith("-----BEGIN PRIVATE KEY-----") && (keyChain.privateKeySignRaw.endsWith("-----END PRIVATE KEY-----") || keyChain.privateKeySignRaw.endsWith("-----END PRIVATE KEY-----\n") || keyChain.privateKeySignRaw.endsWith("-----END PRIVATE KEY----- "))) {
+                                                                        console.log("Certificate Downloaded, Saving to file");
 
-                                                                writeFile(join(sslPath, LAST_CERT_FILE), JSON.stringify({ time: Date.now(), names: fqdns }), () => { savedFragment = true; });
+                                                                        writeFile(join(sslPath, "certificate.pem"), cert, () => { savedCert = true; });
 
-                                                                if (optAutoRestart === true) {
-                                                                    console.log("-------");
-                                                                    console.log("Auto Restart is Enabled");
-                                                                    console.log("Restarting Server when ready...");
-                                                                    console.log("-------");
+                                                                        writeFile(join(sslPath, "private-key.pem"), keyChain.privateKeySignRaw, () => { savedPk = true; });
 
-                                                                    if (countdownHandler == undefined) {
-                                                                        new Promise(() => setInterval(() => (savedCert === true && savedPk === true && savedFragment === true) && process.exit(123), 200));
+                                                                        writeFile(join(sslPath, LAST_CERT_FILE), JSON.stringify({ time: Date.now(), names: fqdns }), () => { savedFragment = true; });
+
+                                                                        if (optAutoRestart === true) {
+                                                                            console.log("-------");
+                                                                            console.log("Auto Restart is Enabled");
+                                                                            console.log("Restarting Server when ready...");
+                                                                            console.log("-------");
+
+                                                                            if (countdownHandler == undefined) {
+                                                                                new Promise(() => setInterval(() => (savedCert === true && savedPk === true && savedFragment === true) && process.exit(123), 200));
+                                                                            }
+                                                                            else {
+                                                                                let count = 0;
+                                                                                setInterval(() => (count++, count > countdownTime ? process.exit(123) : countdownHandler()), 1000);
+                                                                            }
+                                                                        }
+                                                                        else if (certificateCallback != undefined) {
+                                                                            new Promise((resolve) => {
+                                                                                const certI = setInterval(() => {
+                                                                                    if (savedCert === true && savedPk === true && savedFragment === true) {
+                                                                                        certificateCallback();
+                                                                                        clearInterval(certI);
+                                                                                        internalCheckAnswered();
+                                                                                        resolve();
+                                                                                    }
+                                                                                }, 200);
+                                                                            });
+                                                                        }
                                                                     }
                                                                     else {
-                                                                        let count = 0;
-                                                                        setInterval(() => (count++, count > countdownTime ? process.exit(123) : countdownHandler()), 1000);
+                                                                        console.error("Something went wrong with the private key");
                                                                     }
                                                                 }
-                                                                else if (certificateCallback != undefined) {
-                                                                    new Promise((resolve) => {
-                                                                        const certI = setInterval(() => {
-                                                                            if (savedCert === true && savedPk === true && savedFragment === true) {
-                                                                                certificateCallback();
-                                                                                clearInterval(certI);
-                                                                                internalCheckAnswered();
-                                                                                resolve();
-                                                                            }
-                                                                        }, 200);
-                                                                    });
+                                                                else {
+                                                                    console.error("Something went wrong generating the certificate");
                                                                 }
                                                             });
                                                         });

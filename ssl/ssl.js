@@ -149,6 +149,31 @@ export const S_SSL = {
         readFile(join(__errorDir, '/404.html'), (err404, content404) => !err404 && (S_SSL.ERROR_404_PAGE = content404));
         readFile(join(__errorDir, '/500.html'), (err500, content500) => !err500 && (S_SSL.ERROR_500_PAGE = content500));
     },
+    loadNewSecureContext: (server, __pkPath, __certPath) => {
+        const key = readFileSync(__pkPath);
+        const cert = readFileSync(__certPath);
+
+        const keyString = key.toString();
+        const certString = cert.toString();
+
+        if (!certString.startsWith("-----BEGIN CERTIFICATE-----") || !(certString.endsWith("-----END CERTIFICATE-----\n") || certString.endsWith("-----END CERTIFICATE-----") || certString.endsWith("-----END CERTIFICATE----- "))) {
+            console.error("SOMETHING IS WRONG WITH THE NEW CERTIFICATE, IT WAS NOT UPDATED");
+            console.error("Will try again at the usual time");
+            return false;
+        }
+
+        if (!keyString.startsWith("-----BEGIN PRIVATE KEY-----") || !(keyString.endsWith("-----END PRIVATE KEY-----") || keyString.endsWith("-----END PRIVATE KEY-----\n") || keyString.endsWith("-----END PRIVATE KEY----- "))) {
+            console.error("SOMETHING IS WRONG WITH THE PRIVATE KEY, THIS IS UNUSUAL");
+            console.error("Will try again at the usual time");
+            // todo: generate a new acme key the usual way before the next update
+            return false;
+        }
+
+        server.setSecureContext({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) });
+        console.log("Updated Server Certificate");
+
+        return true;
+    },
     timeUntilRenew: (notAfter) => {
         const specificDate = new Date(notAfter);
         const currentDate = new Date();
@@ -201,7 +226,7 @@ export const S_SSL = {
             }
         }
     },
-    loadLetsEncryptDaemon: (sslFolder, countdownHandler, countdownTime, certificateCallback) => {
+    loadLetsEncryptAcmeDaemon: (sslFolder, countdownHandler, countdownTime, certificateCallback) => {
         S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.extractDomainsAnyFormat(S_SSL.optDomains));
         S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
         S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.daysRemaining, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, countdownHandler, countdownTime);
