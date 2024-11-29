@@ -21,7 +21,7 @@ It can be as simple as this:
 3. Open the `server-ssl` in `Command Prompt` or `Git Bash`
 4. Run `start-windows.bat` 
 
-`start-windows.bat` takes arguments and starts the server, it also restarts the server when certificates are renewed.
+`start-windows.bat` takes your arguments and starts the server
 
 ```
 # Start for development (Self Signed Certificate, Port 443, https://localhost)
@@ -66,7 +66,9 @@ The certificates will be changed automatically when they are updated, you don't 
 | `--domains=` | Domains to generate certificates for, this can not include wild cards, this should be an array. eg. `--domains=['www.ssl.boats','ssl.boats']` |
 | `--generateAnyway` | Certificates should always be generated when the server starts, this could get you rate limited, maybe use `--staging`  |
 | `--staging` | The `Lets Encrypt!` staging server should be used instead of production |
-| `--autoRestart` | Restart the server after certificates are generated, firing a callback to notify of the restart (not required) |
+| `--autoRestart` | Restart the server after cert generation, firing a callback to notify of the restart (not required) |
+
+`start-windows.bat` is required to use `--autoRestart`
 
 ```
 ./start-windows.bat --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
