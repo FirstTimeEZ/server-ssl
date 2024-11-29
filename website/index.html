@@ -48,7 +48,7 @@
         .status-message {
             font-size: 18px;
             color: white;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             font-weight: 800;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 1);
         }
@@ -56,7 +56,7 @@
         .server-details {
             font-size: 14px;
             color: white;
-            margin-top: 5px;
+            margin-top: 10px;
             font-weight: 800;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 1);
         }
@@ -87,7 +87,7 @@
             animation: spin 1s linear infinite;
             opacity: 100;
         }
-
+        
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -113,9 +113,13 @@
     <div class="container">
         <div class="status-icon">✓</div>
         <div class="status-message">Server Started Successfully</div>
-        <div class="spinner" id="spinner"></div>
+        <div style="height: 20px;">
+            <div class="spinner" id="spinner"></div>
+            <a href="/md" class="a" id="boat" hidden="true">Play Boat Game</a>
+        </div>
         <div class="server-details">
-            Default page for a server running <a href="https://github.com/FirstTimeEZ/server-ssl" class="a">server-ssl</a>
+            Default page for a server running <a href="https://github.com/FirstTimeEZ/server-ssl"
+                class="a">server-ssl</a>
         </div>
     </div>
 

@@ -21,7 +21,7 @@ It can be as simple as this:
 3. Open the `server-ssl` folder in `Command Prompt` or `Git Bash`
 4. Run `start-windows.bat`
 
-[![](https://i.imgur.com/nXycX27.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/mZrjc2i.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 ### Usage
 
