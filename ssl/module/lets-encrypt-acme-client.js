@@ -32,9 +32,10 @@ const DELIM = "/";
 const LAST_CERT_FILE = "last_certification.ez";
 
 const ARRAY = 1;
-const SUCESS = 200;
+const SUCCESS = 200;
 const EXPECTED_SPLITS = 4;
 const MAX_LENGTH = 1000;
+const MIN_LENGTH = 32;
 
 const DIGEST = "sha256";
 const ALG_ECDSA = 'ES256';
@@ -76,6 +77,8 @@ let acmeDirectory = DIRECTORY_PRODUCTION;
 
 let attemptWhen = null;
 let startedWhen = null;
+
+let jwkThumbPrint = null;
 
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
@@ -194,7 +197,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
 
                                                                 if (cert.startsWith("-----BEGIN CERTIFICATE-----") && (cert.endsWith("-----END CERTIFICATE-----\n") || cert.endsWith("-----END CERTIFICATE-----") || cert.endsWith("-----END CERTIFICATE----- "))) {
                                                                     const pks = keyChain.privateKeySignRaw.toString();
-                                                                    
+
                                                                     if (pks.startsWith("-----BEGIN PRIVATE KEY-----") && (pks.endsWith("-----END PRIVATE KEY-----") || pks.endsWith("-----END PRIVATE KEY-----\n") || pks.endsWith("-----END PRIVATE KEY----- "))) {
                                                                         console.log("Certificate Downloaded, Saving to file");
 
@@ -286,7 +289,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
  * @example
  * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
  */
-export function checkChallengesMixin(req, res) {
+export async function checkChallengesMixin(req, res) {
     if (pendingChallenges.length === 0 || localHost === true || jsonWebKey == undefined || internalCheckChallenges()) {
         return false;
     }
@@ -301,25 +304,32 @@ export function checkChallengesMixin(req, res) {
 
             if (split.length === EXPECTED_SPLITS) {
                 const token = split[split.length - ARRAY];
-                let bufferModified = false;
 
-                for (let index = 0; index < pendingChallenges.length; index++) {
-                    const challenge = pendingChallenges[index];
+                if (token.length > MIN_LENGTH) {
+                    let bufferModified = false;
 
-                    if (challenge.type == HTTP && challenge.token == token) {
-                        console.log(ACME_CHALLENGE, challenge.token);
-                        jose.calculateJwkThumbprint(jsonWebKey, DIGEST).then((thumbPrint) => {
-                            res.writeHead(SUCESS, { [CONTENT_TYPE]: CONTENT_TYPE_OCTET });
-                            res.end(Buffer.from(`${challenge.token}.${thumbPrint}`));
-                        });
-
-                        bufferModified = true;
-
-                        checkAnswersFlag === false && (checkAnswersFlag = true, setTimeout(async () => await internalCheckAnswered(), CHECK_CLOSE_TIME));
+                    if (jwkThumbPrint === null) {
+                        const tp = await jose.calculateJwkThumbprint(jsonWebKey, DIGEST);
+                        tp != undefined && (jwkThumbPrint = tp);
                     }
-                }
 
-                return bufferModified;
+                    for (let index = 0; index < pendingChallenges.length; index++) {
+                        const challenge = pendingChallenges[index];
+
+                        if (challenge.type == HTTP && challenge.token == token) {
+                            console.log(ACME_CHALLENGE, challenge.token);
+
+                            res.writeHead(SUCCESS, { [CONTENT_TYPE]: CONTENT_TYPE_OCTET });
+                            res.end(Buffer.from(`${challenge.token}.${jwkThumbPrint}`));
+
+                            bufferModified = true;
+
+                            checkAnswersFlag === false && (checkAnswersFlag = true, setTimeout(async () => await internalCheckAnswered(), CHECK_CLOSE_TIME));
+                        }
+                    }
+
+                    return bufferModified;
+                }
             }
         }
     } catch { } // Ignore
