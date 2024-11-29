@@ -290,7 +290,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
  * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
  */
 export async function checkChallengesMixin(req, res) {
-    if (pendingChallenges.length === 0 || localHost === true || jsonWebKey == undefined || internalCheckChallenges()) {
+    if (pendingChallenges.length === 0 || localHost === true || jwkThumbPrint == undefined || internalCheckChallenges()) {
         return false;
     }
 
@@ -307,11 +307,6 @@ export async function checkChallengesMixin(req, res) {
 
                 if (token.length > MIN_LENGTH) {
                     let bufferModified = false;
-
-                    if (jwkThumbPrint === null) {
-                        const tp = await jose.calculateJwkThumbprint(jsonWebKey, DIGEST);
-                        tp != undefined && (jwkThumbPrint = tp);
-                    }
 
                     for (let index = 0; index < pendingChallenges.length; index++) {
                         const challenge = pendingChallenges[index];
@@ -374,6 +369,7 @@ async function newNonceAsync(newNonceUrl) {
 async function createAccount(nonce, newAccountUrl, keyChain) {
     try {
         jsonWebKey = await jose.exportJWK(keyChain.publicKey);
+        jwkThumbPrint = await jose.calculateJwkThumbprint(jsonWebKey, DIGEST);
 
         const payload = { termsOfServiceAgreed: true };
 
