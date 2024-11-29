@@ -73,12 +73,12 @@ let localHost = false;
 let checkedForLocalHost = false;
 
 let jsonWebKey = undefined;
+let jsonWebKeyThumbPrint = null;
+
 let acmeDirectory = DIRECTORY_PRODUCTION;
 
 let attemptWhen = null;
 let startedWhen = null;
-
-let jwkThumbPrint = null;
 
 /**
  * Starts the Let's Encrypt daemon to manage SSL certificates.
@@ -290,7 +290,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
  * createServerHTTP((req, res) => { if (checkChallengesMixin(req, res)) { return; } }).listen(80);
  */
 export async function checkChallengesMixin(req, res) {
-    if (pendingChallenges.length === 0 || localHost === true || jwkThumbPrint == undefined || internalCheckChallenges()) {
+    if (pendingChallenges.length === 0 || localHost === true || jsonWebKeyThumbPrint == undefined || internalCheckChallenges()) {
         return false;
     }
 
@@ -315,7 +315,7 @@ export async function checkChallengesMixin(req, res) {
                             console.log(ACME_CHALLENGE, challenge.token);
 
                             res.writeHead(SUCCESS, { [CONTENT_TYPE]: CONTENT_TYPE_OCTET });
-                            res.end(Buffer.from(`${challenge.token}.${jwkThumbPrint}`));
+                            res.end(Buffer.from(`${challenge.token}.${jsonWebKeyThumbPrint}`));
 
                             bufferModified = true;
 
@@ -369,7 +369,7 @@ async function newNonceAsync(newNonceUrl) {
 async function createAccount(nonce, newAccountUrl, keyChain) {
     try {
         jsonWebKey = await jose.exportJWK(keyChain.publicKey);
-        jwkThumbPrint = await jose.calculateJwkThumbprint(jsonWebKey, DIGEST);
+        jsonWebKeyThumbPrint = await jose.calculateJwkThumbprint(jsonWebKey, DIGEST);
 
         const payload = { termsOfServiceAgreed: true };
 
