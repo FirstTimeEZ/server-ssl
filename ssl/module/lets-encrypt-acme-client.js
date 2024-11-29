@@ -232,6 +232,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
                                                                     }
                                                                     else {
                                                                         console.error("Something went wrong with the private key, will try again at the usual time");
+                                                                        // todo: generate a new acme key the usual way before the next update
                                                                     }
                                                                 }
                                                                 else {

@@ -157,13 +157,14 @@ export const S_SSL = {
         const certString = cert.toString();
 
         if (!certString.startsWith("-----BEGIN CERTIFICATE-----") || !(certString.endsWith("-----END CERTIFICATE-----\n") || certString.endsWith("-----END CERTIFICATE-----") || certString.endsWith("-----END CERTIFICATE----- "))) {
-            console.error("SOMETHING IS WRONG WITH THE NEW CERTIFICATE, IT WAS NOT UPDATED");
+            console.error("SOMETHING IS WRONG WITH THE NEW CERTIFICATE, THIS IS UNUSUAL");
+            // todo: this shouldn't happen but if it does then certificates need to be generated
             return false;
         }
 
         if (!keyString.startsWith("-----BEGIN PRIVATE KEY-----") || !(keyString.endsWith("-----END PRIVATE KEY-----") || keyString.endsWith("-----END PRIVATE KEY-----\n") || keyString.endsWith("-----END PRIVATE KEY----- "))) {
             console.error("SOMETHING IS WRONG WITH THE PRIVATE KEY, THIS IS UNUSUAL");
-            // todo: generate a new acme key the usual way before the next update
+            // todo: this shouldn't happen but if it does then a new private key needs to be generated
             return false;
         }
 
