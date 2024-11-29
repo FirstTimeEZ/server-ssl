@@ -158,13 +158,11 @@ export const S_SSL = {
 
         if (!certString.startsWith("-----BEGIN CERTIFICATE-----") || !(certString.endsWith("-----END CERTIFICATE-----\n") || certString.endsWith("-----END CERTIFICATE-----") || certString.endsWith("-----END CERTIFICATE----- "))) {
             console.error("SOMETHING IS WRONG WITH THE NEW CERTIFICATE, IT WAS NOT UPDATED");
-            console.error("Will try again at the usual time");
             return false;
         }
 
         if (!keyString.startsWith("-----BEGIN PRIVATE KEY-----") || !(keyString.endsWith("-----END PRIVATE KEY-----") || keyString.endsWith("-----END PRIVATE KEY-----\n") || keyString.endsWith("-----END PRIVATE KEY----- "))) {
             console.error("SOMETHING IS WRONG WITH THE PRIVATE KEY, THIS IS UNUSUAL");
-            console.error("Will try again at the usual time");
             // todo: generate a new acme key the usual way before the next update
             return false;
         }

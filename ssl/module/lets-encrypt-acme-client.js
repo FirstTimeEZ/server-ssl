@@ -231,11 +231,11 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
                                                                         }
                                                                     }
                                                                     else {
-                                                                        console.error("Something went wrong with the private key");
+                                                                        console.error("Something went wrong with the private key, will try again at the usual time");
                                                                     }
                                                                 }
                                                                 else {
-                                                                    console.error("Something went wrong generating the certificate");
+                                                                    console.error("Something went wrong generating the certificate, will try again at the usual time");
                                                                 }
                                                             });
                                                         });
