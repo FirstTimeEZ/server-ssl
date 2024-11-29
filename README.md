@@ -117,7 +117,7 @@ The server is configured to serve custom `404` and `500` error pages, instead of
 
 [![](https://i.imgur.com/gzgRNdQ.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip) [![](https://i.imgur.com/KSixh7q.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
-Currently everything is treated like a `Server Error` except for `Page Not Found`
+Currently everything is treated like a `Server Error` except for `Not Found`
 
 [![](https://i.imgur.com/l8DMrQY.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip) [![](https://i.imgur.com/mP2d4vi.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
