@@ -74,6 +74,7 @@ export const S_SSL = {
     NODE_URL: "https://nodejs.org/dist/latest/win-x64",
     NODE_YES: "Node.js is up to date",
     NODE_NO: "There is a more recent version of Node.js",
+    NODE_FIRST: "First time running Node.js",
     NODE_FN: "last_update.ez",
     NODE_VERSION: "v",
     NODE_URL_SPLITS: 7,
@@ -224,6 +225,8 @@ export const S_SSL = {
                                     }
                                 }
                             } else {
+                                console.log(S_SSL.NODE_FIRST, dist);
+
                                 writeFile(updatePath, JSON.stringify({ version: dist }), () => { });
                             }
                         }
