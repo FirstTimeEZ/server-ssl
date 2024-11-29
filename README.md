@@ -111,11 +111,7 @@ This structure is designed to keep the project organized and maintainable, separ
 
 ### Default Page
 
-The default page is a little boat game, the goal is to survive.
-
-[![](https://i.imgur.com/lNhCeBN.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
-
-You can adjust the difficulty by zooming.
+[![](https://i.imgur.com/8ETLFzk.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 --------
 
@@ -123,11 +119,11 @@ You can adjust the difficulty by zooming.
 
 The server is configured to serve custom `404` and `500` error pages.
 
-[![](https://i.imgur.com/w4Awnc1.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/gzgRNdQ.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 Currently everything is treated like a `Server Error` except for `Page Not Found`
 
-[![](https://i.imgur.com/mQlVhjL.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/l8DMrQY.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 --------
 
