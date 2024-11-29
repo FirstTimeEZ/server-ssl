@@ -78,6 +78,22 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
+        .spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 3px solid rgba(22, 21, 21, 0.618);
+            border-top-color: rgba(0, 0, 0, 0.618);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            opacity: 100;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         @supports not (backdrop-filter: blur(10px)) {
             .container {
                 background-color: rgba(255, 255, 255, 0.8);
@@ -97,11 +113,13 @@
     <div class="container">
         <div class="status-icon">✓</div>
         <div class="status-message">Server Started Successfully</div>
+        <div class="spinner" id="spinner"></div>
         <div class="server-details">
-            Default page for a server running <a href="https://github.com/FirstTimeEZ/server-ssl"
-                class="a">server-ssl</a>
+            Default page for a server running <a href="https://github.com/FirstTimeEZ/server-ssl" class="a">server-ssl</a>
         </div>
     </div>
+
+    <script src="index.js"></script>
 </body>
 
 </html>

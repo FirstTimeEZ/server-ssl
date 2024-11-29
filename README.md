@@ -21,6 +21,10 @@ It can be as simple as this:
 3. Open the `server-ssl` folder in `Command Prompt` or `Git Bash`
 4. Run `start-windows.bat`
 
+[![](https://i.imgur.com/nXycX27.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+
+### Usage
+
 `start-windows.bat` takes your arguments and starts the server
 
 ```
@@ -33,8 +37,6 @@ It can be as simple as this:
 # Start for production (BYO)
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
-
-[![](https://i.imgur.com/HuaQTrJ.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 [![](https://i.imgur.com/NxJQeLm.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
