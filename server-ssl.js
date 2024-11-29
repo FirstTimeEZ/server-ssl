@@ -1,5 +1,4 @@
 import { fileURLToPath } from 'url';
-import { readFileSync } from 'fs';
 import { join, extname as _extname, dirname } from 'path';
 import { createServer as createServerHTTPS } from 'https';
 import { S_SSL } from './ssl/ssl.js';
