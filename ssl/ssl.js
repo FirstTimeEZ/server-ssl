@@ -26,6 +26,10 @@ import { checkChallengesMixin } from './module/lets-encrypt-acme-client.js';
 */
 export const S_SSL = {
     // Config
+    __websiteDir: null,
+    __sslFolder: null,
+    __pkPath: null,
+    __certPath: null,
     override: null,
     urlsArray: null,
     isRestartAvailable: null,
@@ -123,13 +127,12 @@ export const S_SSL = {
         !existsSync(CERT) && S_SSL.certNotExist();
 
         S_SSL.loadErrorPages(join(__rootDir, S_SSL.optError));
+        S_SSL.__websiteDir = join(__rootDir, S_SSL.optWebsite);
+        S_SSL.__sslFolder = SSL;
+        S_SSL.__pkPath = PK;
+        S_SSL.__certPath = CERT;
 
-        return {
-            __websiteDir: join(__rootDir, S_SSL.optWebsite),
-            __sslFolder: SSL,
-            __pkPath: PK,
-            __certPath: CERT
-        }
+        return S_SSL.__websiteDir;
     },
     certNotExist: () => {
         console.log(" ");
@@ -150,9 +153,9 @@ export const S_SSL = {
         readFile(join(__errorDir, '/404.html'), (err404, content404) => !err404 && (S_SSL.ERROR_404_PAGE = content404));
         readFile(join(__errorDir, '/500.html'), (err500, content500) => !err500 && (S_SSL.ERROR_500_PAGE = content500));
     },
-    loadNewSecureContext: (server, __pkPath, __certPath) => {
-        const key = readFileSync(__pkPath);
-        const cert = readFileSync(__certPath);
+    loadNewSecureContext: (server) => {
+        const key = readFileSync(S_SSL.__pkPath);
+        const cert = readFileSync(S_SSL.__certPath);
 
         const keyString = key.toString();
         const certString = cert.toString();
@@ -169,10 +172,13 @@ export const S_SSL = {
             return false;
         }
 
-        server.setSecureContext({ key: readFileSync(__pkPath), cert: readFileSync(__certPath) });
+        server.setSecureContext({ key: readFileSync(S_SSL.__pkPath), cert: readFileSync(S_SSL.__certPath) });
         console.log("Updated Server Certificate");
 
         return true;
+    },
+    loadDefaultSecureContext: () => {
+        return { key: readFileSync(S_SSL.__pkPath), cert: readFileSync(S_SSL.__certPath) }
     },
     timeUntilRenew: (notAfter) => {
         const specificDate = new Date(notAfter);
@@ -189,7 +195,7 @@ export const S_SSL = {
         const commaSplit = bracketsRemoved.split(',').map(d => d.trim().replace(/^['"]|['"]$/g, ''));
         return commaSplit.length > 0 && commaSplit[0] ? commaSplit : domains;
     },
-    checkNodeForUpdates: async (sslFolder) => {
+    checkNodeForUpdates: async () => {
         if (S_SSL.optNoAutoUpdate !== true) {
             const current = (await fetch(S_SSL.NODE_URL, { method: 'GET', redirect: 'follow' })).url
 
@@ -201,7 +207,7 @@ export const S_SSL = {
                         const dist = split[index];
 
                         if (dist[0] === S_SSL.NODE_VERSION) {
-                            const updatePath = join(sslFolder, S_SSL.NODE_FN);
+                            const updatePath = join(S_SSL.__sslFolder, S_SSL.NODE_FN);
 
                             if (existsSync(updatePath)) {
                                 const lastUpdate = JSON.parse(readFileSync(updatePath));
@@ -226,11 +232,11 @@ export const S_SSL = {
             }
         }
     },
-    loadLetsEncryptAcmeDaemon: (sslFolder, countdownHandler, countdownTime, certificateCallback) => {
+    loadLetsEncryptAcmeDaemon: (countdownHandler, countdownTime, certificateCallback) => {
         S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.extractDomainsAnyFormat(S_SSL.optDomains));
         S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
-        S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.daysRemaining, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, countdownHandler, countdownTime);
-        S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, sslFolder, S_SSL.daysRemaining, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
+        S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, S_SSL.__sslFolder, S_SSL.daysRemaining, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, countdownHandler, countdownTime);
+        S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, S_SSL.__sslFolder, S_SSL.daysRemaining, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
     },
     redirect: (res, req) => {
         res.writeHead(S_SSL.REDIRECT, { [S_SSL.REDIRECT_LOCATION]: `${S_SSL.HTTPS}${req.headers.host}${req.url}` });
