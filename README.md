@@ -93,7 +93,7 @@ This structure is designed to keep the project organized and maintainable, separ
 │   │   ├── /crypt
 │   │   ├── /jose
 │   │   └── lets-encrypt-acme-client.js
-│   │ 
+│   │
 │   ├── acmeKeys
 │   ├── private-key.pem
 │   └── certificate.pem
@@ -103,7 +103,7 @@ This structure is designed to keep the project organized and maintainable, separ
 │   └── index.html <---- Your website goes here
 │
 ├── node.exe
-├── server-ssl.js
+├── server-ssl.js            <--- server config
 └── start-windows.bat
 ```
 
