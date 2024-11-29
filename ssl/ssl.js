@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-import { readFile, writeFile, existsSync, readFileSync } from 'fs';
 import { join, extname as _extname } from 'path';
+import { createServer as createServerHTTP } from 'http';
+import { readFile, writeFile, existsSync, readFileSync } from 'fs';
 import { startLetsEncryptDaemon } from './module/lets-encrypt-acme-client.js';
+import { checkChallengesMixin } from './module/lets-encrypt-acme-client.js';
 
 /**
 * **SSL-Server** configuration state
@@ -208,5 +210,10 @@ export const S_SSL = {
     redirect: (res, req) => {
         res.writeHead(S_SSL.REDIRECT, { [S_SSL.REDIRECT_LOCATION]: `${S_SSL.HTTPS}${req.headers.host}${req.url}` });
         res.end();
+    },
+    startHttpChallengeListener: () => {
+        createServerHTTP((req, res) => S_SSL.optLetsEncrypt ? !checkChallengesMixin(req, res) && S_SSL.redirect(res, req) : S_SSL.redirect(res, req))
+            .on('error', (e) => e.code === S_SSL.ADDR_IN_USE && console.error(`${S_SSL.optPortHttp}${S_SSL.IN_USE}`))
+            .listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`)); // Lets Encrypt! HTTP-01 ACME Challenge Mixin - Always Redirect HTTP to HTTPS unless doing a ACME Challenge
     }
 }
