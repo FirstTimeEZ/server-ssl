@@ -122,9 +122,10 @@ export const S_SSL = {
         !existsSync(PK) && S_SSL.certNotExist();
         !existsSync(CERT) && S_SSL.certNotExist();
 
+        S_SSL.loadErrorPages(join(__rootDir, S_SSL.optError));
+
         return {
             __websiteDir: join(__rootDir, S_SSL.optWebsite),
-            __errorDir: join(__rootDir, S_SSL.optError),
             __sslFolder: SSL,
             __pkPath: PK,
             __certPath: CERT
@@ -239,5 +240,13 @@ export const S_SSL = {
         createServerHTTP((req, res) => S_SSL.optLetsEncrypt ? !checkChallengesMixin(req, res) && S_SSL.redirect(res, req) : S_SSL.redirect(res, req))
             .on('error', (e) => e.code === S_SSL.ADDR_IN_USE && console.error(`${S_SSL.optPortHttp}${S_SSL.IN_USE}`))
             .listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`)); // Lets Encrypt! HTTP-01 ACME Challenge Mixin - Always Redirect HTTP to HTTPS unless doing a ACME Challenge
+    },
+    defaultFileHandling: (res, route, contentTypes) => {
+        const fileExtension = _extname(route);
+
+        let contentType = contentTypes[fileExtension];
+        !contentType && (contentType = S_SSL.TEXT_HTML);
+
+        readFile(route, (err, content) => !err ? (res.writeHead(S_SSL.SUCCESS, { [S_SSL.CONTENT_TYPE]: contentType }), res.end(content)) : S_SSL.getErrorPage(res, err));
     }
 }
