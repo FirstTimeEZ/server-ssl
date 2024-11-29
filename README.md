@@ -18,8 +18,8 @@ It can be as simple as this:
 
 1. [`Clone`](https://github.com/FirstTimeEZ/server-ssl.git) or [`Download`](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip) the main branch and extract it somewhere
 2. Put your website in the `website` folder
-3. Open the `server-ssl` in `Command Prompt` or `Git Bash`
-4. Run `start-windows.bat` 
+3. Open the `server-ssl` folder in `Command Prompt` or `Git Bash`
+4. Run `start-windows.bat`
 
 `start-windows.bat` takes your arguments and starts the server
 
