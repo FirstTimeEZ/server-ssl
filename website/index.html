@@ -5,7 +5,7 @@
 
 <head>
     <title>Server Started - Boat Game</title>
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="boat.png">
     <style>
         body {
             margin: 0;
@@ -50,7 +50,7 @@
     <canvas id="gameCanvas"></canvas>
     <div class="game-over">Ship Wrecked! Resetting...</div>
     <div class="auth">
-        <a href="https://github.com/FirstTimeEZ/server-ssl"><img rel="icon" src="favicon.png" width="20px" height="20px"></a>
+        <a href="https://github.com/FirstTimeEZ/server-ssl"><img rel="icon" src="boat.png" width="20px" height="20px"></a>
     </div>
 
     <script>
@@ -59,7 +59,7 @@
         const gameOverMessage = document.querySelector('.game-over');
 
         const image = new Image();
-        image.src = "favicon.png";
+        image.src = "boat.png";
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;

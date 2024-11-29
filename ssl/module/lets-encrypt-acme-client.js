@@ -193,8 +193,9 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
                                                                 let savedFragment = null;
 
                                                                 if (cert.startsWith("-----BEGIN CERTIFICATE-----") && (cert.endsWith("-----END CERTIFICATE-----\n") || cert.endsWith("-----END CERTIFICATE-----") || cert.endsWith("-----END CERTIFICATE----- "))) {
-
-                                                                    if (keyChain.privateKeySignRaw.startsWith("-----BEGIN PRIVATE KEY-----") && (keyChain.privateKeySignRaw.endsWith("-----END PRIVATE KEY-----") || keyChain.privateKeySignRaw.endsWith("-----END PRIVATE KEY-----\n") || keyChain.privateKeySignRaw.endsWith("-----END PRIVATE KEY----- "))) {
+                                                                    const pks = keyChain.privateKeySignRaw.toString();
+                                                                    
+                                                                    if (pks.startsWith("-----BEGIN PRIVATE KEY-----") && (pks.endsWith("-----END PRIVATE KEY-----") || pks.endsWith("-----END PRIVATE KEY-----\n") || pks.endsWith("-----END PRIVATE KEY----- "))) {
                                                                         console.log("Certificate Downloaded, Saving to file");
 
                                                                         writeFile(join(sslPath, "certificate.pem"), cert, () => { savedCert = true; });
