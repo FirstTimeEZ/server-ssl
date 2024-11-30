@@ -18,7 +18,7 @@
 import * as jose from './jose/index.js';
 import { join } from 'path';
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
-import { generateCSRWithExistingKeys } from './crypt/csr.js';
+import * as acme from './acme-v2.js';
 
 const DIRECTORY_PRODUCTION = "https://acme-v02.api.letsencrypt.org/directory";
 const DIRECTORY_STAGING = "https://acme-staging-v02.api.letsencrypt.org/directory";
@@ -37,26 +37,15 @@ const EXPECTED_SPLITS = 4;
 const MAX_LENGTH = 1000;
 const MIN_LENGTH = 32;
 
-const DIGEST = "sha256";
 const ALG_ECDSA = 'ES256';
 const PUBLIC_KEY = '/acmePublicKey.raw';
 const PRIVATE_KEY = '/acmePrivateKey.raw';
 const PUBLIC_KEY_SIGN = '/acmePublicSignKey.raw';
 const PRIVATE_KEY_SIGN = '/acmePrivateSignKey.raw';
 
-const CONTENT_TYPE_JOSE = 'application/jose+json';
 const CONTENT_TYPE_OCTET = 'application/octet-stream';
 
-const METHOD_GET = "GET";
-const METHOD_POST = "POST";
-const METHOD_HEAD = "HEAD";
-const METHOD_POST_AS_GET = "";
-const METHOD_POST_AS_GET_CHALLENGE = {};
-
 const VALID = "valid";
-const SAN = "identifiers";
-const NEXT_URL = "location";
-const REPLAY_NONCE = 'replay-nonce';
 
 const REDIRECT_ONLY = "Cleared Answered Challenges - HTTP is now redirect only until new challenges are created";
 
@@ -175,221 +164,6 @@ export async function checkChallengesMixin(req, res) {
     } catch { } // Ignore
 
     return false;
-}
-
-async function newDirectoryAsync() {
-    return new Promise((resolve) => {
-        fetch(acmeDirectory, { method: METHOD_GET }).then(response => {
-            response.ok
-                ? response.json().then((result) => { resolve({ answer: { directory: result } }); }).catch((exception) => resolve({ answer: { exception: exception } }))
-                : resolve({ answer: { error: response } });
-        }).catch((exception) => resolve({ answer: { exception: exception } }));
-    });
-}
-
-async function newNonceAsync(newNonceUrl) {
-    let nonceUrl = newNonceUrl;
-
-    if (newNonceUrl == undefined) {
-        const directory = (await newDirectoryAsync()).answer.directory;
-        if (directory !== null) {
-            nonceUrl = directory.newNonce;
-        }
-    }
-
-    if (nonceUrl !== null) {
-        return new Promise(async (resolve) => {
-            fetch(nonceUrl, {
-                method: METHOD_HEAD
-            }).then((response) => response.ok
-                ? resolve({ answer: { response: response }, nonce: response.headers.get(REPLAY_NONCE) })
-                : resolve({ answer: { error: response } }))
-                .catch((exception) => resolve({ answer: { exception: exception } }));;
-        });
-    } else {
-        return { answer: { error: "No directories found or newNonce is not available." } };
-    }
-}
-
-async function createAccount(nonce, newAccountUrl, acmeKeyChain) {
-    try {
-        jsonWebKey = await jose.exportJWK(acmeKeyChain.publicKey);
-        jsonWebKeyThumbPrint = await jose.calculateJwkThumbprint(jsonWebKey, DIGEST);
-
-        const payload = { termsOfServiceAgreed: true };
-
-        const protectedHeader = {
-            alg: ALG_ECDSA,
-            jwk: jsonWebKey,
-            nonce: nonce,
-            url: newAccountUrl,
-        };
-
-        const signed = await signPayloadJson(payload, protectedHeader, acmeKeyChain);
-
-        const response = await fetchRequest(METHOD_POST, newAccountUrl, signed);
-
-        if (response.ok) {
-            return {
-                answer: { account: await response.json(), location: response.headers.get(NEXT_URL) },
-                nonce: response.headers.get(REPLAY_NONCE)
-            };
-        }
-        else {
-            return {
-                answer: { error: await response.json() },
-                nonce: null
-            };
-        }
-    } catch (exception) {
-        return { answer: { exception: exception } }
-    }
-}
-
-async function createOrder(kid, nonce, acmeKeyChain, newOrderUrl, identifiers) {
-    try {
-        const payload = { [SAN]: identifiers };
-
-        const protectedHeader = {
-            alg: ALG_ECDSA,
-            kid: kid,
-            nonce: nonce,
-            url: newOrderUrl,
-        };
-
-        const signed = await signPayloadJson(payload, protectedHeader, acmeKeyChain);
-
-        const response = await fetchRequest(METHOD_POST, newOrderUrl, signed);
-
-        if (response.ok) {
-            return {
-                answer: { order: await response.json(), location: response.headers.get(NEXT_URL) },
-                nonce: response.headers.get(REPLAY_NONCE)
-            };
-        }
-        else {
-            return {
-                answer: { error: await response.json() },
-                nonce: null
-            };
-        }
-    } catch (exception) {
-        return { answer: { exception: exception } }
-    }
-}
-
-async function finalizeOrder(commonName, kid, nonce, acmeKeyChain, finalizeUrl, dnsNames) {
-    try {
-        const payload = { csr: await generateCSRWithExistingKeys(commonName, acmeKeyChain.publicKeySign, acmeKeyChain.privateKeySign, dnsNames, jose) };
-
-        const protectedHeader = {
-            alg: ALG_ECDSA,
-            kid: kid,
-            nonce: nonce,
-            url: finalizeUrl,
-        };
-
-        const signed = await signPayloadJson(payload, protectedHeader, acmeKeyChain);
-
-        const response = await fetchRequest(METHOD_POST, finalizeUrl, signed);
-
-        if (response.ok) {
-            return {
-                answer: { get: await response.json(), location: response.headers.get(NEXT_URL) },
-                nonce: response.headers.get(REPLAY_NONCE)
-            };
-        }
-        else {
-            return {
-                answer: { error: await response.json() },
-                nonce: response.headers.get(REPLAY_NONCE)
-            };
-        }
-    } catch (exception) {
-        return { answer: { exception: exception } }
-    }
-}
-
-async function postAsGet(kid, nonce, acmeKeyChain, url) {
-    try {
-        const protectedHeader = {
-            alg: ALG_ECDSA,
-            kid: kid,
-            nonce: nonce,
-            url: url,
-        };
-
-        const signed = await signPayload(METHOD_POST_AS_GET, protectedHeader, acmeKeyChain);
-
-        const response = await fetchRequest(METHOD_POST, url, signed);
-
-        if (response.ok) {
-            return {
-                answer: { get: await response.json(), location: response.headers.get(NEXT_URL) },
-                nonce: response.headers.get(REPLAY_NONCE)
-            };
-        }
-        else {
-            return {
-                answer: { error: await response.json() },
-                nonce: null
-            };
-        }
-    } catch (exception) {
-        return { answer: { exception: exception } }
-    }
-}
-
-async function postAsGetChal(kid, nonce, acmeKeyChain, url) {
-    try {
-        const protectedHeader = {
-            alg: ALG_ECDSA,
-            kid: kid,
-            nonce: nonce,
-            url: url,
-        };
-
-        const signed = await signPayloadJson(METHOD_POST_AS_GET_CHALLENGE, protectedHeader, acmeKeyChain);
-
-        const response = await fetchRequest(METHOD_POST, url, signed);
-
-        if (response.ok) {
-            return {
-                answer: { get: await response.json(), location: response.headers.get(NEXT_URL) },
-                nonce: response.headers.get(REPLAY_NONCE)
-            };
-        }
-        else {
-            return {
-                answer: { error: await response.json() },
-                nonce: null
-            };
-        }
-    } catch (exception) {
-        return { answer: { exception: exception } }
-    }
-}
-
-async function signPayloadJson(payload, protectedHeader, acmeKeyChain) {
-    return await signPayload(JSON.stringify(payload), protectedHeader, acmeKeyChain);
-}
-
-async function signPayload(payload, protectedHeader, acmeKeyChain) {
-    const jws = new jose.FlattenedSign(new TextEncoder().encode(payload));
-    jws.setProtectedHeader(protectedHeader);
-    return JSON.stringify(await jws.sign(acmeKeyChain.privateKey));
-}
-
-async function fetchRequest(method, url, signedData) {
-    const request = {
-        method: method,
-        headers: {
-            [CONTENT_TYPE]: CONTENT_TYPE_JOSE
-        },
-        body: signedData
-    };
-
-    return await fetch(url, request);
 }
 
 function internalCheckForLocalHostOnce(req) {
@@ -557,6 +331,12 @@ async function internalGetAcmeKeyChain(sslPath) {
                 console.log('Signing Keys saved to File');
             }
         }
+
+        if (jsonWebKey == undefined) {
+            const jwk = await acme.createJsonWebKey(acmeKeyChain.publicKey);
+            jsonWebKey = jwk.key;
+            jsonWebKeyThumbPrint = jwk.print;
+        }
     }
 }
 
@@ -571,21 +351,21 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
 
     optStaging === true && (acmeDirectory = DIRECTORY_STAGING, console.log("USING THE STAGING SERVER"));
 
-    acmeDirectory = (await newDirectoryAsync()).answer.directory;
+    acmeDirectory = (await acme.newDirectoryAsync(acmeDirectory)).answer.directory;
 
     if (acmeDirectory === null) {
         console.error("Error getting directory", acmeDirectory.answer.error, acmeDirectory.answer.exception);
         return false;
     }
 
-    firstNonce = await newNonceAsync(acmeDirectory.newNonce);
+    firstNonce = await acme.newNonceAsync(acmeDirectory.newNonce);
 
     if (firstNonce.nonce === undefined) {
         console.error("Error getting nonce", firstNonce.answer.error, firstNonce.answer.exception);
         return false;
     }
 
-    account = await createAccount(firstNonce.nonce, acmeDirectory.newAccount, acmeKeyChain).catch(console.error);
+    account = await acme.createAccount(firstNonce.nonce, acmeDirectory.newAccount, acmeKeyChain.privateKey, jsonWebKey).catch(console.error);
 
     if (account.answer.account === null || account.answer.account.status != VALID) {
         console.error("Error creating account", account.answer.error, account.answer.exception);
@@ -594,7 +374,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
 
     fqdns.forEach((element) => domains.push({ "type": "dns", "value": element }));
 
-    const order = await createOrder(account.answer.location, account.nonce, acmeKeyChain, acmeDirectory.newOrder, domains);
+    const order = await acme.createOrder(account.answer.location, account.nonce, acmeKeyChain.privateKey, acmeDirectory.newOrder, domains);
 
     if (order.answer.order == undefined) {
         console.error("Error getting order", order.answer.error, order.answer.exception);
@@ -606,7 +386,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
     authorizations = order.answer.order.authorizations;
 
     for (let index = 0; index < authorizations.length; index++) {
-        const auth = await postAsGet(account.answer.location, nextNonce, acmeKeyChain, authorizations[index]);
+        const auth = await acme.postAsGet(account.answer.location, nextNonce, acmeKeyChain.privateKey, authorizations[index]);
 
         if (auth.answer.get.status) {
             for (let index = 0; index < auth.answer.get.challenges.length; index++) {
@@ -622,7 +402,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
 
     for (let index = 0; index < pendingChallenges.length; index++) {
         if (pendingChallenges[index].type == HTTP && pendingChallenges[index].status == STATUS_PENDING) {
-            const auth = await postAsGetChal(account.answer.location, nextNonce, acmeKeyChain, pendingChallenges[index].url);
+            const auth = await acme.postAsGetChal(account.answer.location, nextNonce, acmeKeyChain.privateKey, pendingChallenges[index].url);
             auth.answer.get.status ? console.log("Next Nonce", (nextNonce = auth.nonce), auth) : console.error("Error getting auth", auth.answer.error, auth.answer.exception);
         }
     }
@@ -634,7 +414,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
 
         await new Promise(async (resolve) => {
             const waitForReady = setInterval(async () => {
-                await postAsGet(account.answer.location, nextNonce, acmeKeyChain, order.answer.location).then((order) => {
+                await acme.postAsGet(account.answer.location, nextNonce, acmeKeyChain.privateKey, order.answer.location).then((order) => {
                     nextNonce = order.nonce;
 
                     if (order.answer.get != undefined && order.answer.get.status == "ready") {
@@ -649,7 +429,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
 
         await new Promise(async (resolve) => {
             const waitForFinalize = setInterval(async () => {
-                await finalizeOrder(fqdns[0], account.answer.location, nextNonce, acmeKeyChain, finalizedInfo, fqdns).then((finalized) => {
+                await acme.finalizeOrder(fqdns[0], account.answer.location, nextNonce, acmeKeyChain.privateKey, acmeKeyChain.publicKeySign, acmeKeyChain.privateKeySign, finalizedInfo, fqdns).then((finalized) => {
                     if (finalized.answer.get) {
                         if (finalized.answer.get.status == "processing" || finalized.answer.get.status == VALID) {
                             finalizedLocation = finalized.answer.location;
@@ -671,7 +451,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
 
         await new Promise(async (resolve) => {
             const waitForProcessingValid = setInterval(async () => {
-                await postAsGet(account.answer.location, nextNonce, acmeKeyChain, finalizedLocation).then((checkFinalized) => {
+                await acme.postAsGet(account.answer.location, nextNonce, acmeKeyChain.privateKey, finalizedLocation).then((checkFinalized) => {
                     if (checkFinalized.answer.get != undefined && checkFinalized.answer.get.status == VALID) {
                         finalizedCertificateLocation = checkFinalized.answer.get.certificate;
                         console.log("Certificate URL:", finalizedCertificateLocation);
