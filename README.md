@@ -20,18 +20,18 @@ It can be as simple as this:
 2. Put your website in the `website` folder
 3. Open the `server-ssl` folder in `Command Prompt` or `Git Bash`
 4. Run `start-windows.bat`
+5. View your website at `https://localhost`
+
+[![](https://i.imgur.com/YchiE6S.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 [![](https://i.imgur.com/mZrjc2i.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
-### Usage
+### Advanced/Production Usage
 
 `start-windows.bat` takes your arguments and starts the server
 
 ```
-# Start for development (Self Signed Certificate, Port 443, https://localhost)
-./start-windows.bat
-
-# Start for production (Lets Encrypt!)
+# Start for production (Lets Encrypt!) with SAN Extension
 ./start-windows.bat --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
 
 # Start for production (BYO)
