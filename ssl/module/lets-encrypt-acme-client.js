@@ -17,7 +17,7 @@
 
 import * as jose from './jose/index.js';
 import { join } from 'path';
-import { writeFile, readFileSync, existsSync, mkdirSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 import { generateCSRWithExistingKeys } from './crypt/csr.js';
 
 const DIRECTORY_PRODUCTION = "https://acme-v02.api.letsencrypt.org/directory";
@@ -99,188 +99,25 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
     console.log("--------");
 
     if (internalDetermineRequirement(fqdns, sslPath, daysRemaining) && optGenerateAnyway !== true) {
-        return;
+        return true;
     }
 
-    countdownHandler != undefined && (countdownTime == undefined || countdownTime < 30) && (countdownTime = 30);
+    for (let index = 0; index < 3; index++) {
+        const success = await internalLetsEncryptDaemon(fqdns, sslPath, daysRemaining, certificateCallback, optGenerateAnyway, optStaging, optAutoRestart, countdownHandler, countdownTime);
 
-    optStaging === true && (acmeDirectory = DIRECTORY_STAGING, console.log("USING THE STAGING SERVER"));
-
-    const keyChain = await generateKeyChain(sslPath);
-
-    let account = undefined;
-    let nextNonce = undefined;
-    let authorizations = undefined;
-
-    acmeDirectory = (await newDirectoryAsync()).answer.directory;
-
-    if (acmeDirectory !== null) {
-        const firstNonce = await newNonceAsync(acmeDirectory.newNonce);
-
-        if (firstNonce.nonce !== null) {
-            account = await createAccount(firstNonce.nonce, acmeDirectory.newAccount, keyChain).catch(console.error);
-
-            if (account.answer.account && account.answer.account.status == VALID) {
-                let domains = [];
-
-                fqdns.forEach((element) => {
-                    domains.push({ "type": "dns", "value": element });
-                });
-
-                const order = await createOrder(account.answer.location, account.nonce, keyChain, acmeDirectory.newOrder, domains);
-
-                if (order.answer.order != undefined) {
-
-                    console.log("Next Nonce", (nextNonce = order.nonce));
-
-                    authorizations = order.answer.order.authorizations;
-
-                    for (let index = 0; index < authorizations.length; index++) {
-                        const element = authorizations[index];
-                        nextNonce = nextNonce;
-
-                        let auth = await postAsGet(account.answer.location, nextNonce, keyChain, element);
-
-                        if (auth.answer.get.status) {
-                            for (let index = 0; index < auth.answer.get.challenges.length; index++) {
-                                const challenge = auth.answer.get.challenges[index];
-                                challenge.type == HTTP && (challenge.answered = false, pendingChallenges.push(challenge));
-                            }
-
-                            console.log("Next Nonce", (nextNonce = auth.nonce));
-                        } else {
-                            console.error("Error getting auth", auth.answer.error, auth.answer.exception);
-                        }
-                    }
-
-                    for (let index = 0; index < pendingChallenges.length; index++) {
-                        const element = pendingChallenges[index];
-                        nextNonce = nextNonce;
-
-                        if (element.type == HTTP && element.status == STATUS_PENDING) {
-                            let auth = await postAsGetChal(account.answer.location, nextNonce, keyChain, element.url);
-
-                            if (auth.answer.get.status) {
-                                console.log("Next Nonce", (nextNonce = auth.nonce), auth);
-                            } else {
-                                console.error("Error getting auth", auth.answer.error, auth.answer.exception);
-                            }
-                        }
-                    }
-
-                    const waitForReady = setInterval(() => {
-                        postAsGet(account.answer.location, nextNonce, keyChain, order.answer.location).then((order) => {
-                            nextNonce = order.nonce;
-
-                            if (order.answer.get != undefined && order.answer.get.status == "ready") {
-                                clearInterval(waitForReady);
-
-                                console.log("Ready to Finalize", fqdns);
-
-                                finalizeOrder(fqdns[0], account.answer.location, nextNonce, keyChain, order.answer.get.finalize, fqdns).then((finalized) => {
-
-                                    if (finalized.answer.get) {
-                                        if (finalized.answer.get.status == "processing" || finalized.answer.get.status == VALID) {
-
-                                            console.log("Waiting for Certificate to be Ready for Download");
-                                            const waitForProcessingValid = setInterval(() => {
-
-                                                postAsGet(account.answer.location, nextNonce, keyChain, finalized.answer.location).then((checkFinalized) => {
-                                                    if (checkFinalized.answer.get != undefined && checkFinalized.answer.get.status == VALID) {
-                                                        console.log("Certificate URL:", checkFinalized.answer.get.certificate);
-
-                                                        fetch(checkFinalized.answer.get.certificate).then((s) => {
-                                                            s.text().then((cert) => {
-                                                                let savedCert = null;
-                                                                let savedPk = null;
-                                                                let savedFragment = null;
-
-                                                                if (cert.startsWith("-----BEGIN CERTIFICATE-----") && (cert.endsWith("-----END CERTIFICATE-----\n") || cert.endsWith("-----END CERTIFICATE-----") || cert.endsWith("-----END CERTIFICATE----- "))) {
-                                                                    const pks = keyChain.privateKeySignRaw.toString();
-
-                                                                    if (pks.startsWith("-----BEGIN PRIVATE KEY-----") && (pks.endsWith("-----END PRIVATE KEY-----") || pks.endsWith("-----END PRIVATE KEY-----\n") || pks.endsWith("-----END PRIVATE KEY----- "))) {
-                                                                        console.log("Certificate Downloaded, Saving to file");
-
-                                                                        writeFile(join(sslPath, "certificate.pem"), cert, () => { savedCert = true; });
-
-                                                                        writeFile(join(sslPath, "private-key.pem"), keyChain.privateKeySignRaw, () => { savedPk = true; });
-
-                                                                        writeFile(join(sslPath, LAST_CERT_FILE), JSON.stringify({ time: Date.now(), names: fqdns }), () => { savedFragment = true; });
-
-                                                                        if (optAutoRestart === true) {
-                                                                            console.log("-------");
-                                                                            console.log("Auto Restart is Enabled");
-                                                                            console.log("Restarting Server when ready...");
-                                                                            console.log("-------");
-
-                                                                            if (countdownHandler == undefined) {
-                                                                                new Promise(() => setInterval(() => (savedCert === true && savedPk === true && savedFragment === true) && process.exit(123), 200));
-                                                                            }
-                                                                            else {
-                                                                                let count = 0;
-                                                                                setInterval(() => (count++, count > countdownTime ? process.exit(123) : countdownHandler()), 1000);
-                                                                            }
-                                                                        }
-                                                                        else if (certificateCallback != undefined) {
-                                                                            new Promise((resolve) => {
-                                                                                const certI = setInterval(() => {
-                                                                                    if (savedCert === true && savedPk === true && savedFragment === true) {
-                                                                                        certificateCallback();
-                                                                                        clearInterval(certI);
-                                                                                        internalCheckAnswered();
-                                                                                        resolve();
-                                                                                    }
-                                                                                }, 200);
-                                                                            });
-                                                                        }
-                                                                    }
-                                                                    else {
-                                                                        console.error("Something went wrong with the private key, will try again at the usual time");
-                                                                        // todo: generate a new acme key the usual way before the next update
-                                                                    }
-                                                                }
-                                                                else {
-                                                                    console.error("Something went wrong generating the certificate, will try again at the usual time");
-                                                                    // todo: try download the cert again
-                                                                }
-                                                            });
-                                                        });
-                                                        clearInterval(waitForProcessingValid);
-                                                    }
-
-                                                    console.log("Next Nonce", (nextNonce = checkFinalized.nonce));
-                                                });
-                                            }, 1000);
-                                        }
-                                        else {
-                                            console.log("something went wrong", finalized.answer);
-                                        }
-                                    }
-                                    else {
-                                        console.error("Error getting order", finalized.answer.error, finalized.answer.exception);
-                                    }
-
-                                    console.log("Next Nonce", (nextNonce = finalized.nonce));
-                                });
-                            }
-                        });
-                    }, 1000);
-                }
-                else {
-                    console.error("Error getting order", order.answer.error, order.answer.exception);
-                }
-            }
-            else {
-                console.error("Error creating account", account.answer.error, account.answer.exception);
-            }
+        if (success === true) {
+            console.log("Completed Successfully", index + 1);
+            return;
         }
         else {
-            console.error("Error getting nonce", firstNonce.answer.error, firstNonce.answer.exception);
+            console.log("Something went wrong, trying again", index + 1);
         }
     }
-    else {
-        console.error("Error getting directory", acmeDirectory.answer.error, acmeDirectory.answer.exception);
-    }
+
+    console.error("------------------");
+    console.error("Something is preventing the Lets Encrypt Daemon");
+    console.error("from creating or renewing your certificate");
+    console.error("------------------");
 }
 
 /**
@@ -577,8 +414,8 @@ async function generateKeyChain(sslPath) {
             keyChain.publicKeyRaw = await jose.exportSPKI(publicKey);
             keyChain.privateKeyRaw = await jose.exportPKCS8(privateKey);
 
-            writeFile(sslPath + PUBLIC_KEY, keyChain.publicKeyRaw, () => { });
-            writeFile(sslPath + PRIVATE_KEY, keyChain.privateKeyRaw, () => { });
+            writeFileSync(sslPath + PUBLIC_KEY, keyChain.publicKeyRaw);
+            writeFileSync(sslPath + PRIVATE_KEY, keyChain.privateKeyRaw);
 
             console.log('ACME Keys saved to File');
         }
@@ -591,8 +428,8 @@ async function generateKeyChain(sslPath) {
             keyChain.publicKeySignRaw = await jose.exportSPKI(publicKey);
             keyChain.privateKeySignRaw = await jose.exportPKCS8(privateKey);
 
-            writeFile(sslPath + PUBLIC_KEY_SIGN, keyChain.publicKeySignRaw, () => { });
-            writeFile(sslPath + PRIVATE_KEY_SIGN, keyChain.privateKeySignRaw, () => { });
+            writeFileSync(sslPath + PUBLIC_KEY_SIGN, keyChain.publicKeySignRaw);
+            writeFileSync(sslPath + PRIVATE_KEY_SIGN, keyChain.privateKeySignRaw);
 
             console.log('Signing Keys saved to File');
         }
@@ -711,4 +548,185 @@ async function internalCheckAnswered() {
     } catch (exception) {
         console.error(exception);
     }
+}
+
+async function internalLetsEncryptDaemon(fqdns, sslPath, daysRemaining, certificateCallback, optGenerateAnyway, optStaging, optAutoRestart, countdownHandler, countdownTime) {
+    const keyChain = await generateKeyChain(sslPath);
+
+    let domains = [];
+    let account = undefined;
+    let nextNonce = undefined;
+    let firstNonce = undefined;
+    let authorizations = undefined;
+
+    countdownHandler != undefined && (countdownTime == undefined || countdownTime < 30) && (countdownTime = 30);
+
+    optStaging === true && (acmeDirectory = DIRECTORY_STAGING, console.log("USING THE STAGING SERVER"));
+
+    acmeDirectory = (await newDirectoryAsync()).answer.directory;
+
+    if (acmeDirectory === null) {
+        console.error("Error getting directory", acmeDirectory.answer.error, acmeDirectory.answer.exception);
+        return false;
+    }
+
+    firstNonce = await newNonceAsync(acmeDirectory.newNonce);
+
+    if (firstNonce.nonce === undefined) {
+        console.error("Error getting nonce", firstNonce.answer.error, firstNonce.answer.exception);
+        return false;
+    }
+
+    account = await createAccount(firstNonce.nonce, acmeDirectory.newAccount, keyChain).catch(console.error);
+
+    if (account.answer.account === null || account.answer.account.status != VALID) {
+        console.error("Error creating account", account.answer.error, account.answer.exception);
+        return false;
+    }
+
+    fqdns.forEach((element) => domains.push({ "type": "dns", "value": element }));
+
+    const order = await createOrder(account.answer.location, account.nonce, keyChain, acmeDirectory.newOrder, domains);
+
+    if (order.answer.order == undefined) {
+        console.error("Error getting order", order.answer.error, order.answer.exception);
+        return false;
+    }
+
+    console.log("Next Nonce", (nextNonce = order.nonce));
+
+    authorizations = order.answer.order.authorizations;
+
+    for (let index = 0; index < authorizations.length; index++) {
+        const auth = await postAsGet(account.answer.location, nextNonce, keyChain, authorizations[index]);
+
+        if (auth.answer.get.status) {
+            for (let index = 0; index < auth.answer.get.challenges.length; index++) {
+                const challenge = auth.answer.get.challenges[index];
+                challenge.type == HTTP && (challenge.answered = false, pendingChallenges.push(challenge));
+            }
+
+            console.log("Next Nonce", (nextNonce = auth.nonce));
+        } else {
+            console.error("Error getting auth", auth.answer.error, auth.answer.exception);
+        }
+    }
+
+    for (let index = 0; index < pendingChallenges.length; index++) {
+        if (pendingChallenges[index].type == HTTP && pendingChallenges[index].status == STATUS_PENDING) {
+            const auth = await postAsGetChal(account.answer.location, nextNonce, keyChain, pendingChallenges[index].url);
+            auth.answer.get.status ? console.log("Next Nonce", (nextNonce = auth.nonce), auth) : console.error("Error getting auth", auth.answer.error, auth.answer.exception);
+        }
+    }
+
+    return await new Promise(async (resolve) => {
+        let finalizedCertificateLocation = null;
+        let finalizedLocation = null;
+        let finalizedInfo = null;
+
+        await new Promise(async (resolve) => {
+            const waitForReady = setInterval(async () => {
+                await postAsGet(account.answer.location, nextNonce, keyChain, order.answer.location).then((order) => {
+                    nextNonce = order.nonce;
+
+                    if (order.answer.get != undefined && order.answer.get.status == "ready") {
+                        finalizedInfo = order.answer.get.finalize;
+                        console.log("Ready to Finalize", fqdns);
+                        clearInterval(waitForReady);
+                        resolve();
+                    }
+                });
+            }, 1500);
+        });
+
+        await new Promise(async (resolve) => {
+            const waitForFinalize = setInterval(async () => {
+                await finalizeOrder(fqdns[0], account.answer.location, nextNonce, keyChain, finalizedInfo, fqdns).then((finalized) => {
+                    if (finalized.answer.get) {
+                        if (finalized.answer.get.status == "processing" || finalized.answer.get.status == VALID) {
+                            finalizedLocation = finalized.answer.location;
+                            console.log("Certificate Location", finalizedLocation);
+                            clearInterval(waitForFinalize);
+                            resolve();
+                        }
+                    }
+                    else {
+                        console.error("Error getting order", finalized.answer.error, finalized.answer.exception);
+                    }
+
+                    console.log("Next Nonce", (nextNonce = finalized.nonce));
+                });
+            }, 1500);
+        });
+
+        console.log("Waiting for Certificate to be Ready for Download");
+
+        await new Promise(async (resolve) => {
+            const waitForProcessingValid = setInterval(async () => {
+                await postAsGet(account.answer.location, nextNonce, keyChain, finalizedLocation).then((checkFinalized) => {
+                    if (checkFinalized.answer.get != undefined && checkFinalized.answer.get.status == VALID) {
+                        finalizedCertificateLocation = checkFinalized.answer.get.certificate;
+                        console.log("Certificate URL:", finalizedCertificateLocation);
+                        clearInterval(waitForProcessingValid);
+                        resolve();
+                    }
+
+                    console.log("Next Nonce", (nextNonce = checkFinalized.nonce));
+                });
+            }, 1500);
+        });
+
+        const response = await fetch(finalizedCertificateLocation);
+
+        const certificateText = await response.text();
+
+        if (certificateText.startsWith("-----BEGIN CERTIFICATE-----") && (certificateText.endsWith("-----END CERTIFICATE-----\n") || certificateText.endsWith("-----END CERTIFICATE-----") || certificateText.endsWith("-----END CERTIFICATE----- "))) {
+            const pks = keyChain.privateKeySignRaw.toString();
+
+            if (pks.startsWith("-----BEGIN PRIVATE KEY-----") && (pks.endsWith("-----END PRIVATE KEY-----") || pks.endsWith("-----END PRIVATE KEY-----\n") || pks.endsWith("-----END PRIVATE KEY----- "))) {
+                console.log("Certificate Downloaded, Saving to file");
+
+                writeFileSync(join(sslPath, "certificate.pem"), certificateText);
+
+                writeFileSync(join(sslPath, "private-key.pem"), keyChain.privateKeySignRaw);
+
+                writeFileSync(join(sslPath, LAST_CERT_FILE), JSON.stringify({ time: Date.now(), names: fqdns }));
+
+                if (optAutoRestart === true) {
+                    console.log("-------");
+                    console.log("Auto Restart is Enabled");
+                    console.log("Restarting Server when ready...");
+                    console.log("-------");
+
+                    if (countdownHandler == undefined) {
+                        process.exit(123); // Resolved by exit
+                    }
+                    else {
+                        let count = 0;
+                        setInterval(() => (count++, count > countdownTime ? process.exit(123) : countdownHandler()), 1000); // Resolved by exit
+                    }
+                }
+                else if (certificateCallback != undefined) {
+                    await new Promise((resolve) => {
+                        const certI = setInterval(() => {
+                            certificateCallback();
+                            clearInterval(certI);
+                            internalCheckAnswered();
+                            resolve();
+                        }, 200);
+                    });
+                }
+
+                resolve(true);
+            }
+            else {
+                console.error("Something went wrong with the private key, will try again at the usual time"); // todo: generate a new acme key the usual way before the next update
+            }
+        }
+        else {
+            console.error("Something went wrong generating the certificate, will try again at the usual time"); // todo: try download the cert again
+        }
+
+        resolve(false);
+    });
 }
