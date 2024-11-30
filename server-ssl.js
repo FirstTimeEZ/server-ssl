@@ -32,7 +32,7 @@ const HTTPS_SERVER = createServerHTTPS(S_SSL.loadDefaultSecureContext(), (req, r
 }).on('error', (e) => e.code === S_SSL.ADDR_IN_USE && console.error(`${S_SSL.optPort}${S_SSL.IN_USE}`)).listen(S_SSL.optPort, (err) => err ? console.error(S_SSL.ERROR_STARTING, err) : console.log(`${S_SSL.STARTED_HTTPS}${S_SSL.optPort}`));
 
 S_SSL.startHttpChallengeListener();  // Lets Encrypt! HTTP-01 ACME Challenge Mixin - Always Redirects HTTP to HTTPS unless doing a ACME Challenge
-//                                           .. Restart Callbacks/Seconds              .. Update Certificates Callback
-S_SSL.loadLetsEncryptAcmeDaemon(() => console.log("Restarting Soon"), 30, () => S_SSL.loadNewSecureContext(HTTPS_SERVER));
 
+S_SSL.loadLetsEncryptAcmeDaemon(() => console.log("Restarting Soon"), 30, () => S_SSL.loadNewSecureContext(HTTPS_SERVER));
+//                              ^^ Restart Callbacks       cb/seconds ^^  ^^ Update Certificates Callback
 S_SSL.checkNodeForUpdates(); // Check Node.js version
