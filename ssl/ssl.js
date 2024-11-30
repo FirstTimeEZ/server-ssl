@@ -26,6 +26,7 @@ import { checkChallengesMixin } from './module/lets-encrypt-acme-client.js';
 */
 export const S_SSL = {
     // Config
+    __rootDir: null,
     __websiteDir: null,
     __sslFolder: null,
     __pkPath: null,
@@ -128,6 +129,7 @@ export const S_SSL = {
         !existsSync(CERT) && S_SSL.certNotExist();
 
         S_SSL.loadErrorPages(join(__rootDir, S_SSL.optError));
+        S_SSL.__rootDir = __rootDir;
         S_SSL.__websiteDir = join(__rootDir, S_SSL.optWebsite);
         S_SSL.__sslFolder = SSL;
         S_SSL.__pkPath = PK;
@@ -269,5 +271,8 @@ export const S_SSL = {
                 S_SSL.getErrorPage(res, err);
             }
         });
+    },
+    finishRoute: (...args) => {
+        return join(S_SSL.__websiteDir, ...args);;
     }
 }
