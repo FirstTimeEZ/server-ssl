@@ -72,6 +72,8 @@ let checkAnswersFlag = false;
 let localHost = false;
 let checkedForLocalHost = false;
 
+let acmeKeyChain = undefined;
+
 let jsonWebKey = undefined;
 let jsonWebKeyThumbPrint = null;
 
@@ -101,6 +103,8 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
     if (internalDetermineRequirement(fqdns, sslPath, daysRemaining) && optGenerateAnyway !== true) {
         return;
     }
+
+    await internalGetAcmeKeyChain(sslPath);
 
     for (let index = 0; index < 3; index++) {
         try {
@@ -207,9 +211,9 @@ async function newNonceAsync(newNonceUrl) {
     }
 }
 
-async function createAccount(nonce, newAccountUrl, keyChain) {
+async function createAccount(nonce, newAccountUrl, acmeKeyChain) {
     try {
-        jsonWebKey = await jose.exportJWK(keyChain.publicKey);
+        jsonWebKey = await jose.exportJWK(acmeKeyChain.publicKey);
         jsonWebKeyThumbPrint = await jose.calculateJwkThumbprint(jsonWebKey, DIGEST);
 
         const payload = { termsOfServiceAgreed: true };
@@ -221,7 +225,7 @@ async function createAccount(nonce, newAccountUrl, keyChain) {
             url: newAccountUrl,
         };
 
-        const signed = await signPayloadJson(payload, protectedHeader, keyChain);
+        const signed = await signPayloadJson(payload, protectedHeader, acmeKeyChain);
 
         const response = await fetchRequest(METHOD_POST, newAccountUrl, signed);
 
@@ -242,7 +246,7 @@ async function createAccount(nonce, newAccountUrl, keyChain) {
     }
 }
 
-async function createOrder(kid, nonce, keyChain, newOrderUrl, identifiers) {
+async function createOrder(kid, nonce, acmeKeyChain, newOrderUrl, identifiers) {
     try {
         const payload = { [SAN]: identifiers };
 
@@ -253,7 +257,7 @@ async function createOrder(kid, nonce, keyChain, newOrderUrl, identifiers) {
             url: newOrderUrl,
         };
 
-        const signed = await signPayloadJson(payload, protectedHeader, keyChain);
+        const signed = await signPayloadJson(payload, protectedHeader, acmeKeyChain);
 
         const response = await fetchRequest(METHOD_POST, newOrderUrl, signed);
 
@@ -274,9 +278,9 @@ async function createOrder(kid, nonce, keyChain, newOrderUrl, identifiers) {
     }
 }
 
-async function finalizeOrder(commonName, kid, nonce, keyChain, finalizeUrl, dnsNames) {
+async function finalizeOrder(commonName, kid, nonce, acmeKeyChain, finalizeUrl, dnsNames) {
     try {
-        const payload = { csr: await generateCSRWithExistingKeys(commonName, keyChain.publicKeySign, keyChain.privateKeySign, dnsNames, jose) };
+        const payload = { csr: await generateCSRWithExistingKeys(commonName, acmeKeyChain.publicKeySign, acmeKeyChain.privateKeySign, dnsNames, jose) };
 
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -285,7 +289,7 @@ async function finalizeOrder(commonName, kid, nonce, keyChain, finalizeUrl, dnsN
             url: finalizeUrl,
         };
 
-        const signed = await signPayloadJson(payload, protectedHeader, keyChain);
+        const signed = await signPayloadJson(payload, protectedHeader, acmeKeyChain);
 
         const response = await fetchRequest(METHOD_POST, finalizeUrl, signed);
 
@@ -306,7 +310,7 @@ async function finalizeOrder(commonName, kid, nonce, keyChain, finalizeUrl, dnsN
     }
 }
 
-async function postAsGet(kid, nonce, keyChain, url) {
+async function postAsGet(kid, nonce, acmeKeyChain, url) {
     try {
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -315,7 +319,7 @@ async function postAsGet(kid, nonce, keyChain, url) {
             url: url,
         };
 
-        const signed = await signPayload(METHOD_POST_AS_GET, protectedHeader, keyChain);
+        const signed = await signPayload(METHOD_POST_AS_GET, protectedHeader, acmeKeyChain);
 
         const response = await fetchRequest(METHOD_POST, url, signed);
 
@@ -336,7 +340,7 @@ async function postAsGet(kid, nonce, keyChain, url) {
     }
 }
 
-async function postAsGetChal(kid, nonce, keyChain, url) {
+async function postAsGetChal(kid, nonce, acmeKeyChain, url) {
     try {
         const protectedHeader = {
             alg: ALG_ECDSA,
@@ -345,7 +349,7 @@ async function postAsGetChal(kid, nonce, keyChain, url) {
             url: url,
         };
 
-        const signed = await signPayloadJson(METHOD_POST_AS_GET_CHALLENGE, protectedHeader, keyChain);
+        const signed = await signPayloadJson(METHOD_POST_AS_GET_CHALLENGE, protectedHeader, acmeKeyChain);
 
         const response = await fetchRequest(METHOD_POST, url, signed);
 
@@ -366,14 +370,14 @@ async function postAsGetChal(kid, nonce, keyChain, url) {
     }
 }
 
-async function signPayloadJson(payload, protectedHeader, keyChain) {
-    return await signPayload(JSON.stringify(payload), protectedHeader, keyChain);
+async function signPayloadJson(payload, protectedHeader, acmeKeyChain) {
+    return await signPayload(JSON.stringify(payload), protectedHeader, acmeKeyChain);
 }
 
-async function signPayload(payload, protectedHeader, keyChain) {
+async function signPayload(payload, protectedHeader, acmeKeyChain) {
     const jws = new jose.FlattenedSign(new TextEncoder().encode(payload));
     jws.setProtectedHeader(protectedHeader);
-    return JSON.stringify(await jws.sign(keyChain.privateKey));
+    return JSON.stringify(await jws.sign(acmeKeyChain.privateKey));
 }
 
 async function fetchRequest(method, url, signedData) {
@@ -386,60 +390,6 @@ async function fetchRequest(method, url, signedData) {
     };
 
     return await fetch(url, request);
-}
-
-async function generateKeyChain(sslPath) {
-    let keyChain = {};
-
-    if (existsSync(sslPath + PUBLIC_KEY) && existsSync(sslPath + PRIVATE_KEY)) {
-        keyChain.publicKeyRaw = readFileSync(sslPath + PUBLIC_KEY);
-        keyChain.privateKeyRaw = readFileSync(sslPath + PRIVATE_KEY);
-        keyChain.publicKey = await jose.importSPKI(keyChain.publicKeyRaw.toString(), ALG_ECDSA, { extractable: true });
-        keyChain.privateKey = await jose.importPKCS8(keyChain.privateKeyRaw.toString(), ALG_ECDSA, { extractable: true });
-
-        console.log("Load ACME Keys From File");
-
-        if (existsSync(sslPath + PUBLIC_KEY_SIGN) && existsSync(sslPath + PRIVATE_KEY_SIGN)) {
-            keyChain.publicKeySignRaw = readFileSync(sslPath + PUBLIC_KEY_SIGN);
-            keyChain.privateKeySignRaw = readFileSync(sslPath + PRIVATE_KEY_SIGN);
-            keyChain.publicKeySign = await jose.importSPKI(keyChain.publicKeySignRaw.toString(), ALG_ECDSA, { extractable: true });
-            keyChain.privateKeySign = await jose.importPKCS8(keyChain.privateKeySignRaw.toString(), ALG_ECDSA, { extractable: true });
-
-            console.log("Load Signing Keys From File");
-        }
-    }
-    else {
-        mkdirSync(sslPath, { recursive: true });
-
-        if (true) { // Acme Keys
-            const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
-            keyChain.publicKey = publicKey;
-            keyChain.privateKey = privateKey;
-            keyChain.publicKeyRaw = await jose.exportSPKI(publicKey);
-            keyChain.privateKeyRaw = await jose.exportPKCS8(privateKey);
-
-            writeFileSync(sslPath + PUBLIC_KEY, keyChain.publicKeyRaw);
-            writeFileSync(sslPath + PRIVATE_KEY, keyChain.privateKeyRaw);
-
-            console.log('ACME Keys saved to File');
-        }
-
-        if (true) { // Signing Keys
-            const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
-
-            keyChain.publicKeySign = publicKey;
-            keyChain.privateKeySign = privateKey;
-            keyChain.publicKeySignRaw = await jose.exportSPKI(publicKey);
-            keyChain.privateKeySignRaw = await jose.exportPKCS8(privateKey);
-
-            writeFileSync(sslPath + PUBLIC_KEY_SIGN, keyChain.publicKeySignRaw);
-            writeFileSync(sslPath + PRIVATE_KEY_SIGN, keyChain.privateKeySignRaw);
-
-            console.log('Signing Keys saved to File');
-        }
-    }
-
-    return keyChain;
 }
 
 function internalCheckForLocalHostOnce(req) {
@@ -554,9 +504,63 @@ async function internalCheckAnswered() {
     }
 }
 
-async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, optStaging, optAutoRestart, countdownHandler, countdownTime) {
-    const keyChain = await generateKeyChain(sslPath);
+async function internalGetAcmeKeyChain(sslPath) {
+    if (acmeKeyChain === undefined) {
+        acmeKeyChain = {};
 
+        if (existsSync(sslPath + PUBLIC_KEY) && existsSync(sslPath + PRIVATE_KEY)) {
+            acmeKeyChain.publicKeyRaw = readFileSync(sslPath + PUBLIC_KEY);
+            acmeKeyChain.privateKeyRaw = readFileSync(sslPath + PRIVATE_KEY);
+            acmeKeyChain.publicKey = await jose.importSPKI(acmeKeyChain.publicKeyRaw.toString(), ALG_ECDSA, { extractable: true });
+            acmeKeyChain.privateKey = await jose.importPKCS8(acmeKeyChain.privateKeyRaw.toString(), ALG_ECDSA, { extractable: true });
+
+            console.log("Load ACME Keys From File");
+
+            if (existsSync(sslPath + PUBLIC_KEY_SIGN) && existsSync(sslPath + PRIVATE_KEY_SIGN)) {
+                acmeKeyChain.publicKeySignRaw = readFileSync(sslPath + PUBLIC_KEY_SIGN);
+                acmeKeyChain.privateKeySignRaw = readFileSync(sslPath + PRIVATE_KEY_SIGN);
+                acmeKeyChain.publicKeySign = await jose.importSPKI(acmeKeyChain.publicKeySignRaw.toString(), ALG_ECDSA, { extractable: true });
+                acmeKeyChain.privateKeySign = await jose.importPKCS8(acmeKeyChain.privateKeySignRaw.toString(), ALG_ECDSA, { extractable: true });
+
+                console.log("Load Signing Keys From File");
+            }
+        }
+        else {
+            console.log("Creating a Key Chain to use for ACME Challenges and CSRs");
+
+            mkdirSync(sslPath, { recursive: true });
+
+            if (true) { // Acme Keys
+                const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
+                acmeKeyChain.publicKey = publicKey;
+                acmeKeyChain.privateKey = privateKey;
+                acmeKeyChain.publicKeyRaw = await jose.exportSPKI(publicKey);
+                acmeKeyChain.privateKeyRaw = await jose.exportPKCS8(privateKey);
+
+                writeFileSync(sslPath + PUBLIC_KEY, acmeKeyChain.publicKeyRaw);
+                writeFileSync(sslPath + PRIVATE_KEY, acmeKeyChain.privateKeyRaw);
+
+                console.log('ACME Keys saved to File');
+            }
+
+            if (true) { // Signing Keys
+                const { publicKey, privateKey } = await jose.generateKeyPair(ALG_ECDSA, { extractable: true });
+
+                acmeKeyChain.publicKeySign = publicKey;
+                acmeKeyChain.privateKeySign = privateKey;
+                acmeKeyChain.publicKeySignRaw = await jose.exportSPKI(publicKey);
+                acmeKeyChain.privateKeySignRaw = await jose.exportPKCS8(privateKey);
+
+                writeFileSync(sslPath + PUBLIC_KEY_SIGN, acmeKeyChain.publicKeySignRaw);
+                writeFileSync(sslPath + PRIVATE_KEY_SIGN, acmeKeyChain.privateKeySignRaw);
+
+                console.log('Signing Keys saved to File');
+            }
+        }
+    }
+}
+
+async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, optStaging, optAutoRestart, countdownHandler, countdownTime) {
     let domains = [];
     let account = undefined;
     let nextNonce = undefined;
@@ -581,7 +585,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
         return false;
     }
 
-    account = await createAccount(firstNonce.nonce, acmeDirectory.newAccount, keyChain).catch(console.error);
+    account = await createAccount(firstNonce.nonce, acmeDirectory.newAccount, acmeKeyChain).catch(console.error);
 
     if (account.answer.account === null || account.answer.account.status != VALID) {
         console.error("Error creating account", account.answer.error, account.answer.exception);
@@ -590,7 +594,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
 
     fqdns.forEach((element) => domains.push({ "type": "dns", "value": element }));
 
-    const order = await createOrder(account.answer.location, account.nonce, keyChain, acmeDirectory.newOrder, domains);
+    const order = await createOrder(account.answer.location, account.nonce, acmeKeyChain, acmeDirectory.newOrder, domains);
 
     if (order.answer.order == undefined) {
         console.error("Error getting order", order.answer.error, order.answer.exception);
@@ -602,7 +606,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
     authorizations = order.answer.order.authorizations;
 
     for (let index = 0; index < authorizations.length; index++) {
-        const auth = await postAsGet(account.answer.location, nextNonce, keyChain, authorizations[index]);
+        const auth = await postAsGet(account.answer.location, nextNonce, acmeKeyChain, authorizations[index]);
 
         if (auth.answer.get.status) {
             for (let index = 0; index < auth.answer.get.challenges.length; index++) {
@@ -618,7 +622,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
 
     for (let index = 0; index < pendingChallenges.length; index++) {
         if (pendingChallenges[index].type == HTTP && pendingChallenges[index].status == STATUS_PENDING) {
-            const auth = await postAsGetChal(account.answer.location, nextNonce, keyChain, pendingChallenges[index].url);
+            const auth = await postAsGetChal(account.answer.location, nextNonce, acmeKeyChain, pendingChallenges[index].url);
             auth.answer.get.status ? console.log("Next Nonce", (nextNonce = auth.nonce), auth) : console.error("Error getting auth", auth.answer.error, auth.answer.exception);
         }
     }
@@ -630,7 +634,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
 
         await new Promise(async (resolve) => {
             const waitForReady = setInterval(async () => {
-                await postAsGet(account.answer.location, nextNonce, keyChain, order.answer.location).then((order) => {
+                await postAsGet(account.answer.location, nextNonce, acmeKeyChain, order.answer.location).then((order) => {
                     nextNonce = order.nonce;
 
                     if (order.answer.get != undefined && order.answer.get.status == "ready") {
@@ -645,7 +649,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
 
         await new Promise(async (resolve) => {
             const waitForFinalize = setInterval(async () => {
-                await finalizeOrder(fqdns[0], account.answer.location, nextNonce, keyChain, finalizedInfo, fqdns).then((finalized) => {
+                await finalizeOrder(fqdns[0], account.answer.location, nextNonce, acmeKeyChain, finalizedInfo, fqdns).then((finalized) => {
                     if (finalized.answer.get) {
                         if (finalized.answer.get.status == "processing" || finalized.answer.get.status == VALID) {
                             finalizedLocation = finalized.answer.location;
@@ -667,7 +671,7 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
 
         await new Promise(async (resolve) => {
             const waitForProcessingValid = setInterval(async () => {
-                await postAsGet(account.answer.location, nextNonce, keyChain, finalizedLocation).then((checkFinalized) => {
+                await postAsGet(account.answer.location, nextNonce, acmeKeyChain, finalizedLocation).then((checkFinalized) => {
                     if (checkFinalized.answer.get != undefined && checkFinalized.answer.get.status == VALID) {
                         finalizedCertificateLocation = checkFinalized.answer.get.certificate;
                         console.log("Certificate URL:", finalizedCertificateLocation);
@@ -685,14 +689,14 @@ async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, op
         const certificateText = await response.text();
 
         if (certificateText.startsWith("-----BEGIN CERTIFICATE-----") && (certificateText.endsWith("-----END CERTIFICATE-----\n") || certificateText.endsWith("-----END CERTIFICATE-----") || certificateText.endsWith("-----END CERTIFICATE----- "))) {
-            const pks = keyChain.privateKeySignRaw.toString();
+            const pks = acmeKeyChain.privateKeySignRaw.toString();
 
             if (pks.startsWith("-----BEGIN PRIVATE KEY-----") && (pks.endsWith("-----END PRIVATE KEY-----") || pks.endsWith("-----END PRIVATE KEY-----\n") || pks.endsWith("-----END PRIVATE KEY----- "))) {
                 console.log("Certificate Downloaded, Saving to file");
 
                 writeFileSync(join(sslPath, "certificate.pem"), certificateText);
 
-                writeFileSync(join(sslPath, "private-key.pem"), keyChain.privateKeySignRaw);
+                writeFileSync(join(sslPath, "private-key.pem"), acmeKeyChain.privateKeySignRaw);
 
                 writeFileSync(join(sslPath, LAST_CERT_FILE), JSON.stringify({ time: Date.now(), names: fqdns }));
 
