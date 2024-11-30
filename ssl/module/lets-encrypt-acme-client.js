@@ -103,14 +103,18 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
     }
 
     for (let index = 0; index < 3; index++) {
-        const success = await internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, optStaging, optAutoRestart, countdownHandler, countdownTime);
+        try {
+            const success = await internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, optStaging, optAutoRestart, countdownHandler, countdownTime);
 
-        if (success === true) {
-            console.log("Completed Successfully", index + 1);
-            return;
-        }
-        else {
-            console.log("Something went wrong, trying again", index + 1);
+            if (success === true) {
+                console.log("Completed Successfully", index + 1);
+                return;
+            }
+            else {
+                console.log("Something went wrong, trying again", index + 1);
+            }
+        } catch {
+            console.error("Something went wrong, trying again", index + 1);
         }
     }
 
