@@ -103,7 +103,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
     }
 
     for (let index = 0; index < 3; index++) {
-        const success = await internalLetsEncryptDaemon(fqdns, sslPath, daysRemaining, certificateCallback, optGenerateAnyway, optStaging, optAutoRestart, countdownHandler, countdownTime);
+        const success = await internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, optStaging, optAutoRestart, countdownHandler, countdownTime);
 
         if (success === true) {
             console.log("Completed Successfully", index + 1);
@@ -550,7 +550,7 @@ async function internalCheckAnswered() {
     }
 }
 
-async function internalLetsEncryptDaemon(fqdns, sslPath, daysRemaining, certificateCallback, optGenerateAnyway, optStaging, optAutoRestart, countdownHandler, countdownTime) {
+async function internalLetsEncryptDaemon(fqdns, sslPath, certificateCallback, optStaging, optAutoRestart, countdownHandler, countdownTime) {
     const keyChain = await generateKeyChain(sslPath);
 
     let domains = [];
