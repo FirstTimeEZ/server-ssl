@@ -99,7 +99,7 @@ export async function startLetsEncryptDaemon(fqdns, sslPath, daysRemaining, cert
     console.log("--------");
 
     if (internalDetermineRequirement(fqdns, sslPath, daysRemaining) && optGenerateAnyway !== true) {
-        return true;
+        return;
     }
 
     for (let index = 0; index < 3; index++) {
