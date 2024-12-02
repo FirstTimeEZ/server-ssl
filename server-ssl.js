@@ -28,7 +28,15 @@ S_SSL.checkNodeForUpdates(); // Check Node.js version
 
 function MethodPath(req, res) {
     switch (req.method) {
-        case "GET": {
+        case "GET":
+        case "POST":
+        case "PUT":
+        case "DELETE":
+        case "PATCH":
+        case "HEAD":
+        case "OPTIONS":
+        case "CONNECT":
+        case "TRACE": {
             let route = undefined;
 
             if (req.url === S_SSL.WEBSITE_ROOT) {
