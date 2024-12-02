@@ -2,7 +2,7 @@
 
 # server-ssl.js
 
-Easy to configure `SSL Web Server` that can be used for development or production
+Easy to configure `SSL Server` that can be used for development or production
 
 `HTTP` requests are redirected to `HTTPS`
 
@@ -14,7 +14,7 @@ Designed to get out of your way, you can still change anything about the server.
 
 ### Getting Started
 
-It can be as simple as this:
+The easiest usage would be to serve a website:
 
 1. [`Clone`](https://github.com/FirstTimeEZ/server-ssl.git) or [`Download`](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip) the main branch and extract it somewhere
 2. Put your website in the `website` folder
@@ -77,6 +77,20 @@ The certificates will be changed automatically when they are updated, you don't 
 ```
 ./start-windows.bat --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
 ```
+
+--------
+
+### Anything [Node.js](https://nodejs.org/docs/latest/api/) can do..
+
+At the end of the day, this is just a [`Node.js`](https://nodejs.org/docs/latest/api/) server that sets up `SSL` automatically
+
+```
+const HTTPS_SERVER = createServerHTTPS(S_SSL.loadDefaultSecureContext(), (req, res) => {
+    // do whatever you like
+}).on('error', (e) => e.code === S_SSL.ADDR_IN_USE && console.error(`${S_SSL.optPort}${S_SSL.IN_USE}`)).listen(S_SSL.optPort, (err) => err ? console.error(S_SSL.ERROR_STARTING, err) : console.log(`${S_SSL.STARTED_HTTPS}${S_SSL.optPort}`));
+```
+
+You can remove everything inside `HTTPS_SERVER` and do whatever you like, there are also helpers you can use in `S_SSL`
 
 --------
 
