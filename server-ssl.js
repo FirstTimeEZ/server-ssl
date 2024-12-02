@@ -25,6 +25,9 @@ const HTTPS_SERVER = createServerHTTPS(S_SSL.loadDefaultSecureContext(), (req, r
     else if (req.url === "/md") {
         route = join("md", S_SSL.optEntry);
     }
+    else if (req.url === "/someapi") {
+        return S_SSL.respondWithContent(res, "response data", S_SSL.TEXT_HTML); // api example
+    }
 
     route == undefined && (route = req.url); // no route, follow the url
 

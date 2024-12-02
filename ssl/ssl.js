@@ -148,6 +148,7 @@ export const S_SSL = {
         process.exit(1);
     },
     getErrorPage: (res, err) => {
+        res.writeHead(err.code === S_SSL.PAGE_NOT_FOUND ? 404 : 500);
         res.end(err.code === S_SSL.PAGE_NOT_FOUND
             ? (S_SSL.ERROR_404_PAGE !== null ? S_SSL.ERROR_404_PAGE : S_SSL.ERROR_NOT_FOUND)
             : (S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : S_SSL.ERROR_SERVER));
@@ -271,6 +272,18 @@ export const S_SSL = {
                 S_SSL.getErrorPage(res, err);
             }
         });
+    },
+    respondWithContent: (res, content, contentType) => {
+        res.writeHead(S_SSL.SUCCESS, { [S_SSL.CONTENT_TYPE]: contentType });
+        res.end(content);
+    },
+    respondWithNotFound: (res) => {
+        res.writeHead(404);
+        res.end(S_SSL.ERROR_404_PAGE !== null ? S_SSL.ERROR_404_PAGE : S_SSL.ERROR_NOT_FOUND);
+    },
+    respondWithServerError: (res) => {
+        res.writeHead(500);
+        res.end(S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : S_SSL.ERROR_SERVER);
     },
     finishRoute: (...args) => {
         return join(S_SSL.__websiteDir, ...args);;
