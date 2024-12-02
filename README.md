@@ -90,7 +90,9 @@ const HTTPS_SERVER = createServerHTTPS(S_SSL.loadDefaultSecureContext(), (req, r
 }).on('error', (e) => e.code === S_SSL.ADDR_IN_USE && console.error(`${S_SSL.optPort}${S_SSL.IN_USE}`)).listen(S_SSL.optPort, (err) => err ? console.error(S_SSL.ERROR_STARTING, err) : console.log(`${S_SSL.STARTED_HTTPS}${S_SSL.optPort}`));
 ```
 
-You can remove everything inside `HTTPS_SERVER` and do whatever you like, there are also helpers you can use in `S_SSL`
+You can remove everything inside `HTTPS_SERVER` and do whatever you like.
+
+There are also helpers you can use in `S_SSL`
 
 --------
 
