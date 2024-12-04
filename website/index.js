@@ -1,3 +1,5 @@
+document.querySelector('*').addEventListener('dragstart', function (event) { event.preventDefault(); });
+
 setTimeout(() => {
     try {
         fetch("/api/time").then((response) => {
