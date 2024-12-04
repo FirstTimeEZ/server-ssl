@@ -1,25 +1,12 @@
 setTimeout(() => {
     try {
-        const testLoadImage = new Image();
-        testLoadImage.src = "bg.png";
+        fetch("/api/time").then((response) => {
+            response.json().then((time) => {
+                document.getElementById("time").innerText = new Date(time).toLocaleTimeString() + " - " + new Date(time).toDateString();
+                document.getElementById("time").hidden = false;
+                document.getElementById("spinner").hidden = true;
+            });
+        });
 
-        testLoadImage.onload = function () {
-            document.getElementById("spinner").hidden = true;
-            document.getElementById("started").hidden = false;
-            document.getElementById("started-text").hidden = false;
-            console.log("Server Started Successfully");
-        };
-
-        testLoadImage.onerror = function () {
-            document.getElementById("spinner").hidden = true;
-            document.getElementById("failed").hidden = false;
-            document.getElementById("failed-text").hidden = false;
-            console.log("Failed to load test image, something is wrong");
-        };
-    } catch {
-        document.getElementById("spinner").hidden = true;
-        document.getElementById("failed").hidden = false;
-        document.getElementById("failed-text").hidden = false;
-        console.log("Failed to load test image, something is wrong");
-    }
-}, 2000);
+    } catch { }
+}, 500);

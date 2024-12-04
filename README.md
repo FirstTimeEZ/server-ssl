@@ -24,7 +24,7 @@ The easiest usage would be to serve a website:
 
 [![](https://i.imgur.com/YchiE6S.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
-[![](https://i.imgur.com/LtQzSRv.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/dIcHCT2.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 ### Advanced/Production Usage
 

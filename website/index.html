@@ -19,15 +19,15 @@
         }
 
         .container {
+            display: flex;
             background-image: url("bg.png");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 30px;
+            padding: 12px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             max-width: 350px;
@@ -37,18 +37,16 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        .time-container {
+            display: flex;
+            height: 24px;
+            align-items: center;
+        }
+
         .status-icon {
             font-size: 72px;
             font-weight: bold;
             color: rgb(0, 255, 85);
-            margin-bottom: 5px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .status-icon-f {
-            font-size: 72px;
-            font-weight: bold;
-            color: rgb(255, 0, 0);
             margin-bottom: 5px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
@@ -61,12 +59,11 @@
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 1);
         }
 
-        .server-details {
-            font-size: 14px;
+        .status-time {
+            font-size: 12px;
             color: white;
-            margin-top: 20px;
-            font-weight: 800;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 1);
+            font-weight: 600;
+            text-shadow: 3px 3px 3px rgba(0, 0, 0, 1);
         }
 
         .a {
@@ -119,16 +116,13 @@
 
 <body>
     <div class="container" id="contain">
-        <div style="height: 120px; align-content: center;">
+        <div class="status-icon" id="started">✔</div>
+        <div class="status-message" id="started-text">Server Started Successfully</div>
+        <div class="time-container">
+            <a href="https://github.com/FirstTimeEZ/server-ssl" class="a">
+                <div class="status-time" hidden="true" id="time"></div>
+            </a>
             <div class="spinner" id="spinner"></div>
-            <div class="status-icon" hidden="true" id="started">✔</div>
-            <div class="status-icon-f" hidden="true" id="failed">✘</div>
-            <div class="status-message" hidden="true" id="started-text">Server Started Successfully</div>
-            <div class="status-message" hidden="true" id="failed-text">Server not working Correctly</div>
-        </div>
-
-        <div class="server-details">
-            Default page for a server running <a href="https://github.com/FirstTimeEZ/server-ssl" class="a">server-ssl</a>
         </div>
     </div>
 

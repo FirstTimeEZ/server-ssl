@@ -2,6 +2,9 @@ import { fileURLToPath } from 'url';
 import { join, extname as _extname, dirname } from 'path';
 import { createServer as createServerHTTPS } from 'https';
 import { S_SSL } from './ssl/ssl.js';
+import { Api, Endpoint } from './ssl/ssl-api.js';
+
+const API = new Api("/api/");
 
 const CONTENT_TYPES = {
     '.css': 'text/css',
@@ -16,11 +19,18 @@ const CONTENT_TYPES = {
 
 S_SSL.importRequiredArguments(dirname(fileURLToPath(import.meta.url))); // S_SSL - https://i.imgur.com/vK4Rf7c.png
 
+API.addEndpoint(new Endpoint("time", "GET", (req, res) => {
+    return S_SSL.respondWithContent(res, JSON.stringify(Date.now()), S_SSL.TEXT_HTML);
+}));
+
 const HTTPS_SERVER = createServerHTTPS(S_SSL.loadDefaultSecureContext(), (req, res) => {
     let route = undefined;
 
     if (req.url === S_SSL.WEBSITE_ROOT) {
         route = S_SSL.optEntry;
+    }
+    else if (API.checkFindExecute(req, res)) {
+        return;
     }
 
     route == undefined && (route = req.url); // no route, follow the url
