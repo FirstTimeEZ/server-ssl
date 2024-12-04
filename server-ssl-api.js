@@ -4,6 +4,8 @@ import { createServer as createServerHTTPS } from 'https';
 import { S_SSL } from './ssl/ssl.js';
 import { Api, Endpoint } from './ssl/ssl-api.js';
 
+const API = new Api("/api/");
+
 const CONTENT_TYPES = {
     '.css': 'text/css',
     '.js': 'text/javascript',
@@ -15,13 +17,11 @@ const CONTENT_TYPES = {
     '.ico': 'image/x-icon',
 };
 
-const API = new Api("/api/");
+S_SSL.importRequiredArguments(dirname(fileURLToPath(import.meta.url))); // S_SSL - https://i.imgur.com/vK4Rf7c.png
 
 API.addEndpoint(new Endpoint("someEndpoint", "GET", (req, res) => {
     return S_SSL.respondWithContent(res, "response data", S_SSL.TEXT_HTML);
 }));
-
-S_SSL.importRequiredArguments(dirname(fileURLToPath(import.meta.url))); // S_SSL - https://i.imgur.com/vK4Rf7c.png
 
 const HTTPS_SERVER = createServerHTTPS(S_SSL.loadDefaultSecureContext(), (req, res) => {
     let route = undefined;
