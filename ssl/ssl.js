@@ -24,7 +24,7 @@ import { checkChallengesMixin } from './module/lets-encrypt-acme-client.js';
 /**
 * **SSL-Server** configuration state
 */
-export const S_SSL = {
+export const STATE = {
     // Config
     __rootDir: null,
     __websiteDir: null,
@@ -84,58 +84,58 @@ export const S_SSL = {
         process.argv.slice(2).forEach((arg) => {
             let rightSide = arg.split("=")[1];
             // Server
-            arg.includes("--port=") && (S_SSL.optPort = rightSide);
-            arg.includes("--portHttp=") && (S_SSL.optPortHttp = rightSide);
-            arg.includes("--cert=") && (S_SSL.optCert = rightSide);
-            arg.includes("--pk=") && (S_SSL.optPk = rightSide);
-            arg.includes("--site=") && (S_SSL.optWebsite = rightSide);
-            arg.includes("--error=") && (S_SSL.optError = rightSide);
-            arg.includes("--entry=") && (S_SSL.optEntry = rightSide);
-            arg.includes("--noAutoUpdate") && (S_SSL.optNoAutoUpdate = true);
+            arg.includes("--port=") && (STATE.optPort = rightSide);
+            arg.includes("--portHttp=") && (STATE.optPortHttp = rightSide);
+            arg.includes("--cert=") && (STATE.optCert = rightSide);
+            arg.includes("--pk=") && (STATE.optPk = rightSide);
+            arg.includes("--site=") && (STATE.optWebsite = rightSide);
+            arg.includes("--error=") && (STATE.optError = rightSide);
+            arg.includes("--entry=") && (STATE.optEntry = rightSide);
+            arg.includes("--noAutoUpdate") && (STATE.optNoAutoUpdate = true);
             // Lets Encrypt!
-            arg.includes("--domains=") && (S_SSL.optDomains = rightSide);
-            arg.includes("--letsEncrypt") && (S_SSL.optLetsEncrypt = true);
-            arg.includes("--generateAnyway") && (S_SSL.optGenerateAnyway = true);
-            arg.includes("--autoRestart") && (S_SSL.optAutoRestart = true);
-            arg.includes("--staging") && (S_SSL.optStaging = true);
+            arg.includes("--domains=") && (STATE.optDomains = rightSide);
+            arg.includes("--letsEncrypt") && (STATE.optLetsEncrypt = true);
+            arg.includes("--generateAnyway") && (STATE.optGenerateAnyway = true);
+            arg.includes("--autoRestart") && (STATE.optAutoRestart = true);
+            arg.includes("--staging") && (STATE.optStaging = true);
             // Internal
-            arg.includes("--notAfter=") && (S_SSL.expireDate = rightSide);
-            arg.includes("--arAvailable") && (S_SSL.isRestartAvailable = true);
-            arg.includes("--ok") && (S_SSL.override = true);
+            arg.includes("--notAfter=") && (STATE.expireDate = rightSide);
+            arg.includes("--arAvailable") && (STATE.isRestartAvailable = true);
+            arg.includes("--ok") && (STATE.override = true);
         });
 
-        if (S_SSL.optLetsEncrypt === true) {
-            S_SSL.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), S_SSL.optLetsEncrypt = null, S_SSL.optAutoRestart = false);
+        if (STATE.optLetsEncrypt === true) {
+            STATE.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), STATE.optLetsEncrypt = null, STATE.optAutoRestart = false);
 
-            if (S_SSL.optLetsEncrypt !== null && S_SSL.optAutoRestart === true) {
-                S_SSL.isRestartAvailable === null && S_SSL.override === null && (console.log("--------"), console.log("Server must be started with start-windows.bat to enable lets encrypt auto restart at this time"), console.log("If you have a way to restart the server on error code 123, use override --ok"), console.log("--------"), S_SSL.optAutoRestart = false);
+            if (STATE.optLetsEncrypt !== null && STATE.optAutoRestart === true) {
+                STATE.isRestartAvailable === null && STATE.override === null && (console.log("--------"), console.log("Server must be started with start-windows.bat to enable lets encrypt auto restart at this time"), console.log("If you have a way to restart the server on error code 123, use override --ok"), console.log("--------"), STATE.optAutoRestart = false);
                 console.log("--------"), console.log("Auto Restart Enabled"), console.log("Server will restart after certificates are renewed"), console.log("--------");
             }
         }
 
-        !S_SSL.optPk && (S_SSL.optPk = 'private-key.pem');
-        !S_SSL.optCert && (S_SSL.optCert = 'certificate.pem');
-        !S_SSL.optWebsite && (S_SSL.optWebsite = 'website');
-        !S_SSL.optError && (S_SSL.optError = 'error');
-        !S_SSL.optEntry && (S_SSL.optEntry = 'index.html');
+        !STATE.optPk && (STATE.optPk = 'private-key.pem');
+        !STATE.optCert && (STATE.optCert = 'certificate.pem');
+        !STATE.optWebsite && (STATE.optWebsite = 'website');
+        !STATE.optError && (STATE.optError = 'error');
+        !STATE.optEntry && (STATE.optEntry = 'index.html');
 
-        S_SSL.expireDate && S_SSL.timeUntilRenew(S_SSL.expireDate);
+        STATE.expireDate && STATE.timeUntilRenew(STATE.expireDate);
 
-        const SSL = join(__rootDir, S_SSL.SSL);
-        const PK = join(SSL, S_SSL.optPk);
-        const CERT = join(SSL, S_SSL.optCert);
+        const SSL = join(__rootDir, STATE.SSL);
+        const PK = join(SSL, STATE.optPk);
+        const CERT = join(SSL, STATE.optCert);
 
-        !existsSync(PK) && S_SSL.certNotExist();
-        !existsSync(CERT) && S_SSL.certNotExist();
+        !existsSync(PK) && STATE.certNotExist();
+        !existsSync(CERT) && STATE.certNotExist();
 
-        S_SSL.loadErrorPages(join(__rootDir, S_SSL.optError));
-        S_SSL.__rootDir = __rootDir;
-        S_SSL.__websiteDir = join(__rootDir, S_SSL.optWebsite);
-        S_SSL.__sslFolder = SSL;
-        S_SSL.__pkPath = PK;
-        S_SSL.__certPath = CERT;
+        STATE.loadErrorPages(join(__rootDir, STATE.optError));
+        STATE.__rootDir = __rootDir;
+        STATE.__websiteDir = join(__rootDir, STATE.optWebsite);
+        STATE.__sslFolder = SSL;
+        STATE.__pkPath = PK;
+        STATE.__certPath = CERT;
 
-        return S_SSL.__websiteDir;
+        return STATE.__websiteDir;
     },
     certNotExist: () => {
         console.log(" ");
@@ -148,18 +148,18 @@ export const S_SSL = {
         process.exit(1);
     },
     getErrorPage: (res, err) => {
-        res.writeHead(err.code === S_SSL.PAGE_NOT_FOUND ? 404 : 500);
-        res.end(err.code === S_SSL.PAGE_NOT_FOUND
-            ? (S_SSL.ERROR_404_PAGE !== null ? S_SSL.ERROR_404_PAGE : S_SSL.ERROR_NOT_FOUND)
-            : (S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : S_SSL.ERROR_SERVER));
+        res.writeHead(err.code === STATE.PAGE_NOT_FOUND ? 404 : 500);
+        res.end(err.code === STATE.PAGE_NOT_FOUND
+            ? (STATE.ERROR_404_PAGE !== null ? STATE.ERROR_404_PAGE : STATE.ERROR_NOT_FOUND)
+            : (STATE.ERROR_500_PAGE !== null ? STATE.ERROR_500_PAGE : STATE.ERROR_SERVER));
     },
     loadErrorPages: (__errorDir) => {
-        readFile(join(__errorDir, '/404.html'), (err404, content404) => !err404 && (S_SSL.ERROR_404_PAGE = content404));
-        readFile(join(__errorDir, '/500.html'), (err500, content500) => !err500 && (S_SSL.ERROR_500_PAGE = content500));
+        readFile(join(__errorDir, '/404.html'), (err404, content404) => !err404 && (STATE.ERROR_404_PAGE = content404));
+        readFile(join(__errorDir, '/500.html'), (err500, content500) => !err500 && (STATE.ERROR_500_PAGE = content500));
     },
     loadNewSecureContext: (server) => {
-        const key = readFileSync(S_SSL.__pkPath);
-        const cert = readFileSync(S_SSL.__certPath);
+        const key = readFileSync(STATE.__pkPath);
+        const cert = readFileSync(STATE.__certPath);
 
         const keyString = key.toString();
         const certString = cert.toString();
@@ -176,23 +176,23 @@ export const S_SSL = {
             return false;
         }
 
-        server.setSecureContext({ key: readFileSync(S_SSL.__pkPath), cert: readFileSync(S_SSL.__certPath) });
+        server.setSecureContext({ key: readFileSync(STATE.__pkPath), cert: readFileSync(STATE.__certPath) });
         console.log("Updated Server Certificate");
 
         return true;
     },
     loadDefaultSecureContext: () => {
-        return { key: readFileSync(S_SSL.__pkPath), cert: readFileSync(S_SSL.__certPath) }
+        return { key: readFileSync(STATE.__pkPath), cert: readFileSync(STATE.__certPath) }
     },
     timeUntilRenew: (notAfter) => {
         const specificDate = new Date(notAfter);
         const currentDate = new Date();
 
-        S_SSL.timeRemaining = specificDate.getTime() - currentDate.getTime();
-        S_SSL.daysRemaining = Math.floor(S_SSL.timeRemaining / (1000 * 60 * 60 * 24));
-        const hoursRemaining = Math.floor((S_SSL.timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutesRemaining = Math.floor((S_SSL.timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-        console.log(`Time until renewal required: ${S_SSL.daysRemaining} days, ${hoursRemaining} hours, ${minutesRemaining} minutes`);
+        STATE.timeRemaining = specificDate.getTime() - currentDate.getTime();
+        STATE.daysRemaining = Math.floor(STATE.timeRemaining / (1000 * 60 * 60 * 24));
+        const hoursRemaining = Math.floor((STATE.timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutesRemaining = Math.floor((STATE.timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+        console.log(`Time until renewal required: ${STATE.daysRemaining} days, ${hoursRemaining} hours, ${minutesRemaining} minutes`);
     },
     extractDomainsAnyFormat: (input) => {
         const bracketsRemoved = String(input).trim().replace(/[\[\]]/g, '');
@@ -200,19 +200,19 @@ export const S_SSL = {
         return commaSplit.length > 0 && commaSplit[0] ? commaSplit : domains;
     },
     checkNodeForUpdates: async () => {
-        if (S_SSL.optNoAutoUpdate !== true) {
+        if (STATE.optNoAutoUpdate !== true) {
             try {
-                const current = (await fetch(S_SSL.NODE_URL, { method: 'GET', redirect: 'follow' })).url
+                const current = (await fetch(STATE.NODE_URL, { method: 'GET', redirect: 'follow' })).url
 
                 if (current != undefined) {
                     const split = current.split("/");
 
-                    if (split.length === S_SSL.NODE_URL_SPLITS) {
+                    if (split.length === STATE.NODE_URL_SPLITS) {
                         for (let index = 0; index < split.length; index++) {
                             const dist = split[index];
 
-                            if (dist[0] === S_SSL.NODE_VERSION) {
-                                const updatePath = join(S_SSL.__sslFolder, S_SSL.NODE_FN);
+                            if (dist[0] === STATE.NODE_VERSION) {
+                                const updatePath = join(STATE.__sslFolder, STATE.NODE_FN);
 
                                 if (existsSync(updatePath)) {
                                     const lastUpdate = JSON.parse(readFileSync(updatePath));
@@ -221,15 +221,15 @@ export const S_SSL = {
                                         const lastVersion = lastUpdate.version;
 
                                         if (lastVersion === dist) {
-                                            console.log(S_SSL.NODE_YES, dist);
+                                            console.log(STATE.NODE_YES, dist);
                                         }
                                         else {
-                                            console.log(S_SSL.NODE_NO, dist);
+                                            console.log(STATE.NODE_NO, dist);
                                             // Update Required
                                         }
                                     }
                                 } else {
-                                    console.log(S_SSL.NODE_FIRST, dist);
+                                    console.log(STATE.NODE_FIRST, dist);
 
                                     writeFile(updatePath, JSON.stringify({ version: dist }), () => { });
                                 }
@@ -243,49 +243,49 @@ export const S_SSL = {
         }
     },
     loadLetsEncryptAcmeDaemon: (countdownHandler, countdownTime, certificateCallback) => {
-        S_SSL.optLetsEncrypt && S_SSL.optDomains !== null && (S_SSL.urlsArray = S_SSL.extractDomainsAnyFormat(S_SSL.optDomains));
-        S_SSL.optLetsEncrypt && S_SSL.optGenerateAnyway === true && (S_SSL.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
-        S_SSL.optLetsEncrypt && startLetsEncryptDaemon(S_SSL.urlsArray, S_SSL.__sslFolder, S_SSL.daysRemaining, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, countdownHandler, countdownTime);
-        S_SSL.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(S_SSL.urlsArray, S_SSL.__sslFolder, S_SSL.daysRemaining, certificateCallback, S_SSL.optGenerateAnyway, S_SSL.optStaging, S_SSL.optAutoRestart, countdownHandler, countdownTime), S_SSL.TWELVE_HOURS_MILLISECONDS);
+        STATE.optLetsEncrypt && STATE.optDomains !== null && (STATE.urlsArray = STATE.extractDomainsAnyFormat(STATE.optDomains));
+        STATE.optLetsEncrypt && STATE.optGenerateAnyway === true && (STATE.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
+        STATE.optLetsEncrypt && startLetsEncryptDaemon(STATE.urlsArray, STATE.__sslFolder, STATE.daysRemaining, certificateCallback, STATE.optGenerateAnyway, STATE.optStaging, STATE.optAutoRestart, countdownHandler, countdownTime);
+        STATE.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(STATE.urlsArray, STATE.__sslFolder, STATE.daysRemaining, certificateCallback, STATE.optGenerateAnyway, STATE.optStaging, STATE.optAutoRestart, countdownHandler, countdownTime), STATE.TWELVE_HOURS_MILLISECONDS);
     },
     redirect: (res, req) => {
-        res.writeHead(S_SSL.REDIRECT, { [S_SSL.REDIRECT_LOCATION]: `${S_SSL.HTTPS}${req.headers.host}${req.url}` });
+        res.writeHead(STATE.REDIRECT, { [STATE.REDIRECT_LOCATION]: `${STATE.HTTPS}${req.headers.host}${req.url}` });
         res.end();
     },
     startHttpChallengeListener: () => {
-        createServerHTTP((req, res) => S_SSL.optLetsEncrypt ? !checkChallengesMixin(req, res) && S_SSL.redirect(res, req) : S_SSL.redirect(res, req))
-            .on('error', (e) => e.code === S_SSL.ADDR_IN_USE && console.error(`${S_SSL.optPortHttp}${S_SSL.IN_USE}`))
-            .listen(S_SSL.optPortHttp, () => console.log(`${S_SSL.STARTED_HTTP}${S_SSL.optPort}`)); // Lets Encrypt! HTTP-01 ACME Challenge Mixin - Always Redirect HTTP to HTTPS unless doing a ACME Challenge
+        createServerHTTP((req, res) => STATE.optLetsEncrypt ? !checkChallengesMixin(req, res) && STATE.redirect(res, req) : STATE.redirect(res, req))
+            .on('error', (e) => e.code === STATE.ADDR_IN_USE && console.error(`${STATE.optPortHttp}${STATE.IN_USE}`))
+            .listen(STATE.optPortHttp, () => console.log(`${STATE.STARTED_HTTP}${STATE.optPort}`)); // Lets Encrypt! HTTP-01 ACME Challenge Mixin - Always Redirect HTTP to HTTPS unless doing a ACME Challenge
     },
     defaultFileHandling: (res, route, contentTypes) => {
         const fileExtension = _extname(route);
 
         let contentType = contentTypes[fileExtension];
-        !contentType && (contentType = S_SSL.TEXT_HTML);
+        !contentType && (contentType = STATE.TEXT_HTML);
 
         readFile(route, (err, content) => {
             if (!err) {
-                res.writeHead(S_SSL.SUCCESS, { [S_SSL.CONTENT_TYPE]: contentType });
+                res.writeHead(STATE.SUCCESS, { [STATE.CONTENT_TYPE]: contentType });
                 res.end(content);
             }
             else {
-                S_SSL.getErrorPage(res, err);
+                STATE.getErrorPage(res, err);
             }
         });
     },
     respondWithContent: (res, content, contentType) => {
-        res.writeHead(S_SSL.SUCCESS, { [S_SSL.CONTENT_TYPE]: contentType });
+        res.writeHead(STATE.SUCCESS, { [STATE.CONTENT_TYPE]: contentType });
         res.end(content);
     },
     respondWithNotFound: (res) => {
         res.writeHead(404);
-        res.end(S_SSL.ERROR_404_PAGE !== null ? S_SSL.ERROR_404_PAGE : S_SSL.ERROR_NOT_FOUND);
+        res.end(STATE.ERROR_404_PAGE !== null ? STATE.ERROR_404_PAGE : STATE.ERROR_NOT_FOUND);
     },
     respondWithServerError: (res) => {
         res.writeHead(500);
-        res.end(S_SSL.ERROR_500_PAGE !== null ? S_SSL.ERROR_500_PAGE : S_SSL.ERROR_SERVER);
+        res.end(STATE.ERROR_500_PAGE !== null ? STATE.ERROR_500_PAGE : STATE.ERROR_SERVER);
     },
     finishRoute: (...args) => {
-        return join(S_SSL.__websiteDir, ...args);;
+        return join(STATE.__websiteDir, ...args);;
     }
 }
