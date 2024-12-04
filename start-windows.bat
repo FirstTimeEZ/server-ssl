@@ -24,10 +24,8 @@ if "%~1"=="--port" (
 ) else if "%~1"=="--pk" (
     set PK=%~2
     shift
-) else if "%~1"=="--api" (
-    set API=1
-    shift
 )
+
 shift
 goto loop
 :endloop
@@ -126,11 +124,7 @@ if EXIST "node.exe" ( echo Node.js already exists ) else (
     curl -o "node.exe" "https://nodejs.org/dist/latest/win-x64/node.exe" -L --retry 5
 )
 
-IF "%API%"=="0" (
 node.exe server-ssl.js %* --arAvailable --notAfter="!DATE!"
-) else (
-node.exe server-ssl-api.js %* --arAvailable --notAfter="!DATE!"
-)
 
 set exitCode=%errorlevel%
 
