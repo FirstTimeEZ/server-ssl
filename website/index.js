@@ -1,4 +1,4 @@
-document.querySelector('*').addEventListener('dragstart', function (event) { event.preventDefault(); });
+document.querySelector('*').addEventListener('dragstart', (event) => event.preventDefault());
 
 setTimeout(() => {
     try {
@@ -11,6 +11,5 @@ setTimeout(() => {
                 }
             });
         });
-
     } catch { }
 }, 500);
