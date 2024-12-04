@@ -20,7 +20,7 @@ const CONTENT_TYPES = {
 S_SSL.importRequiredArguments(dirname(fileURLToPath(import.meta.url))); // S_SSL - https://i.imgur.com/vK4Rf7c.png
 
 API.addEndpoint(new Endpoint("time", "GET", (req, res) => {
-    return S_SSL.respondWithContent(res, JSON.stringify(Date.now()), S_SSL.TEXT_HTML);
+    return S_SSL.respondWithContent(res, Date.now(), S_SSL.TEXT_HTML);
 }));
 
 const HTTPS_SERVER = createServerHTTPS(S_SSL.loadDefaultSecureContext(), (req, res) => {
