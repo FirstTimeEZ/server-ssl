@@ -44,7 +44,8 @@ export class Api {
     }
 
     /**
-     * Determines whether the endpoint is the next part of the url and finds the Endpoint
+     * Determines whether the endpoint is the next part of the url 
+     * and then finds the Endpoint
      * 
      * @returns the Endpoint if found; undefined otherwise
     */
@@ -61,7 +62,9 @@ export class Api {
     }
 
     /**
-     * Determines whether the endpoint is the next part of the url, finds the Endpoint and checks the Method
+     * Determines whether the endpoint is the next part of the url,
+     * finds the Endpoint 
+     * and then checks the Method
      * 
      * @returns the Endpoint if found; undefined otherwise
     */
@@ -78,7 +81,11 @@ export class Api {
     }
 
     /**
-     * Determines whether a url is on the route of this Api, determines whether the endpoint is the next part of the url, finds the Endpoint and checks the Method
+     * Determines whether a url is on the route of this Api, 
+     * determines whether the endpoint is the next part of the url, 
+     * finds the Endpoint,
+     * checks the Method 
+     * and then Executes the Handler of the Endpoint
      * 
      * @returns true if executing the handler was attempted; false otherwise
     */
