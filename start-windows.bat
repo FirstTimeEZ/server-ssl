@@ -9,6 +9,7 @@ set "CERT="
 set "PK="
 set "DATE="
 set "KEYS=0"
+set "API=0"
 set "OPEN_SSL="
 set "OPEN_SSL_IN_PATH=0"
 
@@ -22,6 +23,9 @@ if "%~1"=="--port" (
     shift
 ) else if "%~1"=="--pk" (
     set PK=%~2
+    shift
+) else if "%~1"=="--api" (
+    set API=1
     shift
 )
 shift
@@ -122,7 +126,11 @@ if EXIST "node.exe" ( echo Node.js already exists ) else (
     curl -o "node.exe" "https://nodejs.org/dist/latest/win-x64/node.exe" -L --retry 5
 )
 
+IF "%API%"=="0" (
 node.exe server-ssl.js %* --arAvailable --notAfter="!DATE!"
+) else (
+node.exe server-ssl-api.js %* --arAvailable --notAfter="!DATE!"
+)
 
 set exitCode=%errorlevel%
 
