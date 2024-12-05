@@ -4,7 +4,7 @@ import { encrypt as pbes2Kw } from '../runtime/pbes2kw.js';
 import { encrypt as rsaEs } from '../runtime/rsaes.js';
 import { encode as base64url } from '../runtime/base64url.js';
 import normalize from '../runtime/normalize_key.js';
-import generateCek, { bitLength as cekLength } from '../lib/cek.js';
+import generateCek, { bitLength as cekLength } from './cek.js';
 import { JOSENotSupported } from '../util/errors.js';
 import { exportJWK } from '../key/export.js';
 import checkKeyType from './check_key_type.js';

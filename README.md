@@ -109,7 +109,7 @@ This structure is designed to keep the project organized and maintainable, separ
 │
 ├── /ssl
 │   ├── /openssl
-│   ├── /module
+│   ├── /acme
 │   │   ├── /crypt
 │   │   ├── /jose
 │   │   └── lets-encrypt-acme-client.js
