@@ -18,7 +18,7 @@
 import * as jose from './jose/index.js';
 import { join } from 'path';
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
-import * as acme from './acme-v2.js';
+import * as acme from './acme.js';
 
 const DIRECTORY_PRODUCTION = "https://acme-v02.api.letsencrypt.org/directory";
 const DIRECTORY_STAGING = "https://acme-staging-v02.api.letsencrypt.org/directory";
