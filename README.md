@@ -163,4 +163,4 @@ node server-ssl.js --cert="your-certificate.pem" --pk="your-private-key.pem"
 
 ### Node.js
 
-When you run `start-windows.bat` the first time the latest version of `node.exe` portable will be downloaded
+If you don't already have [`Node.js`](https://nodejs.org/en) installed then `start-windows.bat` will download the latest version of `node.exe` to the root folder
