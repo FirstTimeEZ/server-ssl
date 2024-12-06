@@ -119,9 +119,11 @@ if "!OPEN_SSL_IN_PATH!"=="2" (
     )
 )
 
-if EXIST "node.exe" ( echo Node.js already exists ) else (
-    echo Downloading Node.js
+node -v >nul 2>&1
+if %errorlevel% neq 0 ( echo Downloading latest Node.js to root folder
     curl -o "node.exe" "https://nodejs.org/dist/latest/win-x64/node.exe" -L --retry 5
+) else (
+    echo Node.js already exists in root folder or in path
 )
 
 node.exe server-ssl.js %* --arAvailable --notAfter="!DATE!"
