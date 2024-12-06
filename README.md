@@ -85,14 +85,14 @@ The certificates will be changed automatically when they are updated, you don't 
 At the end of the day, this is just a [`Node.js`](https://nodejs.org/docs/latest/api/) server that sets up `SSL` automatically
 
 ```
-const HTTPS_SERVER = createServerHTTPS(S_SSL.loadDefaultSecureContext(), (req, res) => {
+const HTTPS_SERVER = createServerHTTPS(STATE.loadDefaultSecureContext(), (req, res) => {
     // do whatever you like
-}).on('error', (e) => e.code === S_SSL.ADDR_IN_USE && console.error(`${S_SSL.optPort}${S_SSL.IN_USE}`)).listen(S_SSL.optPort, (err) => err ? console.error(S_SSL.ERROR_STARTING, err) : console.log(`${S_SSL.STARTED_HTTPS}${S_SSL.optPort}`));
+})...
 ```
 
 You can remove everything inside `HTTPS_SERVER` and do whatever you like.
 
-There are also helpers you can use in `S_SSL`
+There are also helpers you can use in `STATE`
 
 > [!NOTE]
 > If you don't already have [`Node.js`](https://nodejs.org/en) installed then `start-windows.bat` will download the latest version of `node.exe` to the root folder
