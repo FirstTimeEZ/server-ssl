@@ -94,11 +94,14 @@ You can remove everything inside `HTTPS_SERVER` and do whatever you like.
 
 There are also helpers you can use in `S_SSL`
 
+> [!NOTE]
+> If you don't already have [`Node.js`](https://nodejs.org/en) installed then `start-windows.bat` will download the latest version of `node.exe` to the root folder
+
 --------
 
-### Default Structure
+### Default Layout
 
-This structure is designed to keep the project organized and maintainable, separating error handling, website content, and server configuration.
+This layout keeps the project organized and maintainable, separating error handling, website content, and server configuration.
 
 ```
 /root
@@ -114,7 +117,6 @@ This structure is designed to keep the project organized and maintainable, separ
 │   │   ├── /jose
 │   │   └── lets-encrypt-acme-client.js
 │   │
-│   ├── acmeKeys
 │   ├── private-key.pem
 │   └── certificate.pem
 │   └── ssl.js
@@ -122,7 +124,6 @@ This structure is designed to keep the project organized and maintainable, separ
 ├── /website
 │   └── index.html <---- Your website goes here
 │
-├── node.exe
 ├── server-ssl.js            <--- server config
 └── start-windows.bat
 ```
@@ -145,22 +146,12 @@ These pages will automatically select light/dark mode
 
 ### Bring Your Own SSL Certificate
 
+Convert your `certificate` and `private key` to `PEM` format and place them in the `ssl` folder
+
 ```
-./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
-node server-ssl.js --cert="your-certificate.pem" --pk="your-private-key.pem"
+├── /ssl
+│   │
+│   ├── private-key.pem <--- Your private key goes here
+│   └── certificate.pem <--- Your certificate goes here
+│   └── ssl.js
 ```
-
-> [!IMPORTANT]
-> Your `Certificate` and `Private Key` should be relative to the `SSL` folder if you bring your own
-
-### Create SSL Certificate
-
-`start-windows.bat` will automatically create a `Certificate` and `Private Key` when you run it if you don't provide any and none exist
-
-[![](https://i.imgur.com/vAMuDOG.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
-
---------
-
-### Node.js
-
-If you don't already have [`Node.js`](https://nodejs.org/en) installed then `start-windows.bat` will download the latest version of `node.exe` to the root folder
