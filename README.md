@@ -112,10 +112,6 @@ This layout keeps the project organized and maintainable, separating error handl
 │
 ├── /ssl
 │   ├── /openssl
-│   ├── /acme
-│   │   ├── /crypt
-│   │   ├── /jose
-│   │   └── lets-encrypt-acme-client.js
 │   │
 │   ├── private-key.pem
 │   └── certificate.pem

@@ -18,7 +18,7 @@
 import { join, extname as _extname } from 'path';
 import { createServer as createServerHTTP } from 'http';
 import { readFile, writeFile, existsSync, readFileSync } from 'fs';
-import { checkChallengesMixin, startLetsEncryptDaemon } from './acme/lets-encrypt-acme-client.js';
+import { checkChallengesMixin, startLetsEncryptDaemon } from 'lets-encrypt-acme-client';
 
 /**
 * **SSL-Server** configuration state

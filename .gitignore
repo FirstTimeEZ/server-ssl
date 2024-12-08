@@ -7,3 +7,4 @@ ssl/acmePrivateSignKey.raw
 ssl/acmePrivateKey.raw
 ssl/last_update.ez
 ssl/last_certification.ez
+node_modules/
