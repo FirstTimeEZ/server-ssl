@@ -13,6 +13,8 @@ set "API=0"
 set "OPEN_SSL="
 set "OPEN_SSL_IN_PATH=0"
 
+title Starting SSL Web Server
+
 :loop
 if "%~1"=="" goto endloop
 if "%~1"=="--port" (
@@ -117,6 +119,7 @@ if %errorlevel% neq 0 ( echo Install Node.js and try again
 )
 
 echo Starting SSL Web Server
+title SSL Web Server
 :restartLoop
 setlocal
 

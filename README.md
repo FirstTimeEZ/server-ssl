@@ -22,7 +22,7 @@ The easiest usage would be to serve a website:
 4. Run `start-windows.bat`
 5. View your website at `https://localhost`
 
-[![](https://i.imgur.com/YchiE6S.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/EpUfaDC.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 [![](https://i.imgur.com/DEbJVUq.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
@@ -38,7 +38,7 @@ The easiest usage would be to serve a website:
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
-[![](https://i.imgur.com/C85fRQC.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/94AOEVf.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 ### Optional Arguments
 
