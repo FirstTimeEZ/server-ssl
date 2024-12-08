@@ -102,10 +102,23 @@ if "%KEYS%"=="1" (
     )
 )
 
-:restartLoop
-setlocal
+@REM Install/Update NPM Packages
+
+call npm update package.json
+
+if %errorlevel% neq 0 ( echo Npm is missing, Install Node.js and try again
+    exit 0
+)
+
+node -v >nul 2>&1
+
+if %errorlevel% neq 0 ( echo Install Node.js and try again
+    exit 0
+)
 
 echo Starting SSL Web Server
+:restartLoop
+setlocal
 
 @REM Check Certificate end date
 
@@ -119,20 +132,6 @@ if "!OPEN_SSL_IN_PATH!"=="2" (
     for /f "tokens=2 delims==" %%a in ('%currentPath%/ssl/openssl/bin/openssl.exe x509 -in "%currentPath%/ssl/certificate.pem" -enddate -noout') do (
         set "DATE=%%a"
     )
-)
-
-@REM Install/Update NPM Packages
-
-call npm update package.json
-
-if %errorlevel% neq 0 ( echo Npm is missing, Install Node.js and try again
-    exit 0
-)
-
-node -v >nul 2>&1
-
-if %errorlevel% neq 0 ( echo Install Node.js and try again
-    exit 0
 )
 
 node.exe server-ssl.js %* --arAvailable --notAfter="!DATE!"
