@@ -94,9 +94,6 @@ You can remove everything inside `HTTPS_SERVER` and do whatever you like.
 
 There are also helpers you can use in `STATE`
 
-> [!NOTE]
-> If you don't already have [`Node.js`](https://nodejs.org/en) installed then `start-windows.bat` will download the latest version of `node.exe` to the root folder
-
 --------
 
 ### Default Layout
