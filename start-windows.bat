@@ -107,6 +107,8 @@ setlocal
 
 echo Starting SSL Web Server
 
+@REM Check Certificate end date
+
 if "!OPEN_SSL_IN_PATH!"=="1" (
     for /f "tokens=2 delims==" %%a in ('openssl x509 -in "%currentPath%/ssl/certificate.pem" -enddate -noout') do (
         set "DATE=%%a"
@@ -119,12 +121,18 @@ if "!OPEN_SSL_IN_PATH!"=="2" (
     )
 )
 
+@REM Install/Update NPM Packages
+
+call npm update package.json
+
+if %errorlevel% neq 0 ( echo Npm is missing, Install Node.js and try again
+    exit 0
+)
+
 node -v >nul 2>&1
 
-if %errorlevel% neq 0 ( echo Downloading latest Node.js to root folder
-    curl -o "node.exe" "https://nodejs.org/dist/latest/win-x64/node.exe" -L --retry 5
-) else (
-    echo Node.js already exists in root folder or in path
+if %errorlevel% neq 0 ( echo Install Node.js and try again
+    exit 0
 )
 
 node.exe server-ssl.js %* --arAvailable --notAfter="!DATE!"
