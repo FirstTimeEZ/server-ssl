@@ -1,6 +1,6 @@
 {
   "type": "module",
   "dependencies": {
-    "lets-encrypt-acme-client": "^1.0.1"
+    "lets-encrypt-acme-client": "^1.0.4"
   }
 }
