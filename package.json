@@ -2,6 +2,6 @@
   "type": "module",
   "dependencies": {
     "lets-encrypt-acme-client": "^1.2.7",
-    "simple-api-router": "^1.0.3"
+    "simple-api-router": "^1.0.4"
   }
 }
