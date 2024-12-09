@@ -106,7 +106,7 @@ if "%KEYS%"=="1" (
 
 @REM Install/Update NPM Packages
 
-call npm update package.json
+call npm update
 
 if %errorlevel% neq 0 ( echo Npm is missing, Install Node.js and try again
     exit 0
