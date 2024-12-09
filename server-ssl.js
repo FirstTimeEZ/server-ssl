@@ -40,6 +40,6 @@ const HTTPS_SERVER = createServerHTTPS(STATE.loadDefaultSecureContext(), (req, r
 
 STATE.startHttpChallengeListener();  // Lets Encrypt! HTTP-01 ACME Challenge Mixin - Always Redirects HTTP to HTTPS unless doing a ACME Challenge
 
-STATE.loadLetsEncryptAcmeDaemon(() => console.log("Restarting Soon"), 30, () => STATE.loadNewSecureContext(HTTPS_SERVER));
+STATE.loadLetsEncryptAcmeDaemon(() => console.log("Restarting Soon"), 30, () => { STATE.loadNewSecureContext(HTTPS_SERVER); STATE.daysRemaining = 89; });
 //                              ^^ Restart Callbacks       cb/seconds ^^  ^^ Update Certificates Callback
 STATE.checkNodeForUpdates(); // Check Node.js version
