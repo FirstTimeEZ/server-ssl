@@ -114,7 +114,7 @@ export const STATE = {
 
         !STATE.optPk && (STATE.optPk = 'private-key.pem');
         !STATE.optCert && (STATE.optCert = 'certificate.pem');
-        !STATE.optWebsite && (STATE.optWebsite = 'website');
+        !STATE.optWebsite && (STATE.optWebsite = 'wwwroot');
         !STATE.optError && (STATE.optError = 'error');
         !STATE.optEntry && (STATE.optEntry = 'index.html');
 

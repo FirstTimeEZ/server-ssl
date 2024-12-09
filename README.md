@@ -50,7 +50,7 @@ The easiest usage would be to serve a website:
 | `--portHttp=`  | The port number for HTTP that will be redirected | `80` |
 | `--cert=`      | The path to the `SSL` certificate file. | `"certificate.pem"` |
 | `--pk=`        | The path to the private key file for the `SSL` certificate. | `"private-key.pem"` |
-| `--site=`      | The directory for the website files | `"website"` |
+| `--site=`      | The directory for the website files | `"wwwroot"` |
 | `--error=`     | The directory for error messages (404,500) | `"error"` |
 | `--entry=`     | The page to use for the entry point | `"index.html"` |
 
@@ -114,7 +114,7 @@ This layout keeps the project organized and maintainable, separating error handl
 │   └── certificate.pem
 │   └── ssl.js
 │
-├── /website
+├── /wwwroot
 │   └── index.html <---- Your website goes here
 │
 ├── server-ssl.js            <--- server config
