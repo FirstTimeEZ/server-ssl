@@ -2,7 +2,7 @@ import { fileURLToPath } from 'url';
 import { join, extname as _extname, dirname } from 'path';
 import { createServer as createServerHTTPS } from 'https';
 import { STATE } from './ssl/ssl.js';
-import { Api, Endpoint } from './ssl/ssl-api.js';
+import { Api, Endpoint } from 'simple-api-router';
 
 STATE.importRequiredArguments(dirname(fileURLToPath(import.meta.url)));
 
