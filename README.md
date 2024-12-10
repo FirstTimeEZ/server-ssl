@@ -38,7 +38,7 @@ The easiest usage would be to serve a website:
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
-[![](https://i.imgur.com/94AOEVf.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/LcRxJwU.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 ### Optional Arguments
 

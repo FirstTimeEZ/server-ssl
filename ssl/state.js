@@ -245,7 +245,6 @@ export const STATE = {
         STATE.optLetsEncrypt && STATE.optDomains !== null && (STATE.urlsArray = STATE.extractDomainsAnyFormat(STATE.optDomains));
         STATE.optLetsEncrypt && STATE.optGenerateAnyway === true && (STATE.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
         STATE.optLetsEncrypt && startLetsEncryptDaemon(STATE.urlsArray, STATE.__sslFolder, STATE.daysRemaining, certificateCallback, STATE.optGenerateAnyway, STATE.optStaging, STATE.optAutoRestart, countdownHandler, countdownTime);
-        STATE.optLetsEncrypt && setInterval(() => startLetsEncryptDaemon(STATE.urlsArray, STATE.__sslFolder, STATE.daysRemaining, certificateCallback, STATE.optGenerateAnyway, STATE.optStaging, STATE.optAutoRestart, countdownHandler, countdownTime), STATE.TWELVE_HOURS_MILLISECONDS);
     },
     redirect: (res, req) => {
         res.writeHead(STATE.REDIRECT, { [STATE.REDIRECT_LOCATION]: `${STATE.HTTPS}${req.headers.host}${req.url}` });
