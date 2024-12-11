@@ -120,7 +120,7 @@ export const STATE = {
 
         STATE.expireDate && STATE.timeUntilRenew(STATE.expireDate);
 
-        const SSL = join(__rootDir, STATE.SSL);
+        const SSL = join(__rootDir, STATE.SSL, STATE.optStaging ? "staging" : "production");
         const PK = join(SSL, STATE.optPk);
         const CERT = join(SSL, STATE.optCert);
 

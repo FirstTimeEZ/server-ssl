@@ -115,9 +115,18 @@ This layout keeps the project organized and maintainable, separating error handl
 │
 ├── /ssl
 │   ├── /openssl
+│   ├── /production
+│   │   │
+│   │   ├── ...
+│   │   ├── private-key.pem
+│   │   └── certificate.pem
 │   │
-│   ├── private-key.pem
-│   └── certificate.pem
+│   ├── /staging
+│   │   │
+│   │   ├── ...
+│   │   ├── private-key.pem
+│   │   └── certificate.pem
+│   │
 │   └── state.js
 │
 ├── /wwwroot
