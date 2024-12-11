@@ -158,8 +158,10 @@ Convert your `certificate` and `private key` to `PEM` format and place them in t
 
 ```
 ├── /ssl
-│   │
-│   ├── private-key.pem <--- Your private key goes here
-│   └── certificate.pem <--- Your certificate goes here
-│   └── state.js
+│   ├── /openssl
+│   ├── /production <> staging
+│   │   │
+│   │   ├── ...
+│   │   ├── private-key.pem <--- Your private key goes here
+│   │   └── certificate.pem <--- Your certificate goes here
 ```
