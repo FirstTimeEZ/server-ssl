@@ -2,7 +2,7 @@
 
 # server-ssl.js
 
-Easy to configure `SSL Server` that can be used for development or production that can create and renew `Lets Encrypt Certificates` automatically.
+Configurable `SSL Server` that runs on [`Node.js`](https://nodejs.org/en) which can be used for development or production and can create and renew `Lets Encrypt Certificates` automatically using `ACME`
 
 Designed to get out of your way so you can still change anything about `https.createServer`.
 
