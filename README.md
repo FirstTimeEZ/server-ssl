@@ -2,13 +2,9 @@
 
 # server-ssl.js
 
-Easy to configure `SSL Server` that can be used for development or production
+Easy to configure `SSL Server` that can be used for development or production that can create and renew `Lets Encrypt Certificates` automatically.
 
-`HTTP` requests are redirected to `HTTPS`
-
-Production servers can use and renew `Lets Encrypt 90 Day Certificates` automatically.
-
-Designed to get out of your way, you can still change anything about the server.
+Designed to get out of your way so you can still change anything about `https.createServer`.
 
 --------
 
@@ -23,6 +19,8 @@ The easiest usage would be to serve a website:
 5. View your website at `https://localhost`
 
 [![](https://i.imgur.com/riAkrni.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+
+The default page/config is a simple [`API`](https://github.com/FirstTimeEZ/simple-api-router) that serves and displays the `time`
 
 [![](https://i.imgur.com/DEbJVUq.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
@@ -78,6 +76,13 @@ The certificates will be changed automatically when they are updated, you don't 
 ```
 ./start-windows.bat --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
 ```
+--------
+
+### Always Redirect HTTP to HTTPS
+
+`HTTP` requests from end users are always redirected to `HTTPS`
+
+`ACME Challenges` transparently happen over `HTTP` to create/issue a new certificate
 
 --------
 
