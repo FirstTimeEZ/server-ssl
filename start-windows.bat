@@ -82,7 +82,7 @@ IF "!OPEN_SSL_IN_PATH!"=="0" (
 
 @REM unable to continue without openssl
 @REM OpenSSL is required for the fallback renewal timing mechanism and to generate local certificates
-@REM You can use server-ssl.js directly if you don't care about either of these things
+@REM You can run server-ssl.js directly if you don't care about either of these things
 IF "!OPEN_SSL_IN_PATH!"=="0" (
     echo You need OpenSSL in your path to use this
     exit
