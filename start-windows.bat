@@ -1,3 +1,6 @@
+@REM author : Copyright © 2024 FirstTimeEZ
+@REM license: http://www.apache.org/licenses/LICENSE-2.0
+
 @echo off
 setlocal enabledelayedexpansion
 
@@ -39,7 +42,8 @@ if NOT EXIST "%currentPath%/ssl" ( mkdir "%currentPath%/ssl" )
 
 if NOT "%PORT%"=="" ( echo Port: %PORT% )
 
-@REM check if openssl has been downloaded already
+@REM check if openssl is in the ssl folder
+@REM prefers openssl from the ssl folder
 IF "%OPEN_SSL_IN_PATH%"=="0" (
     IF EXIST "%currentPath%/ssl/openssl/bin/" (
         set OPEN_SSL_IN_PATH=2
@@ -47,6 +51,7 @@ IF "%OPEN_SSL_IN_PATH%"=="0" (
 )
 
 @REM check if openssl is in the path
+@REM if you already have openssl installed this should find it
 IF "%OPEN_SSL_IN_PATH%"=="0" (
 for /f "tokens=1 delims==" %%a in ('openssl -v') do (
         set "firstChar=%%a"
@@ -58,7 +63,8 @@ for /f "tokens=1 delims==" %%a in ('openssl -v') do (
     )
 )
 
-@REM openssl still hasn't been found, download minimum requirements
+@REM OpenSSL isn't intalled and the folder is missing, download minimum requirements from Github raw commit
+@REM this is the same files from Git Bash MINGW64
 IF "!OPEN_SSL_IN_PATH!"=="0" (
       echo --------
       echo OpenSSL not found, downloading Git Bash OpenSSL
@@ -75,6 +81,8 @@ IF "!OPEN_SSL_IN_PATH!"=="0" (
 )
 
 @REM unable to continue without openssl
+@REM OpenSSL is required for the fallback renewal timing mechanism and to generate local certificates
+@REM You can use server-ssl.js directly if you don't care about either of these things
 IF "!OPEN_SSL_IN_PATH!"=="0" (
     echo You need OpenSSL in your path to use this
     exit
