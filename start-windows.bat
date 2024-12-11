@@ -9,7 +9,7 @@ set "CERT="
 set "PK="
 set "DATE="
 set "KEYS=0"
-set "API=0"
+set "SKIPNODE=0"
 set "OPEN_SSL="
 set "OPEN_SSL_IN_PATH=0"
 
@@ -25,6 +25,9 @@ if "%~1"=="--port" (
     shift
 ) else if "%~1"=="--pk" (
     set PK=%~2
+    shift
+) else if "%~1"=="--skipNodeUpdate" (
+    set SKIPNODE=1
     shift
 )
 
@@ -104,12 +107,14 @@ if "%KEYS%"=="1" (
     )
 )
 
-@REM Install/Update NPM Packages
+IF "%SKIPNODE%"=="0" (
+    @REM Install/Update NPM Packages
 
-call npm update
+    call npm update
 
-if %errorlevel% neq 0 ( echo Npm is missing, Install Node.js and try again
-    exit 0
+    if %errorlevel% neq 0 ( echo Npm is missing, Install Node.js and try again
+        exit 0
+    )
 )
 
 node -v >nul 2>&1

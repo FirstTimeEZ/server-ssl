@@ -53,6 +53,7 @@ The easiest usage would be to serve a website:
 | `--site=`      | The directory for the website files | `"wwwroot"` |
 | `--error=`     | The directory for error messages (404,500) | `"error"` |
 | `--entry=`     | The page to use for the entry point | `"index.html"` |
+| `--skipNodeUpdate` | Do not update `NPM` packages before starting the server | `not present` |
 
 All Arguments are case sensitive.
 
