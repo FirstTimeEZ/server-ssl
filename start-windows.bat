@@ -101,7 +101,7 @@ if "%KEYS%"=="1" (
     echo Generating Keys for Local Development
 
     if "!OPEN_SSL_IN_PATH!"=="1" (
-        openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ssl/private-key.pem -out "ssl/%CERT%" -days 365 -subj "/CN=localhost"
+        openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout "ssl/%PK%" -out "ssl/%CERT%" -days 365 -subj "/CN=localhost"
     )
 
     if "!OPEN_SSL_IN_PATH!"=="2" (
