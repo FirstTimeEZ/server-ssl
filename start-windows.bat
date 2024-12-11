@@ -87,11 +87,13 @@ IF "!OPEN_SSL_IN_PATH!"=="0" (
 )
 
 if "%CERT%"=="" (
-    if NOT EXIST "%currentPath%/ssl/certificate.pem" ( set "KEYS=1" )
+    set "CERT=certificate.pem"
+    if NOT EXIST "%currentPath%/ssl/%CERT%" ( set "KEYS=1" )
 )
 
 if "%PK%"=="" (
-    if NOT EXIST "%currentPath%/ssl/private-key.pem" ( set "KEYS=1" )
+    set "PK=private-key.pem"
+    if NOT EXIST "%currentPath%/ssl/%PK%" ( set "KEYS=1" )
 )
 
 if "%KEYS%"=="1" (
@@ -99,15 +101,15 @@ if "%KEYS%"=="1" (
     echo Generating Keys for Local Development
 
     if "!OPEN_SSL_IN_PATH!"=="1" (
-        openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ssl/private-key.pem -out ssl/certificate.pem -days 365 -subj "/CN=localhost"
+        openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ssl/private-key.pem -out "ssl/%CERT%" -days 365 -subj "/CN=localhost"
     )
 
     if "!OPEN_SSL_IN_PATH!"=="2" (
-        %currentPath%/ssl/openssl/bin/openssl.exe req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ssl/private-key.pem -out ssl/certificate.pem -days 365 -subj "/CN=localhost"
+        %currentPath%/ssl/openssl/bin/openssl.exe req -x509 -newkey rsa:2048 -nodes -sha256 -keyout "ssl/%PK%" -out "ssl/%CERT%" -days 365 -subj "/CN=localhost"
     )
 
-    if EXIST "%currentPath%/ssl/private-key.pem" ( echo Successfully Generated Private Key ) 
-    if EXIST "%currentPath%/ssl/certificate.pem" ( echo Successfully Generated Certificate ) else (
+    if EXIST "%currentPath%/ssl/%PK%" ( echo Successfully Generated Private Key ) 
+    if EXIST "%currentPath%/ssl/%CERT%" ( echo Successfully Generated Certificate ) else (
         echo Certificate Needed to continue Install OpenSSL and try again
         exit
     )
@@ -137,13 +139,13 @@ setlocal
 @REM Check Certificate end date
 
 if "!OPEN_SSL_IN_PATH!"=="1" (
-    for /f "tokens=2 delims==" %%a in ('openssl x509 -in "%currentPath%/ssl/certificate.pem" -enddate -noout') do (
+    for /f "tokens=2 delims==" %%a in ('openssl x509 -in "%currentPath%/ssl/%CERT%" -enddate -noout') do (
         set "DATE=%%a"
     )
 )
 
 if "!OPEN_SSL_IN_PATH!"=="2" (
-    for /f "tokens=2 delims==" %%a in ('%currentPath%/ssl/openssl/bin/openssl.exe x509 -in "%currentPath%/ssl/certificate.pem" -enddate -noout') do (
+    for /f "tokens=2 delims==" %%a in ('%currentPath%/ssl/openssl/bin/openssl.exe x509 -in "%currentPath%/ssl/%CERT%" -enddate -noout') do (
         set "DATE=%%a"
     )
 )
