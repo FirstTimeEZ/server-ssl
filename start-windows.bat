@@ -30,7 +30,7 @@ if "%~1"=="--port" (
     set PK=%~2
     shift
 ) else if "%~1"=="--skipNodeUpdate" (
-    set SKIPNODE=1
+    set "SKIPNODE=1"
     shift
 )
 
