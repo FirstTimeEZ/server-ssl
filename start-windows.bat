@@ -47,10 +47,9 @@ if NOT "%PORT%"=="" ( echo Port: %PORT% )
 
 IF "%STAGING%"=="1" (
     set "PATH1=staging"
-    echo !PATH1!
 )
 
-if NOT EXIST "%currentPath%/ssl/%PATH1%" (
+if NOT EXIST "%currentPath%/ssl/!PATH1!" (
     mkdir "%currentPath%/ssl/%PATH1%"
 )
 
