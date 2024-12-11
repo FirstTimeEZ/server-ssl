@@ -38,8 +38,6 @@ shift
 goto loop
 :endloop
 
-if NOT EXIST "%currentPath%/ssl" ( mkdir "%currentPath%/ssl" )
-
 if NOT "%PORT%"=="" ( echo Port: %PORT% )
 
 @REM check if openssl is in the ssl folder
@@ -71,7 +69,7 @@ IF "!OPEN_SSL_IN_PATH!"=="0" (
       echo OpenSSL will be stored in the SSL folder for future use.
       echo %currentPath%
       curl -o "%currentPath%/ssl/openssl.zip" "https://github.com/FirstTimeEZ/openssl/raw/899c6ee03d25e0bc37f3d624969ac5e6018144e0/openssl-3-2-3.zip" -L --ssl-no-revoke --retry 5
-      echo %currentPath%
+      mkdir "%currentPath%/ssl"
       cd %currentPath%/ssl/
       tar -xf openssl.zip
       del openssl.zip
