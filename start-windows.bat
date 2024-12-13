@@ -31,11 +31,13 @@ if "%~1"=="--port" (
 ) else if "%~1"=="--pk" (
     set PK=%~2
     shift
-) else if "%~1"=="--skipNodeUpdate" (
-    set "SKIPNODE=1"
-    shift
 ) else if "%~1"=="--staging" (
     set "STAGING=1"
+    if "%~2"=="--skipNodeUpdate" ( set "SKIPNODE=1" )
+    shift
+) else if "%~1"=="--skipNodeUpdate" (
+    set "SKIPNODE=1"
+    if "%~2"=="--staging" ( set "STAGING=1" )
     shift
 )
 
@@ -45,9 +47,7 @@ goto loop
 
 if NOT "%PORT%"=="" ( echo Port: %PORT% )
 
-IF "%STAGING%"=="1" (
-    set "PATH1=staging"
-)
+IF "!STAGING!"=="1" ( set "PATH1=staging" )
 
 if NOT EXIST "%currentPath%/ssl/!PATH1!" (
     mkdir "%currentPath%/ssl/%PATH1%"
