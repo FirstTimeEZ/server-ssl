@@ -144,7 +144,6 @@ if %errorlevel% neq 0 ( echo Install Node.js and try again
     exit 0
 )
 
-echo Starting SSL Web Server
 title SSL Web Server
 :restartLoop
 setlocal

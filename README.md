@@ -18,7 +18,7 @@ The easiest usage would be to serve a website:
 4. Run `start-windows.bat`
 5. View your website at `https://localhost`
 
-[![](https://i.imgur.com/riAkrni.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/w2UUgO4.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 The default page/config is a simple [`API`](https://github.com/FirstTimeEZ/simple-api-router) that serves and displays the `time`
 
@@ -36,7 +36,7 @@ The default page/config is a simple [`API`](https://github.com/FirstTimeEZ/simpl
 ./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
 ```
 
-[![](https://i.imgur.com/LcRxJwU.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/2bMobPI.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 ### Optional Arguments
 

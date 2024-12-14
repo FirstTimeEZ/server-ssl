@@ -35,6 +35,7 @@ export const STATE = {
     isRestartAvailable: null,
     timeRemaining: null,
     daysRemaining: null,
+    packageJson: null,
     // Args
     optPk: null,
     optCert: null,
@@ -133,6 +134,14 @@ export const STATE = {
         STATE.__sslFolder = SSL;
         STATE.__pkPath = PK;
         STATE.__certPath = CERT;
+
+        if (existsSync("./package.json")) {
+            import('../package.json', { with: { type: 'json' } }).then((packageJson) => {
+                STATE.packageJson = packageJson;
+
+                console.log("Starting Server SSL", "v" + packageJson.default.version);
+            });
+        }
 
         return STATE.__websiteDir;
     },
