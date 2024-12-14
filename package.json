@@ -1,10 +1,29 @@
 {
   "name": "server-ssl",
   "author": "FirstTimeEZ",
-  "version": "31.0.6",
+  "version": "31.0.7",
   "description": "Configurable SSL Server that runs on Node.js which can be used for development or production and can create and renew Lets Encrypt Certificates automatically using ACME",
   "main": "server-ssl.js",
   "type": "module",
+  "keywords": [
+    "server",
+    "ssl",
+    "tls",
+    "security",
+    "web",
+    "https",
+    "api",
+    "configurable",
+    "localhost",
+    "development",
+    "production",
+    "certificate",
+    "renew",
+    "lets",
+    "encrypt",
+    "acme",
+    "template"
+  ],
   "license": "Apache-2.0",
   "dependencies": {
     "lets-encrypt-acme-client": "^4.0.4",
@@ -12,7 +31,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FirstTimeEZ/server-ssl"
+    "url": "git+https://github.com/FirstTimeEZ/server-ssl.git"
   },
   "homepage": "https://github.com/FirstTimeEZ/server-ssl"
 }
