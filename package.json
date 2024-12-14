@@ -1,7 +1,7 @@
 {
   "type": "module",
   "dependencies": {
-    "lets-encrypt-acme-client": "^4.0.2",
+    "lets-encrypt-acme-client": "^4.0.3",
     "simple-api-router": "^1.1.1"
   }
 }
