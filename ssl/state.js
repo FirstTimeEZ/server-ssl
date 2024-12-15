@@ -217,30 +217,14 @@ export const STATE = {
 
                     if (split.length === STATE.NODE_URL_SPLITS) {
                         for (let index = 0; index < split.length; index++) {
-                            const dist = split[index];
-
-                            if (dist[0] === STATE.NODE_VERSION) {
-                                const updatePath = join(STATE.__sslFolder, STATE.NODE_FN);
-
-                                if (existsSync(updatePath)) {
-                                    const lastUpdate = JSON.parse(readFileSync(updatePath));
-
-                                    if (lastUpdate != undefined) {
-                                        const lastVersion = lastUpdate.version;
-
-                                        if (lastVersion === dist) {
-                                            console.log(STATE.NODE_YES, dist);
-                                        }
-                                        else {
-                                            console.log(STATE.NODE_NO, dist);
-                                            // Update Required
-                                        }
-                                    }
-                                } else {
-                                    console.log(STATE.NODE_FIRST, dist);
-
-                                    writeFile(updatePath, JSON.stringify({ version: dist }), () => { });
+                            if (split[index][0] === STATE.NODE_VERSION) {
+                                if (split[index] !== process.version) {
+                                    console.log("There is a more recent version of Node.js available:", split[index]);
                                 }
+                                else {
+                                    console.log("Node.js is up to date:", process.version);
+                                }
+                                break;
                             }
                         }
                     }
