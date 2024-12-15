@@ -1,0 +1,11 @@
+console.log("------------------------------------------------------------------------");
+console.log("Server SSL is a template, please don't import it into your project");
+console.log("------------------------------------------------------------------------");
+console.log("The way you are using Server SSL is not directly supported and may break");
+console.log("------------------------------------------------------------------------");
+console.log("This package is meant to be extracted to a new folder");
+console.log("That directory is the root directory of the Server");
+console.log("which can be started with start-windows.bat [args]");
+console.log("------------------------------------------------------------------------");
+console.log("Please read the Getting Started section of the README");
+console.log("------------------------------------------------------------------------");
