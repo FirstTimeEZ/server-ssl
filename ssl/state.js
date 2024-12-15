@@ -17,8 +17,9 @@
 
 import { join, extname as _extname } from 'path';
 import { createServer as createServerHTTP } from 'http';
-import { readFile, writeFile, existsSync, readFileSync } from 'fs';
+import { readFile, existsSync, readFileSync } from 'fs';
 import { checkChallengesMixin, startLetsEncryptDaemon } from 'lets-encrypt-acme-client';
+import { fetchAndRetryUntilOk } from 'base-acme-client';
 
 /**
 * **SSL-Server** configuration state
@@ -209,29 +210,28 @@ export const STATE = {
     },
     checkNodeForUpdates: async () => {
         if (STATE.optNoAutoUpdate !== true) {
-            try {
-                const current = (await fetch(STATE.NODE_URL, { method: 'GET', redirect: 'follow' })).url
+            const response = await fetchAndRetryUntilOk(STATE.NODE_URL, { method: 'GET', redirect: 'follow' });
 
-                if (current != undefined) {
-                    const split = current.split("/");
+            if (response.ok) {
+                const split = response.url.split("/");
 
-                    if (split.length === STATE.NODE_URL_SPLITS) {
-                        for (let index = 0; index < split.length; index++) {
-                            if (split[index][0] === STATE.NODE_VERSION) {
-                                if (split[index] !== process.version) {
-                                    console.log("There is a more recent version of Node.js available:", split[index]);
-                                }
-                                else {
-                                    console.log("Node.js is up to date:", process.version);
-                                }
-                                break;
+                if (split.length === STATE.NODE_URL_SPLITS) {
+                    for (let index = 0; index < split.length; index++) {
+                        if (split[index][0] === STATE.NODE_VERSION) {
+                            if (split[index] !== process.version) {
+                                console.log("There is a more recent version of Node.js available:", split[index]);
                             }
+                            else {
+                                console.log("Node.js is up to date:", process.version);
+                            }
+
+                            return;
                         }
                     }
                 }
-            } catch {
-                console.log("Could not determine if Node.js version is recent");
             }
+
+            console.log("Could not determine if Node.js version is recent");
         }
     },
     loadLetsEncryptAcmeDaemon: (countdownHandler, countdownTime, certificateCallback) => {
