@@ -17,9 +17,11 @@
 
 import { join, extname as _extname } from 'path';
 import { createServer as createServerHTTP } from 'http';
-import { readFile, existsSync, readFileSync } from 'fs';
+import { readFile, existsSync, readFileSync, mkdirSync } from 'fs';
 import { checkChallengesMixin, startLetsEncryptDaemon } from 'lets-encrypt-acme-client';
 import { fetchAndRetryUntilOk } from 'base-acme-client';
+import { execSync } from 'child_process';
+import { platform } from 'os';
 
 /**
 * **SSL-Server** configuration state
@@ -97,12 +99,9 @@ export const STATE = {
             arg.includes("--domains=") && (STATE.optDomains = rightSide);
             arg.includes("--letsEncrypt") && (STATE.optLetsEncrypt = true);
             arg.includes("--generateAnyway") && (STATE.optGenerateAnyway = true);
-            arg.includes("--autoRestart") && (STATE.optAutoRestart = true);
             arg.includes("--staging") && (STATE.optStaging = true);
             // Internal
             arg.includes("--notAfter=") && (STATE.expireDate = rightSide);
-            arg.includes("--arAvailable") && (STATE.isRestartAvailable = true);
-            arg.includes("--ok") && (STATE.override = true);
         });
 
         if (STATE.optLetsEncrypt === true) {
@@ -123,8 +122,26 @@ export const STATE = {
         STATE.expireDate && STATE.timeUntilRenew(STATE.expireDate);
 
         const SSL = join(__rootDir, STATE.SSL, STATE.optStaging ? "staging" : "production");
-        const PK = join(SSL, STATE.optPk);
-        const CERT = join(SSL, STATE.optCert);
+
+        let PK = join(SSL, STATE.optPk);
+        let CERT = join(SSL, STATE.optCert);
+
+        if (!existsSync(PK) || !existsSync(CERT)) {
+            let create_local_cert;
+
+            if (platform() === 'win32') {
+                create_local_cert = '"ssl/openssl/bin/openssl" req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ' + SSL + '/private-key.pem -out ' + SSL + '/certificate.pem -days 365 -subj "/CN=localhost"';
+            }
+            else {
+                // todo: detect if openssl is installed on linux
+                create_local_cert = 'openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ' + SSL + '/private-key.pem -out ' + SSL + '/certificate.pem -days 365 -subj "/CN=localhost"';
+            }
+
+            !existsSync(SSL) && mkdirSync(SSL);
+            execSync(create_local_cert, { stdio: 'inherit' });
+            PK = join(SSL, "private-key.pem");
+            CERT = join(SSL, "certificate.pem");
+        }
 
         !existsSync(PK) && STATE.certNotExist();
         !existsSync(CERT) && STATE.certNotExist();
@@ -153,7 +170,8 @@ export const STATE = {
         console.log("You need to generate or provide an SSL Certificate and Private Key in PEM format");
         console.log("You can use the following command from git bash or run start-windows.bat with no arguments");
         console.log(" ");
-        console.log('openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ssl/private-key.pem -out ssl/certificate.pem -days 365 -subj "//CN=localhost"');
+        console.log('openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ssl/production/private-key.pem -out ssl/production/certificate.pem -days 365 -subj "/CN=localhost"');
+        console.log('openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ssl/staging/private-key.pem -out ssl/staging/certificate.pem -days 365 -subj "/CN=localhost"');
         process.exit(1);
     },
     getErrorPage: (res, err) => {

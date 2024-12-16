@@ -15,10 +15,10 @@ The easiest usage would be to serve a website:
 1. [`Clone`](https://github.com/FirstTimeEZ/server-ssl.git) or [`Download`](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip) the main branch and extract it somewhere
 2. Put your website in the `website` folder
 3. Open the `server-ssl` folder in `Command Prompt` or `Git Bash`
-4. Run `start-windows.bat`
+4. Run `node server-ssl.js`
 5. View your website at `https://localhost`
 
-[![](https://i.imgur.com/w2UUgO4.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/VQGGVp0.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 The default page/config is a simple [`API`](https://github.com/FirstTimeEZ/simple-api-router) that serves and displays the `time`
 
@@ -26,17 +26,14 @@ The default page/config is a simple [`API`](https://github.com/FirstTimeEZ/simpl
 
 ### Advanced/Production Usage
 
-`start-windows.bat` takes your arguments and starts the server
+`node server-ssl.js` takes your arguments and starts the server
 
 ```
 # Start for production (Lets Encrypt!) with SAN Extension
-./start-windows.bat --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
-
-# Start for production (BYO)
-./start-windows.bat --cert="your-certificate.pem" --pk="your-private-key.pem"
+node server-ssl.js --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
 ```
 
-[![](https://i.imgur.com/2bMobPI.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/XP8pa8a.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 ### Optional Arguments
 
@@ -51,7 +48,6 @@ The default page/config is a simple [`API`](https://github.com/FirstTimeEZ/simpl
 | `--site=`      | The directory for the website files | `"wwwroot"` |
 | `--error=`     | The directory for error messages (404,500) | `"error"` |
 | `--entry=`     | The page to use for the entry point | `"index.html"` |
-| `--skipNodeUpdate` | Do not update `NPM` packages before starting the server | `not present` |
 
 All Arguments are case sensitive.
 
@@ -69,12 +65,9 @@ The certificates will be changed automatically when they are updated, you don't 
 | `--domains=` | Domains to generate certificates for, this can not include wild cards, this should be an array. eg. `--domains=['www.ssl.boats','ssl.boats']` |
 | `--generateAnyway` | Certificates should always be generated when the server starts, this could get you rate limited, maybe use `--staging`  |
 | `--staging` | The `Lets Encrypt!` staging server should be used instead of production |
-| `--autoRestart` | Restart the server after cert generation, firing a callback to notify of the restart (not required) |
-
-`start-windows.bat` is required to use `--autoRestart`
 
 ```
-./start-windows.bat --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
+node server-ssl.js --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
 ```
 --------
 
@@ -132,8 +125,7 @@ This layout keeps the project organized and maintainable, separating error handl
 ├── /wwwroot
 │   └── index.html <---- Your website goes here
 │
-├── server-ssl.js            <--- server config
-└── start-windows.bat
+└── server-ssl.js
 ```
 
 --------
