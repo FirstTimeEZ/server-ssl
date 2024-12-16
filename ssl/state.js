@@ -262,9 +262,11 @@ export const STATE = {
         res.end();
     },
     startHttpChallengeListener: () => {
-        createServerHTTP((req, res) => STATE.optLetsEncrypt ? !checkChallengesMixin(req, res) && STATE.redirect(res, req) : STATE.redirect(res, req))
-            .on('error', (e) => e.code === STATE.ADDR_IN_USE && console.error(`${STATE.optPortHttp}${STATE.IN_USE}`))
-            .listen(STATE.optPortHttp, () => console.log(`${STATE.STARTED_HTTP}${STATE.optPort}`)); // Lets Encrypt! HTTP-01 ACME Challenge Mixin - Always Redirect HTTP to HTTPS unless doing a ACME Challenge
+        createServerHTTP(async (req, res) => {
+            if (STATE.optLetsEncrypt && await checkChallengesMixin(req, res)) { return; }
+
+            STATE.redirect(res, req);
+        }).on('error', (e) => e.code === STATE.ADDR_IN_USE && console.error(`${STATE.optPortHttp}${STATE.IN_USE}`)).listen(STATE.optPortHttp, () => console.log(`${STATE.STARTED_HTTP}${STATE.optPort}`)); // Lets Encrypt! HTTP-01 ACME Challenge Mixin - Always Redirect HTTP to HTTPS unless doing a ACME Challenge
     },
     defaultFileHandling: (res, route, contentTypes) => {
         const fileExtension = _extname(route);
