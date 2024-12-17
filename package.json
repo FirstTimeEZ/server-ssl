@@ -27,9 +27,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "base-acme-client": "^23.0.1",
-    "lets-encrypt-acme-client": "^24.0.1",
+    "lets-encrypt-acme-client": "^24.0.2",
     "simple-api-router": "^1.1.1",
-    "simple-open-ssl": "^1.0.2"
+    "simple-open-ssl": "^1.0.6"
   },
   "repository": {
     "type": "git",
