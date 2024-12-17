@@ -15,8 +15,9 @@ The easiest usage would be to serve a website:
 1. [`Clone`](https://github.com/FirstTimeEZ/server-ssl.git) or [`Download`](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip) the main branch and extract it somewhere
 2. Put your website in the `website` folder
 3. Open the `server-ssl` folder in `Command Prompt` or `Git Bash`
-4. Run `node server-ssl.js`
-5. View your website at `https://localhost`
+4. Run `npm install`
+5. Run `node server-ssl.js`
+6. View your website at `https://localhost`
 
 [![](https://i.imgur.com/0IVqrfn.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
