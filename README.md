@@ -18,7 +18,7 @@ The easiest usage would be to serve a website:
 4. Run `node server-ssl.js`
 5. View your website at `https://localhost`
 
-[![](https://i.imgur.com/q08yvC1.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/0IVqrfn.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 The default page/config is a simple [`API`](https://github.com/FirstTimeEZ/simple-api-router) that serves and displays the `time`
 
@@ -33,7 +33,7 @@ The default page/config is a simple [`API`](https://github.com/FirstTimeEZ/simpl
 node server-ssl.js --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
 ```
 
-[![](https://i.imgur.com/jsX4ND6.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+[![](https://i.imgur.com/BT8EEWj.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 ### Optional Arguments
 
@@ -107,7 +107,6 @@ This layout keeps the project organized and maintainable, separating error handl
 │   └── 500.html
 │
 ├── /ssl
-│   ├── /openssl
 │   ├── /production
 │   │   │
 │   │   ├── ...
@@ -150,7 +149,6 @@ Convert your `certificate` and `private key` to `PEM` format and place them in t
 
 ```
 ├── /ssl
-│   ├── /openssl
 │   ├── /production <> staging
 │   │   │
 │   │   ├── ...

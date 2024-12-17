@@ -20,8 +20,7 @@ import { createServer as createServerHTTP } from 'http';
 import { readFile, existsSync, readFileSync, mkdirSync } from 'fs';
 import { checkChallengesMixin, startLetsEncryptDaemon } from 'lets-encrypt-acme-client';
 import { fetchAndRetryUntilOk } from 'base-acme-client';
-import { execSync } from 'child_process';
-import { platform } from 'os';
+import { runCommandSync } from 'simple-open-ssl';
 
 /**
 * **SSL-Server** configuration state
@@ -35,10 +34,8 @@ export const STATE = {
     __certPath: null,
     override: null,
     urlsArray: null,
-    isRestartAvailable: null,
-    timeRemaining: null,
-    daysRemaining: null,
     packageJson: null,
+    expireDate: null,
     // Args
     optPk: null,
     optCert: null,
@@ -48,8 +45,7 @@ export const STATE = {
     optWebsite: null,
     optDomains: null,
     optLetsEncrypt: null,
-    optAutoRestart: null,
-    optNoAutoUpdate: null,
+    optNoVersionCheck: null,
     optGenerateAnyway: null,
     optPort: process.env.PORT || 443,
     optPortHttp: process.env.PORT_HTTP || 80,
@@ -94,23 +90,18 @@ export const STATE = {
             arg.includes("--site=") && (STATE.optWebsite = rightSide);
             arg.includes("--error=") && (STATE.optError = rightSide);
             arg.includes("--entry=") && (STATE.optEntry = rightSide);
-            arg.includes("--noAutoUpdate") && (STATE.optNoAutoUpdate = true);
+            // Node Version Check
+            arg.includes("--noVersionCheck") && (STATE.optNoCheckNodeVersion = true);
+            arg.includes("--noAutoUpdate") && (STATE.optNoCheckNodeVersion = true); // old flag
             // Lets Encrypt!
             arg.includes("--domains=") && (STATE.optDomains = rightSide);
             arg.includes("--letsEncrypt") && (STATE.optLetsEncrypt = true);
             arg.includes("--generateAnyway") && (STATE.optGenerateAnyway = true);
             arg.includes("--staging") && (STATE.optStaging = true);
-            // Internal
-            arg.includes("--notAfter=") && (STATE.expireDate = rightSide);
         });
 
         if (STATE.optLetsEncrypt === true) {
-            STATE.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), STATE.optLetsEncrypt = null, STATE.optAutoRestart = false);
-
-            if (STATE.optLetsEncrypt !== null && STATE.optAutoRestart === true) {
-                STATE.isRestartAvailable === null && STATE.override === null && (console.log("--------"), console.log("Server must be started with start-windows.bat to enable lets encrypt auto restart at this time"), console.log("If you have a way to restart the server on error code 123, use override --ok"), console.log("--------"), STATE.optAutoRestart = false);
-                console.log("--------"), console.log("Auto Restart Enabled"), console.log("Server will restart after certificates are renewed"), console.log("--------");
-            }
+            STATE.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), STATE.optLetsEncrypt = null);
         }
 
         !STATE.optPk && (STATE.optPk = 'private-key.pem');
@@ -119,26 +110,16 @@ export const STATE = {
         !STATE.optError && (STATE.optError = 'error');
         !STATE.optEntry && (STATE.optEntry = 'index.html');
 
-        STATE.expireDate && STATE.timeUntilRenew(STATE.expireDate);
-
         const SSL = join(__rootDir, STATE.SSL, STATE.optStaging ? "staging" : "production");
 
         let PK = join(SSL, STATE.optPk);
         let CERT = join(SSL, STATE.optCert);
 
         if (!existsSync(PK) || !existsSync(CERT)) {
-            let create_local_cert;
-
-            if (platform() === 'win32') {
-                create_local_cert = '"ssl/openssl/bin/openssl" req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ' + SSL + '/private-key.pem -out ' + SSL + '/certificate.pem -days 365 -subj "/CN=localhost"';
-            }
-            else {
-                // todo: detect if openssl is installed on linux
-                create_local_cert = 'openssl req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ' + SSL + '/private-key.pem -out ' + SSL + '/certificate.pem -days 365 -subj "/CN=localhost"';
-            }
-
             !existsSync(SSL) && mkdirSync(SSL);
-            execSync(create_local_cert, { stdio: 'inherit' });
+
+            runCommandSync(' req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ' + SSL + '/private-key.pem -out ' + SSL + '/certificate.pem -days 365 -subj "/CN=localhost"');
+
             PK = join(SSL, "private-key.pem");
             CERT = join(SSL, "certificate.pem");
         }
@@ -147,6 +128,7 @@ export const STATE = {
         !existsSync(CERT) && STATE.certNotExist();
 
         STATE.loadErrorPages(join(__rootDir, STATE.optError));
+
         STATE.__rootDir = __rootDir;
         STATE.__websiteDir = join(__rootDir, STATE.optWebsite);
         STATE.__sslFolder = SSL;
@@ -211,23 +193,13 @@ export const STATE = {
     loadDefaultSecureContext: () => {
         return { key: readFileSync(STATE.__pkPath), cert: readFileSync(STATE.__certPath) }
     },
-    timeUntilRenew: (notAfter) => {
-        const specificDate = new Date(notAfter);
-        const currentDate = new Date();
-
-        STATE.timeRemaining = specificDate.getTime() - currentDate.getTime();
-        STATE.daysRemaining = Math.floor(STATE.timeRemaining / (1000 * 60 * 60 * 24));
-        const hoursRemaining = Math.floor((STATE.timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutesRemaining = Math.floor((STATE.timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-        console.log(`Time until renewal required: ${STATE.daysRemaining} days, ${hoursRemaining} hours, ${minutesRemaining} minutes`);
-    },
     extractDomainsAnyFormat: (input) => {
         const bracketsRemoved = String(input).trim().replace(/[\[\]]/g, '');
         const commaSplit = bracketsRemoved.split(',').map(d => d.trim().replace(/^['"]|['"]$/g, ''));
         return commaSplit.length > 0 && commaSplit[0] ? commaSplit : domains;
     },
     checkNodeForUpdates: async () => {
-        if (STATE.optNoAutoUpdate !== true) {
+        if (STATE.optNoVersionCheck !== true) {
             const response = await fetchAndRetryUntilOk(STATE.NODE_URL, { method: 'GET', redirect: 'follow' });
 
             if (response.ok) {
@@ -252,10 +224,9 @@ export const STATE = {
             console.log("Could not determine if Node.js version is recent");
         }
     },
-    loadLetsEncryptAcmeDaemon: (countdownHandler, countdownTime, certificateCallback) => {
+    loadLetsEncryptAcmeDaemon: (certificateCallback) => {
         STATE.optLetsEncrypt && STATE.optDomains !== null && (STATE.urlsArray = STATE.extractDomainsAnyFormat(STATE.optDomains));
-        STATE.optLetsEncrypt && STATE.optGenerateAnyway === true && (STATE.optAutoRestart = false, console.log("AutoRestart is set to false because GenerateAnyway is true"));
-        STATE.optLetsEncrypt && startLetsEncryptDaemon(STATE.urlsArray, STATE.__sslFolder, STATE.daysRemaining, certificateCallback, STATE.optGenerateAnyway, STATE.optStaging, STATE.optAutoRestart, countdownHandler, countdownTime);
+        STATE.optLetsEncrypt && startLetsEncryptDaemon(STATE.urlsArray, STATE.__sslFolder, certificateCallback, STATE.optGenerateAnyway, STATE.optStaging);
     },
     redirect: (res, req) => {
         res.writeHead(STATE.REDIRECT, { [STATE.REDIRECT_LOCATION]: `${STATE.HTTPS}${req.headers.host}${req.url}` });
