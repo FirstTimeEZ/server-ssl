@@ -118,7 +118,7 @@ export const STATE = {
         if (!existsSync(PK) || !existsSync(CERT)) {
             !existsSync(SSL) && mkdirSync(SSL);
 
-            runCommandSync(' req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ' + SSL + '/private-key.pem -out ' + SSL + '/certificate.pem -days 365 -subj "/CN=localhost"');
+            runCommandSync('req -x509 -newkey rsa:2048 -nodes -sha256 -keyout ' + SSL + '/private-key.pem -out ' + SSL + '/certificate.pem -days 365 -subj "/CN=localhost"');
 
             PK = join(SSL, "private-key.pem");
             CERT = join(SSL, "certificate.pem");

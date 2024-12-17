@@ -1,7 +1,7 @@
 {
   "name": "server-ssl",
   "author": "FirstTimeEZ",
-  "version": "41.0.4",
+  "version": "41.0.5",
   "description": "Configurable SSL Server that runs on Node.js which can be used for development or production and can create and renew Lets Encrypt Certificates automatically using ACME",
   "main": "template; do not import; read the Getting Started of the README, maybe you want to use: lets-encrypt-acme-client",
   "type": "module",
