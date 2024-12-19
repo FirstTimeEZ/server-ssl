@@ -32,10 +32,8 @@ export const STATE = {
     __sslFolder: null,
     __pkPath: null,
     __certPath: null,
-    override: null,
     urlsArray: null,
     packageJson: null,
-    expireDate: null,
     configFile: null,
     // Args
     optPk: null,
@@ -61,8 +59,6 @@ export const STATE = {
     // Consts
     SUCCESS: 200,
     REDIRECT: 301,
-    TWELVE_HOURS_MILLISECONDS: 43200000,
-    ONE_DAY_MILLISECONDS: 86400000,
     PAGE_NOT_FOUND: 'ENOENT',
     ADDR_IN_USE: 'EADDRINUSE',
     ERROR_NOT_FOUND: '404 - File Not Found',
@@ -78,10 +74,6 @@ export const STATE = {
     REDIRECT_LOCATION: 'Location',
     IN_USE: " in use, please close whatever is using the port and restart",
     NODE_URL: "https://nodejs.org/dist/latest/win-x64",
-    NODE_YES: "Node.js is up to date",
-    NODE_NO: "There is a more recent version of Node.js",
-    NODE_FIRST: "First time running Node.js",
-    NODE_FN: "last_update.ez",
     NODE_VERSION: "v",
     NODE_URL_SPLITS: 7,
     // Methods
