@@ -34,7 +34,6 @@ export const STATE = {
     __certPath: null,
     urlsArray: null,
     packageJson: null,
-    configFile: null,
     // Args
     optPk: null,
     optCert: null,
@@ -78,19 +77,21 @@ export const STATE = {
     NODE_URL_SPLITS: 7,
     // Methods
     importRequiredArguments: (__rootDir) => {
+        let configFile = null;
+
         process.argv.slice(2).forEach((arg) => {
-            arg.includes("--config=") && (STATE.configFile = arg.split("=")[1]);
+            arg.includes("--config=") && (configFile = arg.split("=")[1]);
             arg.includes("--staging") && (STATE.optStaging = true);
         });
 
-        if (STATE.configFile === null || STATE.configFile === "") {
-            STATE.configFile = "server-ssl.sc";
+        if (configFile === null || configFile === "") {
+            configFile = "server-ssl.sc";
         }
 
         let configBuffer = null;
 
-        if (existsSync(STATE.configFile)) {
-            configBuffer = readFileSync(STATE.configFile)
+        if (existsSync(configFile)) {
+            configBuffer = readFileSync(configFile)
         }
         else {
             console.log("Provide a valid configuration file or use the default one (server-ssl.sc)");
