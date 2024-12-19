@@ -1,6 +1,6 @@
 [![](https://i.imgur.com/nSEjI0t.jpeg)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
-# server-ssl.js
+# server-ssl
 
 [`Node.js`](https://nodejs.org/en) server that is `SSL` by default that can be used for development or production
 
@@ -18,7 +18,7 @@ The easiest usage would be to serve a website:
 2. Put your website in the `website` folder
 3. Open the `server-ssl` folder in `Command Prompt` or `Git Bash`
 4. Run `npm install`
-5. Run `node server-ssl.js`
+5. Run `node server-ssl`
 6. View your website at `https://localhost`
 
 ![](https://i.imgur.com/ZYXoLMy.gif)
@@ -34,7 +34,7 @@ The default page/config is a simple [`API`](https://github.com/FirstTimeEZ/simpl
 
 ## Advanced/Production Usage
 
-`server-ssl.js` has a configuration file called `server-ssl.sc` that contains all the options you can change
+`server-ssl` has a configuration file called `server-ssl.sc` that contains all the options you can change
 
 #### Default Configuration `(server-ssl.sc)`
  
