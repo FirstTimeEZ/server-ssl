@@ -224,9 +224,9 @@ export const STATE = {
             console.log("Could not determine if Node.js version is recent");
         }
     },
-    loadLetsEncryptAcmeDaemon: (certificateCallback) => {
+    loadLetsEncryptAcmeDaemon: (certificateCallback, dnsProvider) => {
         STATE.optLetsEncrypt && STATE.optDomains !== null && (STATE.urlsArray = STATE.extractDomainsAnyFormat(STATE.optDomains));
-        STATE.optLetsEncrypt && startLetsEncryptDaemon(STATE.urlsArray, STATE.__sslFolder, certificateCallback, STATE.optGenerateAnyway, STATE.optStaging);
+        STATE.optLetsEncrypt && startLetsEncryptDaemon(STATE.urlsArray, STATE.__sslFolder, certificateCallback, STATE.optGenerateAnyway, STATE.optStaging, dnsProvider);
     },
     redirect: (res, req) => {
         res.writeHead(STATE.REDIRECT, { [STATE.REDIRECT_LOCATION]: `${STATE.HTTPS}${req.headers.host}${req.url}` });

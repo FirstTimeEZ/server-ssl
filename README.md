@@ -2,9 +2,11 @@
 
 # server-ssl.js
 
-Configurable `SSL Server` that runs on [`Node.js`](https://nodejs.org/en) which can be used for development or production and can create and renew `Lets Encrypt Certificates` automatically using `ACME`
+Configurable `SSL Server` that runs on [`Node.js`](https://nodejs.org/en) which can be used for development or production
 
-Designed to get out of your way so you can still change anything about `https.createServer`.
+Create and renew `Lets Encrypt Certificates` automatically using `ACME` using `DNS-01` with supported providers or `HTTP-01`
+
+Designed to get out of your way so you can still change _anything_
 
 --------
 
@@ -70,6 +72,27 @@ The certificates will be changed automatically when they are updated, you don't 
 ```
 node server-ssl.js --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
 ```
+
+### Wild Card Certificates
+
+You can generate `Wild Card Certificates` if you use a supported `DNS-01` provider
+
+At this present moment that is only `Cloud Flare`
+
+```
+let dnsProvider = {
+    name: "Cloud Flare",
+    token: "apiTokenWithDnsEditPermission",
+    zone: "zoneId" // optional if it cant be found automatically.
+}
+```
+
+Then to generate the certificate add a wildcard to the apex, eg. `*.ssl.boats`
+
+```
+--domains=['*.ssl.boats'] --staging
+```
+
 --------
 
 ### Always Redirect HTTP to HTTPS

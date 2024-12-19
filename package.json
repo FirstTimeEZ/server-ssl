@@ -26,8 +26,8 @@
   ],
   "license": "Apache-2.0",
   "dependencies": {
-    "base-acme-client": "^30.0.2",
-    "lets-encrypt-acme-client": "^30.0.2",
+    "base-acme-client": "^30.0.3",
+    "lets-encrypt-acme-client": "^40.0.1",
     "simple-api-router": "^1.1.1",
     "simple-open-ssl": "^1.0.7"
   },

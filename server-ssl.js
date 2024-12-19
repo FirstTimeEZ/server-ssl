@@ -24,6 +24,7 @@ API.addEndpoint(new Endpoint("time", "GET", (req, res) => {
 }));
 
 const HTTPS_SERVER = createServerHTTPS(STATE.loadDefaultSecureContext(), (req, res) => {
+    //const host = req.headers.host; // e.g., api.example.com
     let route = undefined;
 
     if (req.url === STATE.WEBSITE_ROOT) {
@@ -40,6 +41,13 @@ const HTTPS_SERVER = createServerHTTPS(STATE.loadDefaultSecureContext(), (req, r
 
 STATE.startHttpChallengeListener();  // Lets Encrypt! HTTP-01 ACME Challenge Mixin - Always Redirects HTTP to HTTPS unless doing a ACME Challenge
 
-STATE.loadLetsEncryptAcmeDaemon(() => { STATE.loadNewSecureContext(HTTPS_SERVER); });
+let dnsProvider = null;
+
+// dnsProvider = {
+//     name: "Cloud Flare",
+//     token: "apiTokenWithDnsEditPermission"
+// }
+
+STATE.loadLetsEncryptAcmeDaemon(() => { STATE.loadNewSecureContext(HTTPS_SERVER); }, dnsProvider);
 //                              ^^ Update Certificates Callback
 STATE.checkNodeForUpdates(); // Check Node.js version
