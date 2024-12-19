@@ -93,6 +93,8 @@ Then to generate the certificate add a wildcard to the apex, eg. `*.ssl.boats`
 --domains=['*.ssl.boats'] --staging
 ```
 
+[![](https://i.imgur.com/XA82Kt7.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+
 --------
 
 ### Always Redirect HTTP to HTTPS
