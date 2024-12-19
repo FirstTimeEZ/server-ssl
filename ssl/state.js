@@ -95,112 +95,108 @@ export const STATE = {
             STATE.configFile = "server-ssl.sc";
         }
 
-        let config = null;
+        let configBuffer = null;
 
         if (existsSync(STATE.configFile)) {
-            config = readFileSync(STATE.configFile)
+            configBuffer = readFileSync(STATE.configFile)
         }
         else {
             console.log("Provide a valid configuration file or use the default one (server-ssl.sc)");
             process.exit(0);
         }
 
-        const map = new Map();
+        const configMap = new Map();
 
-        if (config !== null) {
-            const configText = config.toString('utf-8');
+        if (configBuffer !== null) {
+            const fullConfigText = configBuffer.toString('utf-8');
+            const splitOnLines = fullConfigText.split("\r\n");
 
-            const split = configText.split("\r\n");
+            for (let index = 0; index < splitOnLines.length; index++) {
+                const splitLine = splitOnLines[index];
+                const splitValue = splitLine.split(" ::");
 
-            for (let index = 0; index < split.length; index++) {
-                const splitAgain = split[index];
-
-                const split2 = splitAgain.split(" ::");
-
-                for (let index = 0; index < split2.length; index++) {
-                    split2[index] = split2[index].trim();
+                for (let index = 0; index < splitValue.length; index++) {
+                    splitValue[index] = splitValue[index].trim();
                 }
 
-                for (let index = 0; index < split2.length; index++) {
-                    const element = split2[index];
-                    index++;
-                    const element2 = split2[index];
+                for (let index = 0; index < splitValue.length; index++) {
+                    const key = splitValue[index++];
+                    const value = splitValue[index];
 
-                    if (element2 == undefined || element == undefined || element == '') {
+                    if (value == undefined || key == undefined || key == '') {
                         continue;
                     }
 
-                    map.set(element, element2);
+                    configMap.set(key, value);
                 }
             }
 
-            map.forEach((value, key) => {
+            configMap.forEach((value, key) => {
                 if (value === 'false') {
-                    map.set(key, false);
+                    configMap.set(key, false);
                 } else if (value === 'true') {
-                    map.set(key, true);
+                    configMap.set(key, true);
                 }
                 else if (value === '""') {
-                    map.set(key, undefined);
+                    configMap.set(key, undefined);
                 }
                 else if (value.startsWith('"')) {
-                    map.set(key, value.replaceAll('"', ''));
+                    configMap.set(key, value.replaceAll('"', ''));
                 }
                 else if (!isNaN(value)) {
-                    map.set(key, Number(value));
+                    configMap.set(key, Number(value));
                 }
 
             });
         }
 
-
-        const useStaging = map.get("useStaging");
+        const useStaging = configMap.get("useStaging");
         useStaging != undefined && !STATE.optStaging && (STATE.optStaging = useStaging);
-        
-        const portHttps = map.get("portHttps");
+
+        const portHttps = configMap.get("portHttps");
         portHttps != undefined && (STATE.optPort = portHttps);
-        
-        const portHttp = map.get("portHttp");
+
+        const portHttp = configMap.get("portHttp");
         portHttp != undefined && (STATE.optPortHttp = portHttp);
-        
-        const certificate = map.get("certificate");
+
+        const certificate = configMap.get("certificate");
         certificate != undefined && (STATE.optCert = certificate);
-        
-        const privateKey = map.get("private-key");
+
+        const privateKey = configMap.get("private-key");
         privateKey != undefined && (STATE.optPk = privateKey);
-        
-        const websiteRoot = map.get("websiteRoot");
+
+        const websiteRoot = configMap.get("websiteRoot");
         websiteRoot != undefined && (STATE.optWebsite = websiteRoot);
-        
-        const entryPage = map.get("entryPage");
+
+        const entryPage = configMap.get("entryPage");
         entryPage != undefined && (STATE.optEntry = entryPage);
-        
-        const errorRoot = map.get("errorRoot");
+
+        const errorRoot = configMap.get("errorRoot");
         errorRoot != undefined && (STATE.optError = errorRoot);
-        
-        const noCheckNodeVersion = map.get("noCheckNodeVersion");
+
+        const noCheckNodeVersion = configMap.get("noCheckNodeVersion");
         noCheckNodeVersion != undefined && (STATE.optNoVersionCheck = noCheckNodeVersion);
-        
-        const useLetsEncrypt = map.get("useLetsEncrypt");
+
+        const useLetsEncrypt = configMap.get("useLetsEncrypt");
         useLetsEncrypt != undefined && (STATE.optLetsEncrypt = useLetsEncrypt);
-        
-        const domains = map.get("domains");
+
+        const domains = configMap.get("domains");
         domains != undefined && (STATE.optDomains = domains);
-        
-        const generateCertAnyway = map.get("generateCertAnyway");
+
+        const generateCertAnyway = configMap.get("generateCertAnyway");
         generateCertAnyway != undefined && (STATE.optGenerateAnyway = generateCertAnyway);
-        
-        const useDnsProvider = map.get("useDnsProvider");
+
+        const useDnsProvider = configMap.get("useDnsProvider");
         useDnsProvider != undefined && (STATE.optUseDnsProvider = useDnsProvider);
-        
-        const providerName = map.get("providerName");
+
+        const providerName = configMap.get("providerName");
         providerName != undefined && (STATE.optProviderName = providerName);
-        
-        const providerToken = map.get("providerToken");
+
+        const providerToken = configMap.get("providerToken");
         providerToken != undefined && (STATE.optProviderToken = providerToken);
-        
-        const providerZone = map.get("providerZone");
-        providerZone != undefined && (STATE.optProviderZone = providerZone);        
+
+        const providerZone = configMap.get("providerZone");
+        providerZone != undefined && (STATE.optProviderZone = providerZone);
 
         if (STATE.optLetsEncrypt === true) {
             STATE.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), STATE.optLetsEncrypt = null);
