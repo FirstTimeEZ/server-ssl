@@ -153,31 +153,54 @@ export const STATE = {
             });
         }
 
-        map.get("useStaging") != undefined && (STATE.optStaging = map.get("useStaging"));
 
-        map.get("portHttps") != undefined && (STATE.optPort = map.get("portHttps"));
-        map.get("portHttp") != undefined && (STATE.optPortHttp = map.get("portHttp"));
-
-        map.get("certificate") != undefined && (STATE.optCert = map.get("certificate"));
-        map.get("private-key") != undefined && (STATE.optPk = map.get("private-key"));
-
-        map.get("websiteRoot") != undefined && (STATE.optWebsite = map.get("websiteRoot"));
-        map.get("entryPage") != undefined && (STATE.optEntry = map.get("entryPage"));
-
-        map.get("errorRoot") != undefined && (STATE.optError = map.get("errorRoot"));
-
-        map.get("noCheckNodeVersion") != undefined && (STATE.optNoVersionCheck = map.get("noCheckNodeVersion"));
-
-        map.get("useLetsEncrypt") != undefined && (STATE.optLetsEncrypt = map.get("useLetsEncrypt"));
-
-        map.get("domains") != undefined && (STATE.optDomains = map.get("domains"));
-
-        map.get("generateCertAnyway") != undefined && (STATE.optGenerateAnyway = map.get("generateCertAnyway"));
-
-        map.get("useDnsProvider") != undefined && (STATE.optUseDnsProvider = map.get("useDnsProvider"));
-        map.get("providerName") != undefined && (STATE.optProviderName = map.get("providerName"));
-        map.get("providerToken") != undefined && (STATE.optProviderToken = map.get("providerToken"));
-        map.get("providerZone") != undefined && (STATE.optProviderZone = map.get("providerZone"));
+        const stage = map.get("useStaging");
+        stage != undefined && (STATE.optStaging = stage);
+        
+        const portHttps = map.get("portHttps");
+        portHttps != undefined && (STATE.optPort = portHttps);
+        
+        const portHttp = map.get("portHttp");
+        portHttp != undefined && (STATE.optPortHttp = portHttp);
+        
+        const certificate = map.get("certificate");
+        certificate != undefined && (STATE.optCert = certificate);
+        
+        const privateKey = map.get("private-key");
+        privateKey != undefined && (STATE.optPk = privateKey);
+        
+        const websiteRoot = map.get("websiteRoot");
+        websiteRoot != undefined && (STATE.optWebsite = websiteRoot);
+        
+        const entryPage = map.get("entryPage");
+        entryPage != undefined && (STATE.optEntry = entryPage);
+        
+        const errorRoot = map.get("errorRoot");
+        errorRoot != undefined && (STATE.optError = errorRoot);
+        
+        const noCheckNodeVersion = map.get("noCheckNodeVersion");
+        noCheckNodeVersion != undefined && (STATE.optNoVersionCheck = noCheckNodeVersion);
+        
+        const useLetsEncrypt = map.get("useLetsEncrypt");
+        useLetsEncrypt != undefined && (STATE.optLetsEncrypt = useLetsEncrypt);
+        
+        const domains = map.get("domains");
+        domains != undefined && (STATE.optDomains = domains);
+        
+        const generateCertAnyway = map.get("generateCertAnyway");
+        generateCertAnyway != undefined && (STATE.optGenerateAnyway = generateCertAnyway);
+        
+        const useDnsProvider = map.get("useDnsProvider");
+        useDnsProvider != undefined && (STATE.optUseDnsProvider = useDnsProvider);
+        
+        const providerName = map.get("providerName");
+        providerName != undefined && (STATE.optProviderName = providerName);
+        
+        const providerToken = map.get("providerToken");
+        providerToken != undefined && (STATE.optProviderToken = providerToken);
+        
+        const providerZone = map.get("providerZone");
+        providerZone != undefined && (STATE.optProviderZone = providerZone);        
 
         if (STATE.optLetsEncrypt === true) {
             STATE.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), STATE.optLetsEncrypt = null);
