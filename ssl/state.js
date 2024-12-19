@@ -36,6 +36,7 @@ export const STATE = {
     urlsArray: null,
     packageJson: null,
     expireDate: null,
+    configFile: null,
     // Args
     optPk: null,
     optCert: null,
@@ -49,6 +50,11 @@ export const STATE = {
     optGenerateAnyway: null,
     optPort: process.env.PORT || 443,
     optPortHttp: process.env.PORT_HTTP || 80,
+    // DNS Provider Config
+    optUseDnsProvider: null,
+    optProviderName: null,
+    optProviderToken: null,
+    optProviderZone: null,
     // Pages
     ERROR_404_PAGE: null,
     ERROR_500_PAGE: null,
@@ -81,24 +87,97 @@ export const STATE = {
     // Methods
     importRequiredArguments: (__rootDir) => {
         process.argv.slice(2).forEach((arg) => {
-            let rightSide = arg.split("=")[1];
-            // Server
-            arg.includes("--port=") && (STATE.optPort = rightSide);
-            arg.includes("--portHttp=") && (STATE.optPortHttp = rightSide);
-            arg.includes("--cert=") && (STATE.optCert = rightSide);
-            arg.includes("--pk=") && (STATE.optPk = rightSide);
-            arg.includes("--site=") && (STATE.optWebsite = rightSide);
-            arg.includes("--error=") && (STATE.optError = rightSide);
-            arg.includes("--entry=") && (STATE.optEntry = rightSide);
-            // Node Version Check
-            arg.includes("--noVersionCheck") && (STATE.optNoCheckNodeVersion = true);
-            arg.includes("--noAutoUpdate") && (STATE.optNoCheckNodeVersion = true); // old flag
-            // Lets Encrypt!
-            arg.includes("--domains=") && (STATE.optDomains = rightSide);
-            arg.includes("--letsEncrypt") && (STATE.optLetsEncrypt = true);
-            arg.includes("--generateAnyway") && (STATE.optGenerateAnyway = true);
+            arg.includes("--config=") && (STATE.configFile = arg.split("=")[1]);
             arg.includes("--staging") && (STATE.optStaging = true);
         });
+
+        if (STATE.configFile === null || STATE.configFile === "") {
+            STATE.configFile = "server-ssl.sc";
+        }
+
+        let config = null;
+
+        if (existsSync(STATE.configFile)) {
+            config = readFileSync(STATE.configFile)
+        }
+        else {
+            console.log("Provide a valid configuration file or use the default one (server-ssl.sc)");
+            process.exit(0);
+        }
+
+        const map = new Map();
+
+        if (config !== null) {
+            const configText = config.toString('utf-8');
+
+            const split = configText.split("\r\n");
+
+            for (let index = 0; index < split.length; index++) {
+                const splitAgain = split[index];
+
+                const split2 = splitAgain.split(" ::");
+
+                for (let index = 0; index < split2.length; index++) {
+                    split2[index] = split2[index].trim();
+                }
+
+                for (let index = 0; index < split2.length; index++) {
+                    const element = split2[index];
+                    index++;
+                    const element2 = split2[index];
+
+                    if (element2 == undefined || element == undefined || element == '') {
+                        continue;
+                    }
+
+                    map.set(element, element2);
+                }
+            }
+
+            map.forEach((value, key) => {
+                if (value === 'false') {
+                    map.set(key, false);
+                } else if (value === 'true') {
+                    map.set(key, true);
+                }
+                else if (value === '""') {
+                    map.set(key, undefined);
+                }
+                else if (value.startsWith('"')) {
+                    map.set(key, value.replaceAll('"', ''));
+                }
+                else if (!isNaN(value)) {
+                    map.set(key, Number(value));
+                }
+
+            });
+        }
+
+        map.get("useStaging") != undefined && (STATE.optStaging = map.get("useStaging"));
+
+        map.get("portHttps") != undefined && (STATE.optPort = map.get("portHttps"));
+        map.get("portHttp") != undefined && (STATE.optPortHttp = map.get("portHttp"));
+
+        map.get("certificate") != undefined && (STATE.optCert = map.get("certificate"));
+        map.get("private-key") != undefined && (STATE.optPk = map.get("private-key"));
+
+        map.get("websiteRoot") != undefined && (STATE.optWebsite = map.get("websiteRoot"));
+        map.get("entryPage") != undefined && (STATE.optEntry = map.get("entryPage"));
+
+        map.get("errorRoot") != undefined && (STATE.optError = map.get("errorRoot"));
+
+        map.get("noCheckNodeVersion") != undefined && (STATE.optNoVersionCheck = map.get("noCheckNodeVersion"));
+
+        map.get("useLetsEncrypt") != undefined && (STATE.optLetsEncrypt = map.get("useLetsEncrypt"));
+
+        map.get("domains") != undefined && (STATE.optDomains = map.get("domains"));
+
+        map.get("generateCertAnyway") != undefined && (STATE.optGenerateAnyway = map.get("generateCertAnyway"));
+
+        map.get("useDnsProvider") != undefined && (STATE.optUseDnsProvider = map.get("useDnsProvider"));
+        map.get("providerName") != undefined && (STATE.optProviderName = map.get("providerName"));
+        map.get("providerToken") != undefined && (STATE.optProviderToken = map.get("providerToken"));
+        map.get("providerZone") != undefined && (STATE.optProviderZone = map.get("providerZone"));
 
         if (STATE.optLetsEncrypt === true) {
             STATE.optDomains === null && (console.log("You must specify at least one domain to use --letsEncrypt"), STATE.optLetsEncrypt = null);
@@ -224,9 +303,12 @@ export const STATE = {
             console.log("Could not determine if Node.js version is recent");
         }
     },
-    loadLetsEncryptAcmeDaemon: (certificateCallback, dnsProvider) => {
+    loadLetsEncryptAcmeDaemon: (certificateCallback) => {
         STATE.optLetsEncrypt && STATE.optDomains !== null && (STATE.urlsArray = STATE.extractDomainsAnyFormat(STATE.optDomains));
-        STATE.optLetsEncrypt && startLetsEncryptDaemon(STATE.urlsArray, STATE.__sslFolder, certificateCallback, STATE.optGenerateAnyway, STATE.optStaging, dnsProvider);
+        STATE.optLetsEncrypt && startLetsEncryptDaemon(STATE.urlsArray, STATE.__sslFolder, certificateCallback,
+            STATE.optGenerateAnyway,
+            STATE.optStaging,
+            STATE.optUseDnsProvider ? { name: STATE.optProviderName, token: STATE.optProviderToken, zone: STATE.optProviderZone } : null);
     },
     redirect: (res, req) => {
         res.writeHead(STATE.REDIRECT, { [STATE.REDIRECT_LOCATION]: `${STATE.HTTPS}${req.headers.host}${req.url}` });
