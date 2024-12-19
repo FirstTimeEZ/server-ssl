@@ -154,8 +154,8 @@ export const STATE = {
         }
 
 
-        const stage = map.get("useStaging");
-        stage != undefined && (STATE.optStaging = stage);
+        const useStaging = map.get("useStaging");
+        useStaging != undefined && !STATE.optStaging && (STATE.optStaging = useStaging);
         
         const portHttps = map.get("portHttps");
         portHttps != undefined && (STATE.optPort = portHttps);
