@@ -2,15 +2,15 @@
 
 # server-ssl.js
 
-Configurable `SSL Server` that runs on [`Node.js`](https://nodejs.org/en) which can be used for development or production
-
-Create and renew `Lets Encrypt Certificates` automatically using `ACME` using `DNS-01` with supported providers or `HTTP-01`
+[`Node.js`](https://nodejs.org/en) server that is `SSL` by default that can be used for development or production
 
 Designed to get out of your way so you can still change _anything_
 
---------
+Creates and renews `Lets Encrypt Certificates` automatically using `ACME`
 
-### Getting Started
+If you use `CloudFlare` you can get `Wildcard Certificates`
+
+## Getting Started
 
 The easiest usage would be to serve a website:
 
@@ -21,109 +21,82 @@ The easiest usage would be to serve a website:
 5. Run `node server-ssl.js`
 6. View your website at `https://localhost`
 
-[![](https://i.imgur.com/0IVqrfn.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+![](https://i.imgur.com/ZYXoLMy.gif)
+
+You can also use different kinds of `Lets Encrypt!` certificates, see configuration below.
+
+![](https://i.imgur.com/mQ4uaxL.gif)
+
 
 The default page/config is a simple [`API`](https://github.com/FirstTimeEZ/simple-api-router) that serves and displays the `time`
 
 [![](https://i.imgur.com/DEbJVUq.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
-### Advanced/Production Usage
+## Advanced/Production Usage
 
-`node server-ssl.js` takes your arguments and starts the server
+`server-ssl.js` has a configuration file called `server-ssl.sc` that contains all the options you can change
 
+#### Default Configuration `(server-ssl.sc)`
+ 
 ```
-# Start for production (Lets Encrypt!) with SAN Extension
-node server-ssl.js --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
-```
+portHttps          :: 443                                // The port number for HTTPS
+portHttp           :: 80                                 // The port number for HTTP that will be redirected
 
-[![](https://i.imgur.com/BT8EEWj.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+certificate        :: "certificate.pem"                  // The path to the certificate file.
+private-key        :: "private-key.pem"                  // The path to the private key for the certificate.
 
-### Optional Arguments
+websiteRoot        :: "wwwroot"                          // The directory for the website files
+entryPage          :: "index.html"                       // The page to use for the websites entry point 
+errorRoot          :: "error"                            // The directory for error messages (404,500)
 
-`server-ssl.js` has some optional arguments you can use in production if the defaults aren't enough.
+noCheckNodeVersion :: false                              // True to skip checking Node.js version
 
-| Arguments/Flags       | Description                                      | Default Value         |
-|-------------------------|----------------------------------|-----------------------|
-| `--port=`      | The port number for `HTTPS` | `443` |
-| `--portHttp=`  | The port number for HTTP that will be redirected | `80` |
-| `--cert=`      | The path to the `SSL` certificate file. | `"certificate.pem"` |
-| `--pk=`        | The path to the private key file for the `SSL` certificate. | `"private-key.pem"` |
-| `--site=`      | The directory for the website files | `"wwwroot"` |
-| `--error=`     | The directory for error messages (404,500) | `"error"` |
-| `--entry=`     | The page to use for the entry point | `"index.html"` |
+useLetsEncrypt     :: false                              // Use Lets Encrypt! to generate a certificate
+domains            :: ["ssl.boats","www.ssl.boats"]      // Domains to generate the certificate for
+generateCertAnyway :: false                              // True to generate before the recommended time
+useStaging         :: false                              // True to use the staging server to avoid rate limits
 
-All Arguments are case sensitive.
-
-### Use Lets Encrypt!
-
-You can use `Lets Encrypt` to generate certificates.
-
-Certificates are valid for `90 days` but are renewed automatically sooner.
-
-The certificates will be changed automatically when they are updated, you don't need to do anything.
-
-| Automated Lets Encrypt!       | Description                                      |
-|-------------------------|----------------------------------|
-| `--letsEncrypt` | `Lets Encrypt!` should be used to generate 90 day certificates automatically |
-| `--domains=` | Domains to generate certificates for, this can not include wild cards, this should be an array. eg. `--domains=['www.ssl.boats','ssl.boats']` |
-| `--generateAnyway` | Certificates should always be generated when the server starts, this could get you rate limited, maybe use `--staging`  |
-| `--staging` | The `Lets Encrypt!` staging server should be used instead of production |
-
-```
-node server-ssl.js --letsEncrypt --domains=['www.ssl.boats','ssl.boats']
+useDnsProvider     :: false                              // Use the DNS-01 Challenge to generate certificate
+providerName       :: "Cloud Flare"                      // Name of supported DNS Provider
+providerToken      :: "apiTokenWithDnsEditPermission"    // API Token for DNS Provider
+providerZone       :: ""                                 // ZoneId for DNS Provider, may found automatically.
 ```
 
-### Wild Card Certificates
+#### Multiple Configuration Files
+
+You can create multiple configuration files and choose which one to load as an argument.
+
+```
+node server-ssl --config="server-ssl-staging.sc"
+```
+
+If no argument is provided the default configuration file is loaded. `(server-ssl.sc)`
+
+#### Generate Wild Card Certificates
 
 You can generate `Wild Card Certificates` if you use a supported `DNS-01` provider
 
 At this present moment that is only `Cloud Flare`
 
-```
-let dnsProvider = {
-    name: "Cloud Flare",
-    token: "apiTokenWithDnsEditPermission",
-    zone: "zoneId" // optional if it cant be found automatically.
-}
-```
+![](https://i.imgur.com/R132a6z.gif)
 
-Then to generate the certificate add a wildcard to the apex, eg. `*.ssl.boats`
+#### Generate SAN Certificates
 
-```
---domains=['*.ssl.boats'] --staging
-```
+These certificates can have up to `50` sub-domains and no `Wild Card`
 
-[![](https://i.imgur.com/XA82Kt7.gif)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
+You can generate `Lets Encrypt Certificates` with the `SAN Extension` using the `HTTP-01` challenge, 
 
---------
+This is the default configuration.
 
-### Always Redirect HTTP to HTTPS
+![](https://i.imgur.com/VkOrZcX.gif)
+
+#### Always Redirects `HTTP` to `HTTPS`
 
 `HTTP` requests from end users are always redirected to `HTTPS`
 
 `ACME Challenges` transparently happen over `HTTP` to create/issue a new certificate
 
---------
-
-### Anything [Node.js](https://nodejs.org/docs/latest/api/) can do..
-
-At the end of the day, this is just a [`Node.js`](https://nodejs.org/docs/latest/api/) server that sets up `SSL` automatically
-
-```
-const HTTPS_SERVER = createServerHTTPS(STATE.loadDefaultSecureContext(), (req, res) => {
-    // do whatever you like
-})...
-```
-
-You can remove everything inside `HTTPS_SERVER` and do whatever you like.
-
-There are also helpers you can use in `STATE`
-
---------
-
-### Default Layout
-
-This layout keeps the project organized and maintainable, separating error handling, website content, and server configuration.
+## Default Layout
 
 ```
 /root
@@ -150,12 +123,11 @@ This layout keeps the project organized and maintainable, separating error handl
 ├── /wwwroot
 │   └── index.html <---- Your website goes here
 │
+├── server-ssl.sc
 └── server-ssl.js
 ```
 
---------
-
-### 404/500 Pages
+## 404/500 Pages
 
 The server is configured to serve custom `404` and `500` error pages, instead of plain-text.
 
@@ -166,18 +138,3 @@ Currently everything is treated like a `Server Error` except for `Not Found`
 [![](https://i.imgur.com/l8DMrQY.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip) [![](https://i.imgur.com/mP2d4vi.png)](https://github.com/FirstTimeEZ/server-ssl/archive/refs/heads/main.zip)
 
 These pages will automatically select light/dark mode
-
---------
-
-### Bring Your Own SSL Certificate
-
-Convert your `certificate` and `private key` to `PEM` format and place them in the `ssl` folder
-
-```
-├── /ssl
-│   ├── /production <> staging
-│   │   │
-│   │   ├── ...
-│   │   ├── private-key.pem <--- Your private key goes here
-│   │   └── certificate.pem <--- Your certificate goes here
-```
