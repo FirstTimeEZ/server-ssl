@@ -84,7 +84,7 @@ At this present moment that is only `Cloud Flare`
 
 These certificates can have up to `50` sub-domains and no `Wild Card`
 
-You can generate `Lets Encrypt Certificates` with the `SAN Extension` using the `HTTP-01` challenge, 
+You can generate `Lets Encrypt Certificates` with the `SAN Extension` using the `HTTP-01` challenge 
 
 This is the default configuration.
 
