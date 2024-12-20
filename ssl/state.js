@@ -18,14 +18,16 @@
 import { join, extname as _extname } from 'path';
 import { createServer as createServerHTTP } from 'http';
 import { readFile, existsSync, readFileSync, mkdirSync } from 'fs';
-import { checkChallengesMixin, startLetsEncryptDaemon } from 'lets-encrypt-acme-client';
 import { fetchAndRetryUntilOk } from 'base-acme-client';
 import { runCommandSync } from 'simple-open-ssl';
+import LetsEncryptDaemon from 'lets-encrypt-acme-client';
 
 /**
 * **SSL-Server** configuration state
 */
 export const STATE = {
+    // LetsEncrypt! Daemon
+    __daemon: new LetsEncryptDaemon(),
     // Config
     __rootDir: null,
     __websiteDir: null,
@@ -315,9 +317,9 @@ export const STATE = {
             console.log("Could not determine if Node.js version is recent");
         }
     },
-    loadLetsEncryptAcmeDaemon: (certificateCallback) => {
+    loadLetsEncryptAcmeDaemon: async (certificateCallback) => {
         STATE.optLetsEncrypt && STATE.optDomains !== null && (STATE.urlsArray = STATE.extractDomainsAnyFormat(STATE.optDomains));
-        STATE.optLetsEncrypt && startLetsEncryptDaemon(STATE.urlsArray, STATE.__sslFolder, certificateCallback,
+        STATE.optLetsEncrypt && await STATE.__daemon.startLetsEncryptDaemon(STATE.urlsArray, STATE.__sslFolder, certificateCallback,
             STATE.optGenerateAnyway,
             STATE.optStaging,
             STATE.optUseDnsProvider ? { name: STATE.optProviderName, token: STATE.optProviderToken, zone: STATE.optProviderZone } : null);
@@ -328,7 +330,7 @@ export const STATE = {
     },
     startHttpChallengeListener: () => {
         createServerHTTP(async (req, res) => {
-            if (STATE.optLetsEncrypt && await checkChallengesMixin(req, res)) { return; }
+            if (STATE.optLetsEncrypt && STATE.__daemon.checkChallengesMixin(req, res)) { return; }
 
             STATE.redirect(res, req);
         }).on('error', (e) => e.code === STATE.ADDR_IN_USE && console.error(`${STATE.optPortHttp}${STATE.IN_USE}`)).listen(STATE.optPortHttp, () => console.log(`${STATE.STARTED_HTTP}${STATE.optPort}`)); // Lets Encrypt! HTTP-01 ACME Challenge Mixin - Always Redirect HTTP to HTTPS unless doing a ACME Challenge
