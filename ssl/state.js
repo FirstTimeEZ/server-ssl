@@ -293,9 +293,9 @@ export const STATE = {
     },
     checkNodeForUpdates: async () => {
         if (STATE.optNoVersionCheck !== true) {
-            const response = await fetchAndRetryUntilOk(STATE.NODE_URL, { method: 'GET', redirect: 'follow' });
+            const response = await fetchAndRetryUntilOk(STATE.NODE_URL, { method: 'GET', redirect: 'follow' }, 3, true);
 
-            if (response.ok) {
+            if (response && response.ok) {
                 const split = response.url.split("/");
 
                 if (split.length === STATE.NODE_URL_SPLITS) {
